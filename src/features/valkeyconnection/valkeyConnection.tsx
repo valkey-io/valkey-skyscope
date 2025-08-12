@@ -1,8 +1,7 @@
 
 import { useState } from 'react';
-import { setConnecting as valkeySetConnecting, selectStatus, selectConnected } from './valkeyConnectionSlice';
+import { setConnecting as valkeySetConnecting } from './valkeyConnectionSlice';
 import { useAppDispatch } from '../../hooks/hooks';
-import { useSelector } from 'react-redux';
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -13,7 +12,6 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { SendCommand } from '../valkeycommand/valkeyCommand';
 
 export function Connection() {
     const dispatch = useAppDispatch();
@@ -22,9 +20,6 @@ export function Connection() {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
 
-    const valkeyconnectionStatus = useSelector(selectStatus)
-    const valkeyConnected = useSelector(selectConnected)
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         dispatch(valkeySetConnecting({ status: true, host, port, username, password }))
@@ -32,66 +27,61 @@ export function Connection() {
 
     return (
         <div>
-            <header>Connection Status: {valkeyconnectionStatus}</header>
             <div className="flex items-center justify-center min-h-screen">
-                {valkeyConnected ?
-                    <SendCommand />
-                    :
-                    <Card className="w-full max-w-sm">
-                        <CardHeader>
-                            <CardTitle>Connect to Valkey</CardTitle>
-                            <CardDescription>
-                                Enter your server's host and port to connect.
-                            </CardDescription>
+                <Card className="w-full max-w-sm">
+                    <CardHeader>
+                        <CardTitle>Connect to Valkey</CardTitle>
+                        <CardDescription>
+                            Enter your server's host and port to connect.
+                        </CardDescription>
 
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleSubmit}>
-                                <div className="flex flex-col gap-6">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="host">Host</Label>
-                                        <Input
-                                            id="host"
-                                            type="text"
-                                            value={host}
-                                            placeholder="localhost"
-                                            required
-                                            onChange={e => setHost(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="port">Port</Label>
-                                        <Input
-                                            id="port"
-                                            type="number"
-                                            value={port}
-                                            placeholder="6379"
-                                            required
-                                            onChange={e => setPort(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <div className="flex items-center">
-                                            <Label htmlFor="username">Username</Label>
-                                        </div>
-                                        <Input id="username" type="username" onChange={e => setUsername(e.target.value)} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <div className="flex items-center">
-                                            <Label htmlFor="password">Password</Label>
-                                        </div>
-                                        <Input id="password" type="password" onChange={(e) => setPassword(e.target.value)} />
-                                    </div>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit}>
+                            <div className="flex flex-col gap-6">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="host">Host</Label>
+                                    <Input
+                                        id="host"
+                                        type="text"
+                                        value={host}
+                                        placeholder="localhost"
+                                        required
+                                        onChange={e => setHost(e.target.value)}
+                                    />
                                 </div>
-                                <div className="grid gap-2 mt-8">
-                                    <Button type="submit" className="w-full">
-                                        Connect
-                                    </Button>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="port">Port</Label>
+                                    <Input
+                                        id="port"
+                                        type="number"
+                                        value={port}
+                                        placeholder="6379"
+                                        required
+                                        onChange={e => setPort(e.target.value)}
+                                    />
                                 </div>
-                            </form>
-                        </CardContent>
-                    </Card>
-                }
+                                <div className="grid gap-2">
+                                    <div className="flex items-center">
+                                        <Label htmlFor="username">Username</Label>
+                                    </div>
+                                    <Input id="username" type="username" onChange={e => setUsername(e.target.value)} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <div className="flex items-center">
+                                        <Label htmlFor="password">Password</Label>
+                                    </div>
+                                    <Input id="password" type="password" onChange={(e) => setPassword(e.target.value)} />
+                                </div>
+                            </div>
+                            <div className="grid gap-2 mt-8">
+                                <Button type="submit" className="w-full">
+                                    Connect
+                                </Button>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
             </div>
         </div>
 
