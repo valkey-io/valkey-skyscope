@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from "ws"
 import { GlideClient, Decoder } from "@valkey/valkey-glide"
-import {VALKEY} from "@common/constants.ts"
+import { VALKEY } from "../../../common/src/constants.ts"
 
 const wss = new WebSocketServer({ port: 8080 })
 

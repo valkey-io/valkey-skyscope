@@ -1,0 +1,8 @@
+{
+  "name": "valkey-common",
+  "version": "0.0.0",
+  "type": "module",
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

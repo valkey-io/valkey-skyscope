@@ -1,21 +1,21 @@
 {
-    "name": "server",
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "dev": "ts-node src/index.ts",
-        "build": "tsc -b",
-        "lint": "eslint ."
-    },
-    "dependencies": {
-        "@valkey/valkey-glide": "^2.0.1",
-        "server": "file:",
-        "ws": "^8.18.3"
-    },
-    "devDependencies": {
-        "@types/node": "^24.2.1",
-        "@types/ws": "^8.18.1",
-        "ts-node": "^10.9.2",
-        "typescript": "~5.8.3"
-    }
+  "name": "server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx tsx --enable-source-maps src/index.ts",
+    "build": "tsc -b",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@valkey/valkey-glide": "^2.0.1",
+    "server": "file:",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "@types/ws": "^8.18.1",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.8.3"
+  }
 }
