@@ -1,30 +1,21 @@
 import {
   LayoutDashboard,
-  Unplug,
   Send,
   HousePlug,
   ChartNoAxesCombined,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { setConnected as valkeySetConnected } from "@/state/valkey-features/connection/connectionSlice.ts";
 import { selectConnected } from "@/state/valkey-features/connection/connectionSelectors.ts";
 import { useSelector } from "react-redux";
-import { useAppDispatch } from "@/hooks/hooks";
-import { useNavigate, Link, useLocation } from "react-router";
+import { Link, useLocation } from "react-router";
 import { useState } from "react";
 
 export function AppSidebar() {
   const isConnected = useSelector(selectConnected);
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const handleDisconnect = () => {
-    dispatch(valkeySetConnected(false));
-    navigate("/connect");
-  };
 
   const getNavItemClasses = (path: string) => {
     return location.pathname === path
@@ -107,18 +98,6 @@ export function AppSidebar() {
       >
         {isExpanded ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
       </button>
-
-      {/* disconnect */}
-      {isConnected && (
-        <button
-          onClick={handleDisconnect}
-          className="w-full flex p-2 rounded text-tw-primary border-1 border-tw-primary hover:bg-tw-primary hover:text-white"
-          title="Disconnect"
-        >
-          <Unplug size={22} />
-          {isExpanded && <span className="ml-3">Disconnect</span>}
-        </button>
-      )}
     </nav>
   );
 }
