@@ -11,6 +11,7 @@ wss.on('connection', (ws: WebSocket) => {
     let client: GlideClient | undefined;
 
     ws.on('message', async (message) => {
+        console.log("Received message:", message.toString())
         const action = JSON.parse(message.toString());
 
         if (action.type === VALKEY.CONNECTION.setConnecting) {

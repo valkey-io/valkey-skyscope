@@ -1,11 +1,11 @@
-import { configureStore } from "@reduxjs/toolkit";
-import wsConnectionReducer from "@/state/wsconnection/wsConnectionSlice";
-import valkeyConnectionReducer from "@/state/valkey-features/connection/connectionSlice.ts";
-import valkeyCommandReducer from "@/state/valkey-features/command/commandSlice.ts";
-import valkeyInfoReducer from "@/state/valkey-features/info/infoSlice.ts";
-import { wsMiddleware } from "@/state/middleware/ws/wsMiddleware";
-import { valkeyMiddleware } from "@/state/middleware/valkey/valkeyMiddleware";
-import {VALKEY} from "@common/src/constants.ts"
+import { configureStore } from "@reduxjs/toolkit"
+import wsConnectionReducer from "@/state/wsconnection/wsConnectionSlice"
+import valkeyConnectionReducer from "@/state/valkey-features/connection/connectionSlice.ts"
+import valkeyCommandReducer from "@/state/valkey-features/command/commandSlice.ts"
+import valkeyInfoReducer from "@/state/valkey-features/info/infoSlice.ts"
+import { rxjsMiddleware } from "./state/middleware/rxjsMiddleware/rxjsMiddlware"
+import { VALKEY } from "@common/src/constants.ts"
+import { registerEpics } from "./state/epics/rootEpic"
 
 export const store = configureStore({
     reducer: {
@@ -15,10 +15,14 @@ export const store = configureStore({
         [VALKEY.STATS.name]: valkeyInfoReducer
     },
     middleware: getDefaultMiddleware => {
-        return getDefaultMiddleware().concat(wsMiddleware, valkeyMiddleware)
+        return getDefaultMiddleware({
+            thunk: false,
+        }).concat(rxjsMiddleware)
     },
     devTools: process.env.NODE_ENV !== 'production',
 })
+
+registerEpics(store)
 
 export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch

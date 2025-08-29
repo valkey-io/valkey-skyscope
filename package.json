@@ -20,5 +20,6 @@
   "scripts": {
     "dev": "concurrently \"npm --workspace apps/frontend run dev\" \"npm --workspace apps/server run dev\"",
     "lint": "eslint ."
-  }
+  },
+  "dependencies": {}
 }
