@@ -6,3 +6,4 @@ export const selectConnected = (state: RootState) => state[VALKEY.CONNECTION.nam
 export const selectConnecting = (state: RootState) => state[VALKEY.CONNECTION.name].connecting
 export const selectRedirected = (state: RootState) => state[VALKEY.CONNECTION.name].hasRedirected
 export const selectError = (state: RootState) => state[VALKEY.CONNECTION.name].status
+export const selectConnectionDetails = (state: RootState) => state[VALKEY.CONNECTION.name].connectionDetails

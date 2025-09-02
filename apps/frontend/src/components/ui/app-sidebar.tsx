@@ -5,6 +5,9 @@ import {
   ChartNoAxesCombined,
   ChevronLeft,
   ChevronRight,
+  Cog,
+  CircleQuestionMark,
+  Github,
 } from "lucide-react";
 import { selectConnected } from "@/state/valkey-features/connection/connectionSelectors.ts";
 import { useSelector } from "react-redux";
@@ -15,7 +18,6 @@ export function AppSidebar() {
   const isConnected = useSelector(selectConnected);
   const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
-
 
   const getNavItemClasses = (path: string) => {
     return location.pathname === path
@@ -43,52 +45,41 @@ export function AppSidebar() {
         </div>
 
         {/* menu items */}
-        {isConnected && (
-          <div className="mt-10">
-            <ul className="space-y-2">
-              <li>
+        <div className="mt-10">
+          <ul className="space-y-2">
+            {[
+              // Always show connect
+              { to: "/connect", title: "Connections", icon: HousePlug },
+              // Rest of the menu items only if connected
+              ...(isConnected
+                ? [
+                    {
+                      to: "/dashboard",
+                      title: "Dashboard",
+                      icon: LayoutDashboard,
+                    },
+                    { to: "/sendcommand", title: "Send Command", icon: Send },
+                    {
+                      to: "/",
+                      title: "Monitoring",
+                      icon: ChartNoAxesCombined,
+                    },
+                  ]
+                : []),
+            ].map(({ to, title, icon: Icon }) => (
+              <li key={to}>
                 <Link
-                  to="/connect"
-                  className={`flex p-2 ${getNavItemClasses("/connect")}`}
-                  title="Connections"
+                  to={to}
+                  className={`flex p-2 ${getNavItemClasses(to)}`}
+                  title={title}
                 >
-                  <HousePlug size={22} />
-                  {isExpanded && <span className="ml-3">Connections</span>}
+                  <Icon size={22} />
+                  {isExpanded && <span className="ml-3">{title}</span>}
                 </Link>
               </li>
-              <li>
-                <Link
-                  to="/dashboard"
-                  className={`flex p-2 ${getNavItemClasses("/dashboard")}`}
-                  title="Dashboard"
-                >
-                  <LayoutDashboard size={22} />
-                  {isExpanded && <span className="ml-3">Dashboard</span>}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/sendcommand"
-                  className={`flex p-2 ${getNavItemClasses("/sendcommand")}`}
-                  title="Send Command"
-                >
-                  <Send size={22} />
-                  {isExpanded && <span className="ml-3">Send Command</span>}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/"
-                  className={`flex p-2 ${getNavItemClasses("/")}`}
-                  title="Monitoring"
-                >
-                  <ChartNoAxesCombined size={22} />
-                  {isExpanded && <span className="ml-3">Monitoring</span>}
-                </Link>
-              </li>
-            </ul>
-          </div>
-        )}
+            ))}
+          </ul>
+        </div>
       </div>
       {/* expand/collapse sidebar */}
       <button
@@ -98,6 +89,44 @@ export function AppSidebar() {
       >
         {isExpanded ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
       </button>
+      <div>
+        <ul className="space-y-2">
+          {[
+            {
+              href: "https://github.com/",
+              title: "GitHub",
+              icon: Github,
+              isExternal: true,
+            },
+            { to: "/settings", title: "Settings", icon: Cog },
+            { to: "/learnmore", title: "Learn More", icon: CircleQuestionMark },
+          ].map((item) => (
+            <li key={item.to || item.href}>
+              {item.isExternal ? (
+                <a
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex p-2 text-gray-600 hover:text-tw-primary"
+                  title={item.title}
+                >
+                  <item.icon size={22} />
+                  {isExpanded && <span className="ml-3">{item.title}</span>}
+                </a>
+              ) : (
+                <Link
+                  to={item.to || ""}
+                  className={`flex p-2 ${getNavItemClasses(item.to || "")}`}
+                  title={item.title}
+                >
+                  <item.icon size={22} />
+                  {isExpanded && <span className="ml-3">{item.title}</span>}
+                </Link>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
     </nav>
   );
 }

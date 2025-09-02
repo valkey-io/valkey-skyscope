@@ -1,39 +1,78 @@
 import { useAppDispatch } from "@/hooks/hooks";
 import { X } from "lucide-react";
 
-type ConnectionFormProps = {
+type EditFormProps = {
   onClose: () => void;
 };
 
-import { setConnecting as valkeySetConnecting } from "@/state/valkey-features/connection/connectionSlice.ts";
-import { useState } from "react";
+import {
+  updateConnectionDetails,
+  setConnecting as valkeySetConnecting,
+} from "@/state/valkey-features/connection/connectionSlice.ts";
+import { setConnected as valkeySetConnected } from "@/state/valkey-features/connection/connectionSlice.ts";
+import { selectConnectionDetails } from "@/state/valkey-features/connection/connectionSelectors";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 
-function ConnectionForm({ onClose }: ConnectionFormProps) {
+function EditForm({ onClose }: EditFormProps) {
   const dispatch = useAppDispatch();
+  const currentConnection = useSelector(selectConnectionDetails);
   const [host, setHost] = useState("localhost");
   const [port, setPort] = useState("6379");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
+  // Load existing connection data when component mounts
+  useEffect(() => {
+    if (currentConnection) {
+      setHost(currentConnection.host);
+      setPort(currentConnection.port);
+      setUsername(currentConnection.username || "");
+      setPassword(currentConnection.password || "");
+    }
+  }, [currentConnection]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Update stored connection
     dispatch(
-      valkeySetConnecting({ status: true, host, port, username, password })
+      updateConnectionDetails({
+        host,
+        port,
+        username,
+        password,
+      })
     );
+
+    // Disconnect First
+    dispatch(valkeySetConnected(false));
+
+    // Then Reconnect
+    setTimeout(() => {
+      dispatch(
+        valkeySetConnecting({
+          status: true,
+          host,
+          port,
+          username,
+          password,
+        })
+      );
+    }, 100);
+
+    onClose();
   };
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center">
       <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg border">
         <div className="flex justify-between">
-          <h2 className="text-lg font-semibold">Add Connection</h2>
+          <h2 className="text-lg font-semibold">Edit Connection</h2>
           <button onClick={onClose} className="hover:text-tw-primary">
             <X size={20} />
           </button>
         </div>
-        <span className="text-sm font-light">
-          Enter your server's host and port to connect.
-        </span>
         <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
           <div>
             <label className="block mb-1 text-sm">Host</label>
@@ -82,7 +121,7 @@ function ConnectionForm({ onClose }: ConnectionFormProps) {
               type="submit"
               className="px-4 py-2 w-full bg-tw-primary text-white rounded hover:bg-tw-primary/90"
             >
-              Connect
+              Apply Changes
             </button>
           </div>
         </form>
@@ -91,4 +130,4 @@ function ConnectionForm({ onClose }: ConnectionFormProps) {
   );
 }
 
-export default ConnectionForm;
+export default EditForm;

@@ -3,6 +3,8 @@ import { selectData } from "@/state/valkey-features/info/infoSelectors.ts";
 import { Card } from "./ui/card";
 import { AppHeader } from "./ui/app-header";
 import { LayoutDashboard } from "lucide-react";
+import { selectConnectionDetails } from "@/state/valkey-features/connection/connectionSelectors";
+
 
 export function Dashboard() {
   const {
@@ -11,16 +13,16 @@ export function Dashboard() {
     connected_clients,
     keys_count,
     bytes_per_key,
-    tcp_port,
     server_name,
   } = useSelector(selectData);
+  const connectionDetails = useSelector(selectConnectionDetails);
   return (
     <div className="p-4">
       <AppHeader
         title="Dashboard"
         icon={<LayoutDashboard size={20} />}
         servername={server_name || ""}
-        port={tcp_port || ""}
+        port={connectionDetails.port}
       />
       <div className="flex flex-wrap gap-4">
         {[
