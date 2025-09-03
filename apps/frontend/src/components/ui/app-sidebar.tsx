@@ -21,20 +21,18 @@ export function AppSidebar() {
 
   const getNavItemClasses = (path: string) => {
     return location.pathname === path
-      ? "bg-tw-primary text-white border border-white rounded"
+      ? "bg-tw-primary text-white rounded"
       : "text-gray-600 hover:text-tw-primary";
   };
 
   return (
     <nav
       className={`bg-white ${
-        isExpanded ? "w-52 items-start" : "w-18 items-center"
-      } h-screen p-4 shadow-lg border-r-2 flex flex-col justify-between transition-all duration-300 items-center relative`}
+        isExpanded ? "w-52" : "w-18"
+      } h-screen p-4 pb-3 shadow-lg border-r-2 flex flex-col justify-between transition-all duration-300 items-start relative`}
     >
       <div
-        className={`flex ${
-          isExpanded ? "items-start" : "items-center"
-        }  flex-col`}
+        className="flex flex-col items-start w-full"
       >
         {/* Header */}
         <div className="flex items-center" title="Skyscope">
@@ -43,7 +41,6 @@ export function AppSidebar() {
             <span className="ml-3 font-bold text-lg">Skyscope</span>
           )}
         </div>
-
         {/* menu items */}
         <div className="mt-10">
           <ul className="space-y-2">
@@ -70,7 +67,7 @@ export function AppSidebar() {
               <li key={to}>
                 <Link
                   to={to}
-                  className={`flex p-2 ${getNavItemClasses(to)}`}
+                  className={`flex p-2 text-nowrap ${getNavItemClasses(to)} h-10`}
                   title={title}
                 >
                   <Icon size={22} />
@@ -89,25 +86,26 @@ export function AppSidebar() {
       >
         {isExpanded ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
       </button>
-      <div>
+      <div className="">
         <ul className="space-y-2">
           {[
             {
               href: "https://github.com/",
               title: "GitHub",
               icon: Github,
-              isExternal: true,
             },
             { to: "/settings", title: "Settings", icon: Cog },
             { to: "/learnmore", title: "Learn More", icon: CircleQuestionMark },
+            // External links use <a> tags with target="_blank"
+            // Internal links use <Link> for client-side routing
           ].map((item) => (
             <li key={item.to || item.href}>
-              {item.isExternal ? (
+              {item.href?.startsWith("https://") ? (
                 <a
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex p-2 text-gray-600 hover:text-tw-primary"
+                  className="flex p-2 text-nowrap items-center text-gray-600 hover:text-tw-primary h-10"
                   title={item.title}
                 >
                   <item.icon size={22} />
@@ -116,11 +114,11 @@ export function AppSidebar() {
               ) : (
                 <Link
                   to={item.to || ""}
-                  className={`flex p-2 ${getNavItemClasses(item.to || "")}`}
+                  className={`flex p-2 items-center ${getNavItemClasses(item.to || "")} h-10`}
                   title={item.title}
                 >
                   <item.icon size={22} />
-                  {isExpanded && <span className="ml-3">{item.title}</span>}
+                  {isExpanded && <span className="ml-3 text-nowrap">{item.title}</span>}
                 </Link>
               )}
             </li>
