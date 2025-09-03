@@ -1,5 +1,5 @@
-import { wsConnectionEpic } from './wsConnectionEpic';
-import { connectionEpic, sendRequestEpic, setDataEpic } from './valkeyEpics';
+import { wsConnectionEpic } from './wsEpics';
+import { connectionEpic, disconnectEpic, sendRequestEpic, setDataEpic } from './valkeyEpics';
 import { merge } from 'rxjs'
 import type { Store } from '@reduxjs/toolkit';
 
@@ -8,7 +8,8 @@ export const registerEpics = (store: Store) => {
         wsConnectionEpic(store),
         connectionEpic(store),
         sendRequestEpic(),
-        setDataEpic()
+        setDataEpic(),
+        disconnectEpic()
     ).subscribe({
         error: err => console.error('Epic error:', err),
     })

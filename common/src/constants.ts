@@ -23,8 +23,11 @@ export const makeNamespace = <
 
 export const VALKEY = {
     CONNECTION: makeNamespace("valkeyConnection", {
-        setConnecting: "setConnecting",
-        setConnected: "setConnected",
+        connectPending: "connectPending",
+        connectFulfilled: "connectFulfilled",
+        connectRejected: "connectRejected",
+        resetConnection: "resetConnection",
+        closeConnection: "closeConnection"
     } as const),
     COMMAND: makeNamespace("valkeyCommand", {
         sendFailed: "sendFailed",
@@ -35,3 +38,5 @@ export const VALKEY = {
         setData: "setData",
     } as const),
 } as const
+
+export const CONNECTED = "Connected"

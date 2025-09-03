@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { setRedirected } from "@/state/valkey-features/connection/connectionSlice.ts";
 import {
-  selectConnected,
+  selectStatus,
   selectConnectionDetails,
   selectRedirected,
 } from "@/state/valkey-features/connection/connectionSelectors.ts";
@@ -10,10 +10,11 @@ import { useAppDispatch } from "../hooks/hooks";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { selectData } from "@/state/valkey-features/info/infoSelectors.ts";
+import { resetConnection } from "@/state/valkey-features/connection/connectionSlice.ts";
 import { HousePlug, Unplug, Pencil } from "lucide-react";
-import { setConnected as valkeySetConnected } from "@/state/valkey-features/connection/connectionSlice.ts";
 import ConnectionForm from "./ui/connection-form";
 import EditForm from "./ui/edit-form";
+import { CONNECTED } from "@common/src/constants"
 
 export function Connection() {
   const dispatch = useAppDispatch();
@@ -24,11 +25,11 @@ export function Connection() {
   const connectionDetails = useSelector(selectConnectionDetails);
   const { server_name } = useSelector(selectData);
 
-  const isConnected = useSelector(selectConnected);
+  const isConnected = useSelector(selectStatus) === CONNECTED
   const hasRedirected = useSelector(selectRedirected);
 
   const handleDisconnect = () => {
-    dispatch(valkeySetConnected(false));
+    dispatch(resetConnection());
   };
 
   useEffect(() => {

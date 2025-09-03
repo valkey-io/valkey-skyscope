@@ -7,9 +7,9 @@ type EditFormProps = {
 
 import {
   updateConnectionDetails,
-  setConnecting as valkeySetConnecting,
+  connectPending,
 } from "@/state/valkey-features/connection/connectionSlice.ts";
-import { setConnected as valkeySetConnected } from "@/state/valkey-features/connection/connectionSlice.ts";
+import { resetConnection } from "@/state/valkey-features/connection/connectionSlice.ts";
 import { selectConnectionDetails } from "@/state/valkey-features/connection/connectionSelectors";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
@@ -46,13 +46,12 @@ function EditForm({ onClose }: EditFormProps) {
     );
 
     // Disconnect First
-    dispatch(valkeySetConnected(false));
+    dispatch(resetConnection());
 
     // Then Reconnect
     setTimeout(() => {
       dispatch(
-        valkeySetConnecting({
-          status: true,
+        connectPending({
           host,
           port,
           username,

@@ -14,7 +14,7 @@ wss.on('connection', (ws: WebSocket) => {
         console.log("Received message:", message.toString())
         const action = JSON.parse(message.toString());
 
-        if (action.type === VALKEY.CONNECTION.setConnecting) {
+        if (action.type === VALKEY.CONNECTION.connectPending) {
             client = await connectToValkey(ws, action.payload)
         }
         if (action.type === VALKEY.COMMAND.sendRequested && client) {
@@ -22,6 +22,11 @@ wss.on('connection', (ws: WebSocket) => {
         }
         if (action.type === VALKEY.STATS.setData && client) {
             await setDashboardData(client, ws)
+        }
+        if (action.type === VALKEY.CONNECTION.resetConnection) {
+            ws.send(JSON.stringify({
+                type: VALKEY.CONNECTION.closeConnection,
+            }))
         }
     })
     ws.onerror = (err) => {
@@ -52,7 +57,7 @@ async function connectToValkey(ws: WebSocket, payload: { host: string, port: num
         })
 
         ws.send(JSON.stringify({
-            type: VALKEY.CONNECTION.setConnected,
+            type: VALKEY.CONNECTION.connectFulfilled,
             payload: {
                 status: true,
             },
@@ -63,7 +68,7 @@ async function connectToValkey(ws: WebSocket, payload: { host: string, port: num
     catch (err) {
         console.log("Error connecting to Valkey", err)
         ws.send(JSON.stringify({
-            type: VALKEY.CONNECTION.setError,
+            type: VALKEY.CONNECTION.connectRejected,
             payload: err
         }))
     }

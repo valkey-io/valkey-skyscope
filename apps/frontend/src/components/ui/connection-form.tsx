@@ -5,7 +5,7 @@ type ConnectionFormProps = {
   onClose: () => void;
 };
 
-import { setConnecting as valkeySetConnecting } from "@/state/valkey-features/connection/connectionSlice.ts";
+import { connectPending } from "@/state/valkey-features/connection/connectionSlice.ts";
 import { useState } from "react";
 
 function ConnectionForm({ onClose }: ConnectionFormProps) {
@@ -18,7 +18,7 @@ function ConnectionForm({ onClose }: ConnectionFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     dispatch(
-      valkeySetConnecting({ status: true, host, port, username, password })
+      connectPending({ host, port, username, password })
     );
   };
 

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import {VALKEY} from "@common/src/constants.ts"
+import { VALKEY } from "@common/src/constants.ts"
 
 const infoSlice = createSlice({
     name: VALKEY.STATS.name,
@@ -21,7 +21,6 @@ const infoSlice = createSlice({
             state.lastUpdated = action.payload
         },
         setData: (state, action) => {
-            console.log("This is the payload", action.payload)
             state.data.total_commands_processed = action.payload.info["total_commands_processed"]
             state.data.connected_clients = action.payload.info['connected_clients'];
             state.data.dataset_bytes = action.payload.memory['dataset.bytes']

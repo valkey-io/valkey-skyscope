@@ -1,27 +1,27 @@
-import {useEffect} from 'react'
-import {useDispatch} from 'react-redux'
-import {setConnecting} from '@/state/wsconnection/wsConnectionSlice'
-import {SidebarInset, SidebarProvider} from './components/ui/sidebar'
+import { useEffect } from 'react'
+import { useDispatch } from 'react-redux'
+import { connectPending } from '@/state/wsconnection/wsConnectionSlice'
+import { SidebarInset, SidebarProvider } from './components/ui/sidebar'
 import { AppSidebar } from './components/ui/app-sidebar'
-import {Outlet} from 'react-router'
-import {Toaster} from './components/ui/sonner'
+import { Outlet } from 'react-router'
+import { Toaster } from './components/ui/sonner'
 
 function App() {
     const dispatch = useDispatch()
 
     useEffect(() => {
-        dispatch(setConnecting(true))
+        dispatch(connectPending())
     }, [dispatch])
 
     return (
         <div className="app-container">
             <SidebarProvider>
-                <AppSidebar/>
+                <AppSidebar />
                 <SidebarInset>
-                    <Outlet/>
+                    <Outlet />
                 </SidebarInset>
             </SidebarProvider>
-            <Toaster/>
+            <Toaster />
         </div>
     )
 }
