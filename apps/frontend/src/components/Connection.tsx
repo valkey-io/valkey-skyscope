@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import {
-  setRedirected,
-} from "@/state/valkey-features/connection/connectionSlice.ts";
+import { setRedirected } from "@/state/valkey-features/connection/connectionSlice.ts";
 import {
   selectConnected,
+  selectConnectionDetails,
   selectRedirected,
 } from "@/state/valkey-features/connection/connectionSelectors.ts";
 import { useAppDispatch } from "../hooks/hooks";
@@ -11,16 +10,19 @@ import { useAppDispatch } from "../hooks/hooks";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { selectData } from "@/state/valkey-features/info/infoSelectors.ts";
-import { HousePlug, Unplug } from "lucide-react";
+import { HousePlug, Unplug, Pencil } from "lucide-react";
 import { setConnected as valkeySetConnected } from "@/state/valkey-features/connection/connectionSlice.ts";
 import ConnectionForm from "./ui/connection-form";
+import EditForm from "./ui/edit-form";
 
 export function Connection() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [showConnectionForm, setShowConnectionForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
 
-  const { server_name, tcp_port } = useSelector(selectData);
+  const connectionDetails = useSelector(selectConnectionDetails);
+  const { server_name } = useSelector(selectData);
 
   const isConnected = useSelector(selectConnected);
   const hasRedirected = useSelector(selectRedirected);
@@ -51,10 +53,9 @@ export function Connection() {
         </button>
       </div>
       {showConnectionForm && (
-        <ConnectionForm
-          onClose={() => setShowConnectionForm(false)}
-        />
+        <ConnectionForm onClose={() => setShowConnectionForm(false)} />
       )}
+      {showEditForm && <EditForm onClose={() => setShowEditForm(false)} />}
       {/* Connected DBs */}
       <div className="border-t-1 mt-8 flex flex-col flex-1">
         <table className="min-w-full table-auto divide-y divide-gray-200">
@@ -69,7 +70,9 @@ export function Connection() {
               <th scope="col" className="font-medium text-start">
                 Activity
               </th>
-              <th scope="col"></th>
+              <th scope="col" className="font-medium text-center">
+                Actions
+              </th>
             </tr>
           </thead>
           {isConnected ? (
@@ -83,15 +86,24 @@ export function Connection() {
                     {server_name}
                   </button>
                 </td>
-                <td>{tcp_port}</td>
+                <td>
+                  {connectionDetails.host}:{connectionDetails.port}
+                </td>
                 <td>TBD</td>
-                <td className="text-center">
+                <td className="text-center space-x-2">
                   <button
                     onClick={handleDisconnect}
                     title="Disconnect"
                     className="text-tw-primary hover:bg-tw-primary hover:text-white px-1 py-0.5 rounded border-1 border-tw-primary"
                   >
                     <Unplug size={14} />
+                  </button>
+                  <button
+                    onClick={() => setShowEditForm(!showEditForm)}
+                    title="Eidt Connection"
+                    className="text-tw-primary hover:bg-tw-primary hover:text-white px-1 py-0.5 rounded border-1 border-tw-primary"
+                  >
+                    <Pencil size={14} />
                   </button>
                 </td>
               </tr>
