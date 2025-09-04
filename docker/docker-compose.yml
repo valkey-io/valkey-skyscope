@@ -1,14 +1,48 @@
-version: '3.8'
+x-valkey-common: &valkey-common
+  build: .
+  restart: unless-stopped
+  healthcheck:
+    test: ["CMD", "valkey-cli", "ping"]
+    interval: 2s
+    timeout: 1s
+    retries: 20
+  # all services share the same default network so they can reach each other by service name
 
 services:
-  valkey:
-    build: .
-    container_name: valkey-json-container2
+  valkey-a:
+    <<: *valkey-common
+    container_name: valkey-a
     ports:
       - "6379:6379"
+    environment:
+      RUN_POPULATE: "1"   # set to "0" to skip populate_data.py
+      INSTANCE_NAME: "valkey-a"
     volumes:
-      - valkey_data:/data
-    restart: unless-stopped
+      - valkey_data_a:/data
+
+  valkey-b:
+    <<: *valkey-common
+    container_name: valkey-b
+    ports:
+      - "6380:6379"
+    environment:
+      RUN_POPULATE: "1"
+      INSTANCE_NAME: "valkey-b"
+    volumes:
+      - valkey_data_b:/data
+
+  valkey-c:
+    <<: *valkey-common
+    container_name: valkey-c
+    ports:
+      - "6381:6379"
+    environment:
+      RUN_POPULATE: "0"
+      INSTANCE_NAME: "valkey-c"
+    volumes:
+      - valkey_data_c:/data
 
 volumes:
-  valkey_data:
+  valkey_data_a:
+  valkey_data_b:
+  valkey_data_c:

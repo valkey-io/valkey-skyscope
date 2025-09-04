@@ -1,6 +1,7 @@
 #!/bin/sh
+set -e
 
-echo "Starting valkey-server..."
+echo "Starting valkey-server (instance: ${INSTANCE_NAME:-unnamed})..."
 valkey-server --loadmodule /valkey/modules/rejson.so &
 
 VALKEY_PID=$!
@@ -17,9 +18,12 @@ while ! nc -z localhost 6379; do
   fi
 done
 
-echo "valkey-server is up, running populate_data.py..."
+if [ "${RUN_POPULATE:-1}" = "1" ]; then
+  echo "valkey-server is up, running populate_data.py..."
+  python3 /usr/local/bin/populate_data.py
+else
+  echo "RUN_POPULATE is 0 — skipping populate_data.py."
+fi
 
-python3 /usr/local/bin/populate_data.py
-
-echo "populate_data.py finished. Waiting for valkey-server to exit..."
+echo "Waiting for valkey-server (PID $VALKEY_PID) to exit..."
 wait $VALKEY_PID
