@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -40,6 +40,8 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-tw-primary: var(--tw-primary);
+  --color-tw-dark-primary: var(--tw-dark-primary);
+  --color-tw-dark-border: var(--tw-dark-border);
 }
 
 :root {
@@ -76,6 +78,8 @@
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
   --tw-primary: #6883fe;
+  --tw-dark-primary: oklch(21% 0.034 264.665);
+  --tw-dark-border: oklch(55.1% 0.027 264.364);
 }
 
 .dark {

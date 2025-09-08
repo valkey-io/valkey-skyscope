@@ -42,8 +42,8 @@ export function Connection() {
   return (
     <div className="p-4 relative min-h-screen flex flex-col">
       {/* top header */}
-      <div className="flex items-center justify-between h-10">
-        <h1 className="text-xl font-bold flex items-center gap-2 text-gray-700">
+      <div className="flex items-center justify-between h-10 dark:bg-tw-dark-primary">
+        <h1 className="text-xl font-bold flex items-center gap-2 text-gray-700 dark:text-white">
           <HousePlug /> Connections
         </h1>
         <button
@@ -60,7 +60,7 @@ export function Connection() {
       {/* Connected DBs */}
       <div className="border-t-1 mt-8 flex flex-col flex-1">
         <table className="min-w-full table-fixed divide-y">
-          <thead className="text-sm bg-gray-200 sticky top-0 z-10 border-y-1 border-gray-300">
+          <thead className="text-sm bg-gray-200 dark:bg-tw-dark-primary sticky top-0 z-10 border-y-1 border-gray-300 dark:border-tw-dark-border">
             <tr className="">
               <th className="w-1/4 font-medium py-1 text-start">
                 Database Name
@@ -70,13 +70,13 @@ export function Connection() {
               <th className="w-1/4 font-medium py-1 text-center">Actions</th>
             </tr>
           </thead>
-          <tbody className="font-light bg-gray-50 hover:bg-gray-100">
+          <tbody className="font-light bg-gray-50 dark:bg-tw-dark-primary hover:bg-gray-100 dark:hover:bg-tw-dark-primary">
             {isConnected ? (
               <tr>
                 <td className="py-1">
                   <button
                     onClick={() => navigate("/dashboard")}
-                    className="text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                    className="text-tw-primary hover:text-blue-500 underline cursor-pointer"
                   >
                     {server_name}
                   </button>
@@ -106,11 +106,11 @@ export function Connection() {
           </tbody>
         </table>
         {!isConnected && (
-          <div className=" bg-white flex-1 flex items-center justify-center flex-col gap-2">
-            <span className="text-sm font-light text-gray-500">
+          <div className=" bg-white dark:bg-tw-dark-primary text-gray-500 dark:text-white flex-1 flex items-center justify-center flex-col gap-2">
+            <span className="text-sm font-light">
               You Have No Connections!
             </span>
-            <p className="text-sm font-light text-gray-500">
+            <p className="text-sm font-light">
               Click "+ Add Connection" button to connect to a Valkey instance.
             </p>
           </div>

@@ -28,9 +28,9 @@ export function AppSidebar() {
 
   return (
     <nav
-      className={`bg-white ${
+      className={`bg-white dark:bg-tw-dark-primary ${
         isExpanded ? "w-52" : "w-18"
-      } h-screen p-4 shadow-lg border-r-2 flex flex-col justify-between transition-all duration-300 items-start relative`}
+      } h-screen p-4 shadow-lg border-r-2 dark:border-tw-dark-border dark:border-r-1 flex flex-col justify-between transition-all duration-300 items-start relative`}
     >
       <div
         className="flex flex-col items-start w-full"
@@ -69,7 +69,7 @@ export function AppSidebar() {
               <li key={to}>
                 <Link
                   to={to}
-                  className={`flex p-2 text-nowrap ${getNavItemClasses(to)} h-10`}
+                  className={`flex p-2 text-nowrap dark:text-white ${getNavItemClasses(to)} h-10`}
                   title={title}
                 >
                   <Icon size={22} />
@@ -106,7 +106,7 @@ export function AppSidebar() {
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex p-2 text-nowrap items-center text-gray-600 hover:text-tw-primary h-10"
+                  className="flex p-2 text-nowrap items-center text-gray-600 dark:text-white hover:text-tw-primary h-10"
                   title={item.title}
                 >
                   <item.icon size={22} />
@@ -115,7 +115,7 @@ export function AppSidebar() {
               ) : (
                 <Link
                   to={item.to || ""}
-                  className={`flex p-2 items-center ${getNavItemClasses(item.to || "")} h-10`}
+                  className={`flex p-2 items-center dark:text-white ${getNavItemClasses(item.to || "")} h-10`}
                   title={item.title}
                 >
                   <item.icon size={22} />

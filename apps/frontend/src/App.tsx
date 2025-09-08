@@ -1,29 +1,32 @@
-import { useEffect } from 'react'
-import { useDispatch } from 'react-redux'
-import { connectPending } from '@/state/wsconnection/wsConnectionSlice'
-import { SidebarInset, SidebarProvider } from './components/ui/sidebar'
-import { AppSidebar } from './components/ui/app-sidebar'
-import { Outlet } from 'react-router'
-import { Toaster } from './components/ui/sonner'
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { connectPending } from "@/state/wsconnection/wsConnectionSlice";
+import { SidebarInset, SidebarProvider } from "./components/ui/sidebar";
+import { AppSidebar } from "./components/ui/app-sidebar";
+import { Outlet } from "react-router";
+import { Toaster } from "./components/ui/sonner";
+import { DarkModeProvider } from "./contexts/DarkModeContext";
 
 function App() {
-    const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
-    useEffect(() => {
-        dispatch(connectPending())
-    }, [dispatch])
+  useEffect(() => {
+    dispatch(connectPending());
+  }, [dispatch]);
 
-    return (
-        <div className="app-container">
-            <SidebarProvider>
-                <AppSidebar />
-                <SidebarInset>
-                    <Outlet />
-                </SidebarInset>
-            </SidebarProvider>
-            <Toaster />
-        </div>
-    )
+  return (
+    <DarkModeProvider>
+      <div className="app-container min-h-screen bg-white dark:bg-tw-dark-primary transition-colors">
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <Outlet />
+          </SidebarInset>
+        </SidebarProvider>
+        <Toaster />
+      </div>
+    </DarkModeProvider>
+  );
 }
 
-export default App
+export default App;

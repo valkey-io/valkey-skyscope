@@ -65,7 +65,7 @@ function EditForm({ onClose }: EditFormProps) {
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center">
-      <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg border">
+      <div className="w-full max-w-md p-6 bg-white dark:bg-tw-dark-primary dark:border-tw-dark-border rounded-lg shadow-lg border">
         <div className="flex justify-between">
           <h2 className="text-lg font-semibold">Edit Connection</h2>
           <button onClick={onClose} className="hover:text-tw-primary">
@@ -79,7 +79,7 @@ function EditForm({ onClose }: EditFormProps) {
               type="text"
               placeholder="localhost"
               required
-              className="w-full px-3 py-2 border rounded"
+              className="w-full px-3 py-2 border rounded dark:border-tw-dark-border"
               value={host}
               onChange={(e) => setHost(e.target.value)}
             />
@@ -90,7 +90,7 @@ function EditForm({ onClose }: EditFormProps) {
               type="number"
               placeholder="6379"
               required
-              className="w-full px-3 py-2 border rounded"
+              className="w-full px-3 py-2 border rounded dark:border-tw-dark-border"
               value={port}
               onChange={(e) => setPort(e.target.value)}
             />
@@ -99,7 +99,7 @@ function EditForm({ onClose }: EditFormProps) {
             <label className="block mb-1 text-sm">Username</label>
             <input
               type="text"
-              className="w-full px-3 py-2 border rounded"
+              className="w-full px-3 py-2 border rounded dark:border-tw-dark-border"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
@@ -109,7 +109,7 @@ function EditForm({ onClose }: EditFormProps) {
             <label className="block mb-1 text-sm">Password</label>
             <input
               type="password"
-              className="w-full px-3 py-2 border rounded"
+              className="w-full px-3 py-2 border rounded dark:border-tw-dark-border"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
