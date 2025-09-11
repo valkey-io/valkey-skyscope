@@ -1,8 +1,8 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { CONNECTED, LOCAL_STORAGE, VALKEY } from "@common/src/constants.ts"
+import { CONNECTED, CONNECTING, ERROR, LOCAL_STORAGE, NOT_CONNECTED, VALKEY } from "@common/src/constants.ts"
 import * as R from "ramda"
 
-type ConnectionStatus = "Idle" | "Connecting" | "Connected" | "Error";
+type ConnectionStatus = typeof NOT_CONNECTED | typeof CONNECTED | typeof CONNECTING | typeof ERROR
 
 interface ConnectionDetails {
     host: string;
@@ -44,7 +44,7 @@ const connectionSlice = createSlice({
         ) => {
             const { connectionId, host, port, username = "", password = "" } = action.payload;
             state.connections[connectionId] = {
-                status: "Connecting",
+                status: CONNECTING,
                 errorMessage: null,
                 connectionDetails: { host, port, username, password },
             };
@@ -58,12 +58,13 @@ const connectionSlice = createSlice({
         },
         connectRejected: (state, action) => {
             const { connectionId } = action.payload;
-            state.connections[connectionId].status = "Error";
+            state.connections[connectionId].status = ERROR;
             state.connections[connectionId].errorMessage = action.payload || "Unknown error";
         },
-        resetConnection: (state, action) => {
+        closeConnection: (state, action) => {
+          console.log(action)
             const { connectionId } = action.payload;
-            state.connections[connectionId].status = "Idle";
+            state.connections[connectionId].status = NOT_CONNECTED;
             state.connections[connectionId].errorMessage = null;
         },
         updateConnectionDetails: (state, action) => {
@@ -77,4 +78,4 @@ const connectionSlice = createSlice({
 })
 
 export default connectionSlice.reducer
-export const { connectPending, connectFulfilled, connectRejected, resetConnection, updateConnectionDetails } = connectionSlice.actions
+export const { connectPending, connectFulfilled, connectRejected, closeConnection, updateConnectionDetails } = connectionSlice.actions

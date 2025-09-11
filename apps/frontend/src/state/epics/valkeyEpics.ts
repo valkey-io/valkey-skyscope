@@ -3,13 +3,13 @@ import { merge } from "rxjs"
 import { ignoreElements, tap, delay } from "rxjs/operators"
 import * as R from "ramda"
 import { getSocket } from "./wsEpics"
-import { connectFulfilled, connectPending, resetConnection } from "../valkey-features/connection/connectionSlice"
+import { connectFulfilled, connectPending } from "../valkey-features/connection/connectionSlice"
 import { sendRequested } from "../valkey-features/command/commandSlice"
 import { setData } from "../valkey-features/info/infoSlice"
 import { action$, select } from "../middleware/rxjsMiddleware/rxjsMiddlware"
 import history from "@/history.ts"
 import { atId } from "@/state/valkey-features/connection/connectionSelectors.ts"
-import { LOCAL_STORAGE } from "@common/src/constants.ts"
+import { LOCAL_STORAGE, NOT_CONNECTED } from "@common/src/constants.ts"
 
 export const connectionEpic = (store: Store) =>
   merge(
@@ -34,7 +34,7 @@ export const connectionEpic = (store: Store) =>
 
           R.pipe( // merge fulfilled connection with existing connections in localStorage
             atId(connectionId),
-            R.evolve({ status: R.always("Disconnected") }),
+            R.evolve({ status: R.always(NOT_CONNECTED) }),
             R.assoc(connectionId, R.__, currentConnections),
             JSON.stringify,
             (updated) => localStorage.setItem(LOCAL_STORAGE.VALKEY_CONNECTIONS, updated)
@@ -70,12 +70,12 @@ export const setDataEpic = () =>
     }),
   )
 
-export const disconnectEpic = () =>
-  action$.pipe(
-    select(resetConnection),
-    tap((action) => {
-      const socket = getSocket()
-      socket.next(action)
-    }),
-    ignoreElements(),
-  )
+// export const disconnectEpic = () =>
+//   action$.pipe(
+//     select(resetConnection),
+//     tap((action) => {
+//       const socket = getSocket()
+//       socket.next(action)
+//     }),
+//     ignoreElements(),
+//   )

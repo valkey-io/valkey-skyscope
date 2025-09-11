@@ -1,13 +1,13 @@
-import { useAppDispatch } from "@/hooks/hooks";
-import { X } from "lucide-react";
+import { useAppDispatch } from "@/hooks/hooks"
+import { X } from "lucide-react"
+import { type FormEvent, useState } from "react"
 
 type ConnectionFormProps = {
   onClose: () => void;
 };
 
 import { connectPending } from "@/state/valkey-features/connection/connectionSlice.ts";
-import { useState } from "react";
-import {sanitizeUrl} from "@common/src/url-utils.ts"
+import { sanitizeUrl } from "@common/src/url-utils.ts"
 
 function ConnectionForm({ onClose }: ConnectionFormProps) {
   const dispatch = useAppDispatch();
@@ -16,7 +16,7 @@ function ConnectionForm({ onClose }: ConnectionFormProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const connectionId = sanitizeUrl(`${host}-${port}`)
     dispatch(
