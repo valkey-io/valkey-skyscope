@@ -1,13 +1,10 @@
-import { selectStatus } from '@/state/valkey-features/connection/connectionSelectors.ts';
-import { CONNECTED } from '@common/src/constants';
-import { useSelector } from 'react-redux';
-import { Navigate, Outlet } from 'react-router';
+import { Navigate, Outlet } from "react-router"
+import useIsConnected from "@/hooks/useIsConnected.ts"
 
 const RequireConnection = () => {
-    const isConnected = useSelector(selectStatus) === CONNECTED;
-    console.log('Connected:', isConnected);
+  const isConnected = useIsConnected()
 
-    return isConnected ? <Outlet /> : <Navigate to="/connect" replace />;
-};
+  return isConnected ? <Outlet/> : <Navigate to="/connect" replace/>
+}
 
-export default RequireConnection;
+export default RequireConnection

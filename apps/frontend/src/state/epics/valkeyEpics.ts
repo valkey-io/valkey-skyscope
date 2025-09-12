@@ -1,52 +1,67 @@
-import { getSocket } from "./wsEpics"
-import { selectStatus, } from "../valkey-features/connection/connectionSelectors"
-import { connectPending, connectFulfilled, resetConnection } from "../valkey-features/connection/connectionSlice"
-import { sendRequested } from "../valkey-features/command/commandSlice"
-import { filter, tap, ignoreElements } from 'rxjs/operators';
-import { setData } from "../valkey-features/info/infoSlice";
-
-import { action$ } from "../middleware/rxjsMiddleware/rxjsMiddlware"
 import type { Store } from "@reduxjs/toolkit"
-import { CONNECTED } from "@common/src/constants";
+import { merge } from "rxjs"
+import { ignoreElements, tap, delay } from "rxjs/operators"
+import * as R from "ramda"
+import { getSocket } from "./wsEpics"
+import { connectFulfilled, connectPending } from "../valkey-features/connection/connectionSlice"
+import { sendRequested } from "../valkey-features/command/commandSlice"
+import { setData } from "../valkey-features/info/infoSlice"
+import { action$, select } from "../middleware/rxjsMiddleware/rxjsMiddlware"
+import { atId } from "@/state/valkey-features/connection/connectionSelectors.ts"
+import { LOCAL_STORAGE, NOT_CONNECTED } from "@common/src/constants.ts"
 
-export const connectionEpic = (store: Store) => action$.pipe(
-    filter((action) => {
-        const state = store.getState()
-        return selectStatus(state) != CONNECTED && action.type === connectPending.type
-    }),
-    tap((action) => {
+export const connectionEpic = (store: Store) =>
+  merge(
+    action$.pipe(
+      select(connectPending),
+      tap((action) => {
         const socket = getSocket()
         console.log("Sending message to server from connecting epic...")
         socket.next(action)
-    }),
-    ignoreElements()
-)
+      }),
+      ignoreElements(),
+    ),
+
+    action$.pipe(
+      select(connectFulfilled),
+      tap(({ payload: { connectionId } }) => {
+        try {
+          const currentConnections = R.pipe(
+            (v: string) => localStorage.getItem(v),
+            (s) => (s === null ? {} : JSON.parse(s)),
+          )(LOCAL_STORAGE.VALKEY_CONNECTIONS)
+
+          R.pipe( // merge fulfilled connection with existing connections in localStorage
+            atId(connectionId),
+            R.evolve({ status: R.always(NOT_CONNECTED) }),
+            R.assoc(connectionId, R.__, currentConnections),
+            JSON.stringify,
+            (updated) => localStorage.setItem(LOCAL_STORAGE.VALKEY_CONNECTIONS, updated)
+          )(store.getState())
+        } catch (e) {
+          alert("JSON.parse must've failed. See dev console.")
+          console.error(e)
+        }
+      }),
+      // todo maybe dispatch an event to show a success animation/message?
+    ),
+  )
+
 
 export const sendRequestEpic = () =>
-    action$.pipe(
-        filter((action) => action.type === sendRequested.type),
-        tap((action) => {
-            const socket = getSocket()
-            socket.next(action)
-        }),
-    )
+  action$.pipe(
+    select(sendRequested),
+    tap((action) => {
+      const socket = getSocket()
+      socket.next(action)
+    }),
+  )
 
 export const setDataEpic = () =>
-    action$.pipe(
-        filter((action) => action.type === connectFulfilled.type),
-        tap(() => {
-            const socket = getSocket()
-            socket.next({ type: setData.type, payload: undefined })
-        }),
-    )
-
-export const disconnectEpic = () =>
-    action$.pipe(
-        filter((action) => action.type === resetConnection.type),
-        tap((action) => {
-            const socket = getSocket()
-            socket.next(action)
-        }),
-        ignoreElements()
-    )
-
+  action$.pipe(
+    select(connectFulfilled),
+    tap(({ payload: { connectionId } }) => {
+      const socket = getSocket()
+      socket.next({ type: setData.type, payload: { connectionId } })
+    }),
+  )

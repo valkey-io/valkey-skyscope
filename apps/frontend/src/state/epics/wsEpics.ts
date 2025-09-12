@@ -1,9 +1,9 @@
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket'
 import { of, EMPTY, merge } from 'rxjs'
+import type { PayloadAction, Store } from '@reduxjs/toolkit'
 import {
     catchError,
     mergeMap,
-    takeUntil,
     tap,
     ignoreElements,
     filter,
@@ -15,8 +15,6 @@ import {
     connectRejected,
 } from '@/state/wsconnection/wsConnectionSlice'
 import { action$ } from '../middleware/rxjsMiddleware/rxjsMiddlware'
-import type { PayloadAction, Store } from '@reduxjs/toolkit'
-import { VALKEY } from "@common/src/constants.ts"
 
 let socket$: WebSocketSubject<PayloadAction> | null = null;
 
@@ -48,21 +46,6 @@ const connect = (store: Store) =>
         })
     )
 
-const disconnect = () =>
-    action$.pipe(
-        filter(action => action.type === VALKEY.CONNECTION.closeConnection),
-        tap(() => {
-            if (socket$) {
-                console.log('[WebSocket] Closing socket connection')
-                socket$.complete()
-                socket$ = null
-            } else {
-                console.log('[WebSocket] No socket to close')
-            }
-        }),
-        ignoreElements()
-    );
-
 const emitActions = (store: Store) =>
     action$.pipe(
         filter(action => action.type === connectFulfilled.type),
@@ -77,11 +60,6 @@ const emitActions = (store: Store) =>
                     console.log('[WebSocket] Incoming message:', message)
                     store.dispatch(message); // raw dispatch
                 }),
-                takeUntil(
-                    action$.pipe(
-                        filter(action => action.type === VALKEY.CONNECTION.closeConnection)
-                    )
-                ),
                 catchError(err => {
                     console.error('WebSocket error in message stream:', err)
                     return EMPTY;
@@ -102,5 +80,4 @@ export function getSocket(): WebSocketSubject<PayloadAction> {
 export const wsConnectionEpic = (store: Store) => merge(
     connect(store),
     emitActions(store),
-    disconnect(),
 )

@@ -1,15 +1,15 @@
-import { CONNECTED } from "@common/src/constants";
+import { CONNECTED, CONNECTING, ERROR, NOT_CONNECTED } from "@common/src/constants"
 import { createSlice } from "@reduxjs/toolkit";
 
 const wsConnectionSlice = createSlice({
     name: "wsconnection",
     initialState: {
-        status: "Idle",
+        status: NOT_CONNECTED,
         errorMessage: null,
     },
     reducers: {
         connectPending: (state) => {
-            state.status = "Connecting";
+            state.status = CONNECTING;
             state.errorMessage = null;
         },
         connectFulfilled: (state) => {
@@ -17,11 +17,11 @@ const wsConnectionSlice = createSlice({
             state.errorMessage = null;
         },
         connectRejected: (state, action) => {
-            state.status = "Error";
+            state.status = ERROR;
             state.errorMessage = action.payload || "Unknown error";
         },
         resetConnection: (state) => {
-            state.status = "Idle";
+            state.status = NOT_CONNECTED;
             state.errorMessage = null;
         }
     }

@@ -1,134 +1,147 @@
-import { WebSocketServer, WebSocket } from "ws"
-import { GlideClient, Decoder } from "@valkey/valkey-glide"
-import { VALKEY } from "../../../common/src/constants.ts"
+import {WebSocket, WebSocketServer} from "ws"
+import {Decoder, GlideClient} from "@valkey/valkey-glide"
+import {VALKEY} from "../../../common/src/constants.ts"
 
-const wss = new WebSocketServer({ port: 8080 })
+const wss = new WebSocketServer({port: 8080})
 
 console.log("Websocket server running on localhost:8080")
 
 wss.on('connection', (ws: WebSocket) => {
-    console.log("Client connected.")
-    let client: GlideClient | undefined;
+  console.log("Client connected.")
+  const clients: Map<string, GlideClient> = new Map()
 
-    ws.on('message', async (message) => {
-        console.log("Received message:", message.toString())
-        const action = JSON.parse(message.toString());
-
-        if (action.type === VALKEY.CONNECTION.connectPending) {
-            client = await connectToValkey(ws, action.payload)
-        }
-        if (action.type === VALKEY.COMMAND.sendRequested && client) {
-            await sendValkeyRunCommand(client, ws, action.payload)
-        }
-        if (action.type === VALKEY.STATS.setData && client) {
-            await setDashboardData(client, ws)
-        }
-        if (action.type === VALKEY.CONNECTION.resetConnection) {
-            ws.send(JSON.stringify({
-                type: VALKEY.CONNECTION.closeConnection,
-            }))
-        }
-    })
-    ws.onerror = (err) => {
-        console.error("WebSocket error:", err);
+  ws.on('message', async (message) => {
+    console.log("Received message:", message.toString())
+    let action = undefined
+    let connectionId = undefined
+    try {
+      action = JSON.parse(message.toString())
+      connectionId = action.payload.connectionId
+    } catch (e) {
+      console.log("Failed to parse the message", action)
     }
 
-    ws.on('close', (code, reason) => {
-        if (client) {
-            client.close()
-        }
-        console.log("Client disconnected. Reason: ", code, reason.toString())
-    })
+    if (action.type === VALKEY.CONNECTION.connectPending) {
+      await connectToValkey(ws, action.payload, clients)
+    }
+    if (action.type === VALKEY.COMMAND.sendRequested) {
+      const client = clients.get(connectionId)
+      if (client) {
+        await sendValkeyRunCommand(client, ws, action.payload)
+      } else {
+        ws.send(JSON.stringify({
+          type: VALKEY.COMMAND.sendFailed, payload: {
+            error: "Invalid connection Id"
+          }
+        }))
+      }
+    }
+    if (action.type === VALKEY.STATS.setData) {
+      const client = clients.get(connectionId)
+      if (client) {
+        await setDashboardData(connectionId, client, ws)
+      }
+    }
+    if (action.type === VALKEY.CONNECTION.resetConnection) {
+      const client = clients.get(connectionId)
+      if (client) {
+        client.close()
+        clients.delete(connectionId)
+      }
+    }
+  })
+  ws.onerror = (err) => {
+    console.error("WebSocket error:", err)
+  }
+  ws.on('close', (code, reason) => {
+    // Close all Valkey connections
+    clients.forEach(client => client.close())
+    clients.clear()
 
+    console.log("Client disconnected. Reason:", code, reason.toString())
+  })
 })
 
-async function connectToValkey(ws: WebSocket, payload: { host: string, port: number }) {
-    const addresses = [
-        {
-            host: payload.host,
-            port: payload.port,
-        },
-    ]
-    try {
-        const client = await GlideClient.createClient({
-            addresses,
-            requestTimeout: 5000,
-            clientName: "test_client"
-        })
+async function connectToValkey(ws: WebSocket, payload: {
+  host: string, port: number, connectionId: string
+}, clients: Map<string, GlideClient>) {
+  const addresses = [{
+    host: payload.host, port: payload.port,
+  },]
+  try {
+    const client = await GlideClient.createClient({
+      addresses, requestTimeout: 5000, clientName: "test_client"
+    })
 
-        ws.send(JSON.stringify({
-            type: VALKEY.CONNECTION.connectFulfilled,
-            payload: {
-                status: true,
-            },
-        }))
-
-        return client;
-    }
-    catch (err) {
-        console.log("Error connecting to Valkey", err)
-        ws.send(JSON.stringify({
-            type: VALKEY.CONNECTION.connectRejected,
-            payload: err
-        }))
-    }
-}
-
-async function setDashboardData(client: GlideClient, ws: WebSocket) {
-    const rawInfo = await client.info();
-    const info = parseInfo(rawInfo);
-    const rawMemoryStats = await client.customCommand(
-        ["MEMORY", "STATS"],
-        { decoder: Decoder.String }
-    ) as Array<{ key: string; value: string }>
-
-    const memoryStats = rawMemoryStats.reduce((acc, { key, value }) => {
-        acc[key] = value
-        return acc
-    }, {} as Record<string, string>)
+    clients.set(payload.connectionId, client)
 
     ws.send(JSON.stringify({
-        type: VALKEY.STATS.setData,
-        payload: {
-            info: info,
-            memory: memoryStats,
-        },
-    }));
+      type: VALKEY.CONNECTION.connectFulfilled, payload: {
+        connectionId: payload.connectionId
+      }
+    }))
+
+    return client
+  } catch (err) {
+    console.log("Error connecting to Valkey", err)
+    ws.send(JSON.stringify({
+      type: VALKEY.CONNECTION.connectRejected, payload: {
+        err, connectionId: payload.connectionId
+      }
+    }))
+  }
 }
 
-const parseInfo = (infoStr: string): Record<string, string> =>
-    infoStr
-        .split('\n')
-        .reduce((acc, line) => {
-            if (!line || line.startsWith('#') || !line.includes(':')) return acc;
-            const [key, value] = line.split(':').map(part => part.trim());
-            acc[key] = value;
-            return acc;
-        }, {} as Record<string, string>);
+async function setDashboardData(connectionId: string, client: GlideClient, ws: WebSocket) {
+  const rawInfo = await client.info()
+  const info = parseInfo(rawInfo)
+  const rawMemoryStats = await client.customCommand(["MEMORY", "STATS"], {decoder: Decoder.String}) as Array<{
+    key: string; value: string
+  }>
 
-async function sendValkeyRunCommand(client: GlideClient, ws: WebSocket, payload: { command: string }) {
-    try {
-        const rawResponse = await client.customCommand(payload.command.split(" ")) as string;
-        const response = parseInfo(rawResponse)
-        console.log("Raw response is: ", rawResponse)
-        if (rawResponse.includes("ResponseError")) {
-            ws.send(JSON.stringify({
-                meta: { command: payload.command },
-                type: VALKEY.COMMAND.sendFailed,
-                payload: rawResponse
-            }))
-        }
-        ws.send(JSON.stringify({
-            meta: { command: payload.command },
-            type: VALKEY.COMMAND.sendFulfilled,
-            payload: response
-        }))
-    } catch (err) {
-        ws.send(JSON.stringify({
-            meta: { command: payload.command },
-            type: VALKEY.COMMAND.sendFailed,
-            payload: err
-        }))
-        console.log("Error sending command to Valkey", err)
+  const memoryStats = rawMemoryStats.reduce((acc, {key, value}) => {
+    acc[key] = value
+    return acc
+  }, {} as Record<string, string>)
+
+  ws.send(JSON.stringify({
+    type: VALKEY.STATS.setData, payload: {
+      connectionId, info: info, memory: memoryStats,
+    },
+  }))
+}
+
+const parseInfo = (infoStr: string): Record<string, string> => infoStr
+  .split('\n')
+  .reduce((acc, line) => {
+    if (!line || line.startsWith('#') || !line.includes(':')) return acc
+    const [key, value] = line.split(':').map(part => part.trim())
+    acc[key] = value
+    return acc
+  }, {} as Record<string, string>)
+
+async function sendValkeyRunCommand(client: GlideClient, ws: WebSocket, payload: { command: string, connectionId: string }) {
+  try {
+    const rawResponse = await client.customCommand(payload.command.split(" ")) as string
+    console.log("========")
+    console.log(typeof rawResponse)
+    console.log(rawResponse)
+    console.log("========")
+
+    // todo fixme!!! they are not all strings!
+    const response = typeof rawResponse === "string" ? parseInfo(rawResponse) : rawResponse
+    if (rawResponse.includes("ResponseError")) {
+      ws.send(JSON.stringify({
+        meta: {command: payload.command}, type: VALKEY.COMMAND.sendFailed, payload: rawResponse
+      }))
     }
+    ws.send(JSON.stringify({
+      meta: {connectionId: payload.connectionId, command: payload.command}, type: VALKEY.COMMAND.sendFulfilled, payload: response
+    }))
+  } catch (err) {
+    ws.send(JSON.stringify({
+      meta: {connectionId: payload.connectionId, command: payload.command}, type: VALKEY.COMMAND.sendFailed, payload: err
+    }))
+    console.log("Error sending command to Valkey", err)
+  }
 }

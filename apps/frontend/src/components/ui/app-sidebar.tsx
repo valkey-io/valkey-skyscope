@@ -8,20 +8,19 @@ import {
   Cog,
   CircleQuestionMark,
   Github,
-} from "lucide-react";
-import { selectStatus } from "@/state/valkey-features/connection/connectionSelectors.ts";
-import { useSelector } from "react-redux";
-import { Link, useLocation } from "react-router";
+} from "lucide-react"
+import { Link, useLocation, useParams } from "react-router"
 import { useState } from "react";
-import { CONNECTED } from "@common/src/constants";
+import useIsConnected from "@/hooks/useIsConnected.ts"
 
 export function AppSidebar() {
-  const isConnected = useSelector(selectStatus) === CONNECTED;
-  const location = useLocation();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const isConnected = useIsConnected()
+  const location = useLocation()
+  const { id } = useParams()
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const getNavItemClasses = (path: string) => {
-    return location.pathname === path
+    return location.pathname.endsWith(path)
       ? "bg-tw-primary text-white rounded"
       : "text-gray-600 hover:text-tw-primary";
   };
@@ -51,11 +50,11 @@ export function AppSidebar() {
               ...(isConnected
                 ? [
                     {
-                      to: "/dashboard",
+                      to: `/${id}/dashboard`,
                       title: "Dashboard",
                       icon: LayoutDashboard,
                     },
-                    { to: "/sendcommand", title: "Send Command", icon: Send },
+                    { to: `/${id}/sendcommand`, title: "Send Command", icon: Send },
                     {
                       to: "/",
                       title: "Monitoring",
