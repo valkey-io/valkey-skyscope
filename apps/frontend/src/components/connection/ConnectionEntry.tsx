@@ -31,7 +31,7 @@ const ConnectionEntryGrid = ({ children, className } : { children: ReactNode, cl
   </div>
 
 export const ConnectionEntryHeader = () =>
-  <ConnectionEntryGrid className="font-bold bg-gray-100 dark:bg-gray-900">
+  <ConnectionEntryGrid className="font-bold bg-gray-100 dark:bg-tw-dark-primary">
     <div className="pl-4">Status</div>
     <div className="pl-4">Instance</div>
     <div className="text-right pr-4">Actions</div>

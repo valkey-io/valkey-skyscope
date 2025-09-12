@@ -7,7 +7,6 @@ import { connectFulfilled, connectPending } from "../valkey-features/connection/
 import { sendRequested } from "../valkey-features/command/commandSlice"
 import { setData } from "../valkey-features/info/infoSlice"
 import { action$, select } from "../middleware/rxjsMiddleware/rxjsMiddlware"
-import history from "@/history.ts"
 import { atId } from "@/state/valkey-features/connection/connectionSelectors.ts"
 import { LOCAL_STORAGE, NOT_CONNECTED } from "@common/src/constants.ts"
 
@@ -44,10 +43,7 @@ export const connectionEpic = (store: Store) =>
           console.error(e)
         }
       }),
-      delay(1000), // todo maybe dispatch an event to show a success animation/message?
-      tap(action => {
-        history.navigate(`/${action.payload.connectionId}/dashboard`)
-      }),
+      // todo maybe dispatch an event to show a success animation/message?
     ),
   )
 
