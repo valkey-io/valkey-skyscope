@@ -18,18 +18,30 @@ jobs:
       # This checks out the code from the pull request branch
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }} # Checkout the PR's head commit
 
       # Step 2: Set up Node.js environment
-      - name: Setup Node.js
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: "20" # Specify the Node.js version
+          node-version: "22" # Specify the Node.js version
 
-      # Step 3: Install dependencies
+      # Step 3: Cache Node.js modules
+      - name: Cache Node.js modules
+        id: cache-npm # Assign an ID to this step for later reference
+        uses: actions/cache@v4 # Use the latest version of cache action
+        with:
+          path: ~/.npm # Path to the npm cache directory
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} # Cache key based on OS and package-lock.json hash
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Step 4: Install dependencies
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      # Step 4: Run ESLint
+      # Step 5: Run ESLint
       # This runs ESLint using the rules defined in eslint.config.js
       - name: Run ESLint
         run: npx eslint .
