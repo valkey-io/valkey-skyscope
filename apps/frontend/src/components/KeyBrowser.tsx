@@ -15,18 +15,18 @@ export function KeyBrowser() {
   const { id } = useParams();
   const dispatch = useAppDispatch();
 
-  const keys = useSelector(selectKeys(id || ""));
-  const loading = useSelector(selectLoading(id || ""));
-  const error = useSelector(selectError(id || ""));
+  const keys = useSelector(selectKeys(id!))
+  const loading = useSelector(selectLoading(id!));
+  const error = useSelector(selectError(id!));
 
   useEffect(() => {
     if (id) {
-      dispatch(getKeysRequested({ connectionId: id || "" }));
+      dispatch(getKeysRequested({ connectionId: id!}));
     }
   }, [id, dispatch]);
 
   const handleRefresh = () => {
-    dispatch(getKeysRequested({ connectionId: id || "" }));
+    dispatch(getKeysRequested({ connectionId: id!}));
   };
 
   return (
@@ -38,19 +38,19 @@ export function KeyBrowser() {
 
       {/* Total Keys and Key Stats */}
       <div className="flex justify-between">
-        <div className="h-20 w-1/4 p-4 dark:border-tw-dark-border border-1 rounded flex flex-col justify-center items-center">
+        <div className="h-20 w-1/4 p-4 dark:border-tw-dark-border border rounded flex flex-col justify-center items-center">
           <span className="text-2xl font-semibold">{keys.length}</span>
           <span className="font-light text-sm">Total Keys</span>
         </div>
-        <div className="h-20 w-1/4 p-4 dark:border-tw-dark-border border-1 rounded flex flex-col justify-center items-center">
+        <div className="h-20 w-1/4 p-4 dark:border-tw-dark-border border rounded flex flex-col justify-center items-center">
           <span className="text-2xl font-semibold">TBD</span>
           <span className="font-light text-sm">Memory Usage</span>
         </div>
-        <div className="h-20 w-1/4 p-4 dark:border-tw-dark-border border-1 rounded flex flex-col justify-center items-center">
+        <div className="h-20 w-1/4 p-4 dark:border-tw-dark-border border rounded flex flex-col justify-center items-center">
           <span className="text-2xl font-semibold">TBD</span>
           <span className="font-light text-sm">Operations</span>
         </div>
-        <div className="h-20 w-1/5 p-4 dark:border-tw-dark-border border-1 rounded flex flex-col justify-center items-center">
+        <div className="h-20 w-1/5 p-4 dark:border-tw-dark-border border rounded flex flex-col justify-center items-center">
           <span className="text-2xl font-semibold">TBD</span>
           <span className="font-light text-sm">Hit Rate</span>
         </div>
@@ -59,7 +59,7 @@ export function KeyBrowser() {
       <div className="mt-8 flex items-center w-full">
         <input
           placeholder="search"
-          className="w-full h-10 p-2 dark:border-tw-dark-border border-1 rounded"
+          className="w-full h-10 p-2 dark:border-tw-dark-border border rounded"
         />
         <button
           onClick={handleRefresh}
@@ -73,15 +73,15 @@ export function KeyBrowser() {
         {/* Keys */}
         <div className="w-1/2">
           {keys.length === 0 ? (
-            <div className="h-10 p-2 dark:border-tw-dark-border border-1 rounded">
+            <div className="h-10 p-2 dark:border-tw-dark-border border rounded">
               No keys found
             </div>
           ) : (
             <ul className="space-y-2">
-              {keys.map((keyInfo, index) => (
+              {keys.map((keyInfo: { key: string }, index) => (
                 <li
                   key={index}
-                  className="h-10 p-2 dark:border-tw-dark-border border-1 rounded"
+                  className="h-10 p-2 dark:border-tw-dark-border border rounded"
                 >
                   {keyInfo.key}
                 </li>

@@ -15,6 +15,13 @@ interface KeyBrowserState {
   }
 }
 
+export const defaultConnectionState = {
+  keys: [],
+  cursor: "0",
+  loading: false,
+  error: null
+}
+
 const initialState: KeyBrowserState = {}
 
 const keyBrowserSlice = createSlice({
@@ -24,12 +31,7 @@ const keyBrowserSlice = createSlice({
     getKeysRequested: (state, action: PayloadAction<{ connectionId: string; pattern?: string; count?: number }>) => {
       const { connectionId } = action.payload
       if (!state[connectionId]) {
-        state[connectionId] = {
-          keys: [],
-          cursor: "0",
-          loading: false,
-          error: null
-        }
+        state[connectionId] = { ...defaultConnectionState }
       }
       state[connectionId].loading = true
       state[connectionId].error = null

@@ -11,8 +11,8 @@ import { SendCommand } from "@/components/SendCommand.tsx"
 import RequireConnection from "./components/RequireConnection.tsx"
 import Settings from "./components/Settings.tsx"
 import LearnMore from "./components/LearnMore.tsx"
-import "./css/index.css"
 import { KeyBrowser } from "./components/KeyBrowser.tsx"
+import "./css/index.css"
 
 const AppWithHistory = () => {
   const location = useLocation()
