@@ -2,29 +2,22 @@
 
 ## Getting Started (Development)
 
-### Start Valkey Server
+### Start Valkey Cluster
 
-1. Change your working directory to the docker directory:
-   ```bash
-   cd docker
-   ```
-2. Run docker compose (This will start your server on `127.0.0.1:6379`):
+1. Change your working directory to the docker directory: `cd docker`
+2. Start your cluster with 3 nodes and replicas on `127.0.0.1:7000`:
 
-   ```bash
-   docker compose up --build
-   ```
+   To start up and populate fake data: `docker compose --profile populate up --build`.
+
+   To start up without running the populate service:`docker compose up --build`.
+
 3. Add key value pairs using Redis Insight (Optional)
 
 ### Running the apps
 
-1. Install all dependencies from the project root:
-   ```bash
-   npm install
-   ```
-3. Run both server and frontend:
-    ```bash
-    npm run dev
-    ```
+1. Install all dependencies from the project root: `npm ci`
+2. Run both server and frontend: `npm run dev`
+
 
 
 
