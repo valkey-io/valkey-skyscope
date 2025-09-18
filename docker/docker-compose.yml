@@ -161,6 +161,7 @@ services:
     command: >
       sh -c "
         npm -s install @valkey/client >/dev/null 2>&1 &&
+        npm -s install ramda >/dev/null 2>&1 &&
         node populate.mjs
       "
 
