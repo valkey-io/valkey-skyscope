@@ -41,6 +41,9 @@ export const VALKEY = {
         getKeysRequested: "getKeysRequested",
         getKeysFulfilled: "getKeysFulfilled",
         getKeysFailed: "getKeysFailed",
+        getKeyTypeRequested: "getKeyTypeRequested",
+        getKeyTypeFulfilled: "getKeyTypeFulfilled",
+        getKeyTypeFailed: "getKeyTypeFailed",
     } as const),
 } as const
 

@@ -17,3 +17,18 @@ export const selectError = (id: string) => (state: RootState) =>
 
 export const selectKeyBrowserState = (id: string) => (state: RootState) =>
   R.pathOr(defaultConnectionState, [VALKEY.KEYS.name, id], state)
+
+// For key type
+export const selectKeyTypeLoading = (id: string) => (state: RootState) =>
+  R.pathOr(defaultConnectionState.keyTypeLoading, [VALKEY.KEYS.name, id, "keyTypeLoading"], state)
+
+export const selectKeyTypeLoadingForKey = (id: string, key: string) => (state: RootState) =>
+  R.pathOr(false, [VALKEY.KEYS.name, id, "keyTypeLoading", key], state)
+
+export const selectKeyType = (id: string, key: string | null | undefined) => (state: RootState) => {
+  if (!key) return undefined;
+  
+  const keys = selectKeys(id)(state);
+  return keys.find(k => k.key === key)?.type;
+};
+
