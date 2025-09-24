@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import * as R from "ramda";
 import {
   getKeysRequested,
   getKeyTypeRequested,
@@ -12,11 +13,12 @@ import {
 import { useAppDispatch } from "@/hooks/hooks";
 import { useParams } from "react-router";
 import { AppHeader } from "./ui/app-header";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { CustomTooltip } from "./ui/custom-tooltip";
 import { convertTTL } from "@common/src/ttl-conversion";
 import { formatBytes } from "@common/src/bytes-conversion";
-import { calculateTotalMemoryUsage } from "@common/src/memoryUsage-claculation";
-import { Compass, RefreshCcw, Key } from "lucide-react";
-import { toUpper } from "ramda";
+import { calculateTotalMemoryUsage } from "@common/src/memory-usage-calculation";
+import { Compass, RefreshCcw, Key, Hourglass, Database } from "lucide-react";
 
 interface KeyInfo {
   name: string;
@@ -49,7 +51,7 @@ export function KeyBrowser() {
     setSelectedKey(keyName);
 
     const keyInfo = keys.find((k) => k.name === keyName);
-    if (keyInfo && !keyInfo.type) {
+    if (R.isNotEmpty(keyInfo) && !keyInfo!.type) {
       dispatch(getKeyTypeRequested({ connectionId: id!, key: keyName }));
     }
   };
@@ -106,84 +108,98 @@ export function KeyBrowser() {
       </div>
 
       {/* Key Viewer */}
-      <div className="flex flex-1 min-h-0">
-        {/* Keys List */}
-        <div className="w-1/2 pr-2">
-          {keys.length === 0 ? (
-            <div className="h-full p-2 dark:border-tw-dark-border border rounded flex items-center justify-center">
-              No keys found
-            </div>
-          ) : (
-            <div className="h-full dark:border-tw-dark-border border rounded overflow-hidden">
-              <ul className="h-full overflow-y-auto space-y-2 p-2">
-                {keys.map((keyInfo: KeyInfo, index) => (
-                  <li
-                    key={index}
-                    className="h-16 p-2 dark:border-tw-dark-border border hover:text-tw-primary cursor-pointer rounded flex items-center gap-2 justify-between"
-                    onClick={() => handleKeyClick(keyInfo.name)}
-                  >
-                    <div className=" items-center gap-2">
-                      <span className="flex items-center gap-2">
-                        <Key size={16} /> {keyInfo.name}
-                      </span>
-                      <div className="ml-6 text-xs font-light text-tw-primary">
-                        {toUpper(keyInfo.type)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs">
-                      {keyInfo.size && (
-                        <span className="bg-tw-accent text-xs px-2 py-1 text-tw-primary rounded-full">
-                          {formatBytes(keyInfo.size)}
-                        </span>
-                      )}
-                      {/* text-red-400 is a placehodler for now, will change to a custom tw color */}
-                      <span className="bg-tw-accent2 text-xs px-2 py-1 text-red-400 rounded-full">
-                        {convertTTL(keyInfo.ttl)}
-                      </span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-
-        {/* Key Details */}
-        <div className="w-1/2 pl-2">
-          <div className="h-full dark:border-tw-dark-border border rounded">
-            {selectedKey && selectedKeyInfo ? (
-              <div className="p-4 text-sm font-light overflow-y-auto">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="font-semibold flex items-center gap-2">
-                    <Key size={16} />
-                    {selectedKey}
-                  </span>
-                  <div className="space-x-2">
-                    <span className="bg-tw-accent2 text-xs px-2 py-1 text-red-400 rounded-full">
-                      {convertTTL(selectedKeyInfo.ttl)}
-                    </span>
-                    <span className="bg-tw-accent text-xs px-2 py-1 rounded-full">
-                      {selectedKeyInfo.type}
-                    </span>
-                    <span className="bg-tw-accent text-xs px-2 py-1 rounded-full">
-                      {formatBytes(selectedKeyInfo.size)}
-                    </span>
-                    {selectedKeyInfo.collectionSize !== undefined && (
-                      <span className="bg-tw-accent text-xs px-2 py-1 rounded-full">
-                        {selectedKeyInfo.collectionSize.toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-                </div>
+      <TooltipProvider>
+        <div className="flex flex-1 min-h-0">
+          {/* Keys List */}
+          <div className="w-1/2 pr-2">
+            {keys.length === 0 ? (
+              <div className="h-full p-2 dark:border-tw-dark-border border rounded flex items-center justify-center">
+                No keys found
               </div>
             ) : (
-              <div className="h-full p-4 text-sm font-light flex items-center justify-center text-gray-500">
-                Select a key to see details
+              <div className="h-full dark:border-tw-dark-border border rounded overflow-hidden">
+                <ul className="h-full overflow-y-auto space-y-2 p-2">
+                  {keys.map((keyInfo: KeyInfo, index) => (
+                    <li
+                      key={index}
+                      className="h-16 p-2 dark:border-tw-dark-border border hover:text-tw-primary cursor-pointer rounded flex items-center gap-2 justify-between"
+                      onClick={() => handleKeyClick(keyInfo.name)}
+                    >
+                      <div className=" items-center gap-2">
+                        <span className="flex items-center gap-2">
+                          <Key size={16} /> {keyInfo.name}
+                        </span>
+                        <div className="ml-6 text-xs font-light text-tw-primary">
+                          {R.toUpper(keyInfo.type)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs">
+                        {keyInfo.size && (
+                          <CustomTooltip content="Size">
+                            <span className="flex items-center justify-between gap-1 text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
+                            <Database size={20} className="text-white bg-tw-primary p-1 rounded-full"/> {formatBytes(keyInfo.size)}
+                            </span>
+                          </CustomTooltip>
+                        )}
+                        {/* text-red-400 is a placehodler for now, will change to a custom tw color */}
+                        <CustomTooltip content="TTL">
+                          <span className="flex items-center justify-between gap-1 text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
+                            <Hourglass size={20} className="text-white bg-tw-primary p-1 rounded-full"/> {convertTTL(keyInfo.ttl)}
+                          </span>
+                        </CustomTooltip>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
+
+          {/* Key Details */}
+          <div className="w-1/2 pl-2">
+            <div className="h-full dark:border-tw-dark-border border rounded">
+              {selectedKey && selectedKeyInfo ? (
+                <div className="p-4 text-sm font-light overflow-y-auto">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="font-semibold flex items-center gap-2">
+                      <Key size={16} />
+                      {selectedKey}
+                    </span>
+                    <div className="space-x-2">
+                      <CustomTooltip content="TTL">
+                        <span className="text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
+                          {convertTTL(selectedKeyInfo.ttl)}
+                        </span>
+                      </CustomTooltip>
+                      <CustomTooltip content="Type">
+                        <span className="text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
+                          {selectedKeyInfo.type}
+                        </span>
+                      </CustomTooltip>
+                      <CustomTooltip content="Size">
+                        <span className="text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
+                          {formatBytes(selectedKeyInfo.size)}
+                        </span>
+                      </CustomTooltip>
+                      {selectedKeyInfo.collectionSize !== undefined && (
+                        <CustomTooltip content="Collection size">
+                          <span className="text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
+                            {selectedKeyInfo.collectionSize.toLocaleString()}
+                          </span>
+                        </CustomTooltip>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-full p-4 text-sm font-light flex items-center justify-center text-gray-500">
+                  Select a key to see details
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      </TooltipProvider>
     </div>
   );
 }

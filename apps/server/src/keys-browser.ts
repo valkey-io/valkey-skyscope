@@ -1,6 +1,7 @@
 import {WebSocket} from "ws"
 import {GlideClient} from "@valkey/valkey-glide"
 import {VALKEY} from "../../../common/src/constants.ts"
+import * as R from 'ramda';
 
 interface EnrichedKeyInfo {
   name: string
@@ -27,26 +28,19 @@ export async function getKeyInfo(client: GlideClient, key: string): Promise<Enri
 
     // Get collection size per type
     try {
-      switch (keyType?.toLowerCase()) {
-        case 'list':
-          keyInfo.collectionSize = await client.customCommand(["LLEN", key]) as number
-          break
-        case 'set':
-          keyInfo.collectionSize = await client.customCommand(["SCARD", key]) as number
-          break
-        case 'zset':
-          keyInfo.collectionSize = await client.customCommand(["ZCARD", key]) as number
-          break
-        case 'hash':
-          keyInfo.collectionSize = await client.customCommand(["HLEN", key]) as number
-          break
-        case 'stream':
-          keyInfo.collectionSize = await client.customCommand(["XLEN", key]) as number
-          break
-        default:
-          // string has no collection size
-          break
+      const sizeCommands: Record<string, string> = {
+        list: "LLEN",
+        set: "SCARD",
+        zset: "ZCARD",
+        hash: "HLEN",
+        stream: "XLEN"
       }
+    
+      const command = sizeCommands[keyType.toLowerCase()]
+      if (command) {
+        keyInfo.collectionSize = await client.customCommand([command, key]) as number
+      }
+      // string has no collection size
     } catch (err) {
       console.log(`Could not get collection size for key ${key}:`, err)
     }
@@ -55,7 +49,7 @@ export async function getKeyInfo(client: GlideClient, key: string): Promise<Enri
   } catch (err) {
     return {
       name: key,
-      type: 'unknown',
+      type: "unknown",
       ttl: -1,
       size: 0
     }
@@ -70,6 +64,7 @@ export async function getKeys(client: GlideClient, ws: WebSocket, payload: {
     try {
       const pattern = payload.pattern || "*"
       const count = payload.count || 50
+      const batchSize = 10 // TO DO: configurable batch size
       
       // Using SCAN command with pattern and count
       const rawResponse = await client.customCommand([
@@ -85,30 +80,16 @@ export async function getKeys(client: GlideClient, ws: WebSocket, payload: {
       
       const [cursor, keys] = rawResponse
       
-      const enrichedKeys: EnrichedKeyInfo[] = []
-      
-      if (keys && keys.length > 0) {
-        // Processing in batches to avoid overloading the server
-        const batchSize = 10
-        for (let i = 0; i < keys.length; i += batchSize) {
-          const batch = keys.slice(i, i + batchSize)
-          const batchPromises = batch.map(key => getKeyInfo(client, key))
-          const batchResults = await Promise.allSettled(batchPromises)
-          
-          batchResults.forEach((result, index) => {
-            if (result.status === 'fulfilled') {
-              enrichedKeys.push(result.value)
-            } else {
-              enrichedKeys.push({
-                name: batch[index],
-                type: 'unknown',
-                ttl: -1,
-                size: 0
-              })
-            }
+      const enrichedKeys = R.flatten(
+        await Promise.all(
+          R.splitEvery(batchSize, keys).map(async batch => {
+            const settled = await Promise.allSettled(batch.map(k => getKeyInfo(client, k)))
+            return settled.map((res, idx) =>  res.status === 'fulfilled'
+                ? res.value
+                : { name: batch[idx], type: 'unknown', ttl: -1, size: 0 })
           })
-        }
-      }
+        )
+      )
       
       ws.send(JSON.stringify({
         type: VALKEY.KEYS.getKeysFulfilled,
