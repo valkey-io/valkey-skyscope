@@ -13,7 +13,8 @@ import type { ReactNode } from "react"
 import {
   type ConnectionState,
   connectPending,
-  closeConnection
+  closeConnection,
+  deleteConnection
 } from "@/state/valkey-features/connection/connectionSlice"
 import { Button } from "@/components/ui/button.tsx"
 import { cn } from "@/lib/utils.ts"
@@ -42,6 +43,7 @@ export const ConnectionEntry = ({ connectionId, connection }: ConnectionEntryPro
   const handleDisconnect = () => dispatch(closeConnection({ connectionId }))
 
   const handleConnect = () => dispatch(connectPending({ ...connection.connectionDetails, connectionId }))
+  const handleDelete = () => dispatch(deleteConnection({ connectionId }))
 
   const isConnected = connection.status === CONNECTED
   const isError = connection.status === ERROR
@@ -86,7 +88,7 @@ export const ConnectionEntry = ({ connectionId, connection }: ConnectionEntryPro
             Connect
           </Button>
         }
-        <Button onClick={() => alert("todo")} variant="destructiveGhost">
+        <Button onClick={handleDelete} variant="destructiveGhost">
           <Trash2Icon />
           Delete
         </Button>

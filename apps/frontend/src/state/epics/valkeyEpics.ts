@@ -4,7 +4,7 @@ import * as R from "ramda"
 import { LOCAL_STORAGE, NOT_CONNECTED } from "@common/src/constants.ts"
 import { toast } from "sonner"
 import { getSocket } from "./wsEpics"
-import { connectFulfilled, connectPending } from "../valkey-features/connection/connectionSlice"
+import { connectFulfilled, connectPending, deleteConnection } from "../valkey-features/connection/connectionSlice"
 import { sendRequested } from "../valkey-features/command/commandSlice"
 import { setData } from "../valkey-features/info/infoSlice"
 import { action$, select } from "../middleware/rxjsMiddleware/rxjsMiddlware"
@@ -46,6 +46,30 @@ export const connectionEpic = (store: Store) =>
         }
       })
     )
+  )
+
+export const deleteConnectionEpic = () => 
+  action$.pipe(
+    select(deleteConnection),
+    tap(({ payload: { connectionId } }) => {
+      try {
+        const currentConnections = R.pipe(
+          (v: string) => localStorage.getItem(v),
+          (s) => (s === null ? {} : JSON.parse(s))
+        )(LOCAL_STORAGE.VALKEY_CONNECTIONS)
+
+        R.pipe(
+          R.dissoc(connectionId), // <- removes the entry by key
+          JSON.stringify,
+          (updated) => localStorage.setItem(LOCAL_STORAGE.VALKEY_CONNECTIONS, updated)
+        )(currentConnections)
+
+        toast.success("Connection removed successfully!")
+      } catch (e) {
+        toast.error("Failed to remove connection!")
+        console.error(e)
+      }
+    })
   )
 
 export const sendRequestEpic = () =>

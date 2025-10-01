@@ -74,8 +74,22 @@ const connectionSlice = createSlice({
         ...action.payload,
       }
     },
+    deleteConnection: (state, action) => {
+      const { connectionId } = action.payload
+      if(state.connections[connectionId]) {
+        delete state.connections[connectionId]
+      }
+
+    },
   },
 })
 
 export default connectionSlice.reducer
-export const { connectPending, connectFulfilled, connectRejected, closeConnection, updateConnectionDetails } = connectionSlice.actions
+export const { 
+  connectPending, 
+  connectFulfilled, 
+  connectRejected, 
+  closeConnection, 
+  updateConnectionDetails, 
+  deleteConnection, 
+} = connectionSlice.actions
