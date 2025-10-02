@@ -1,6 +1,8 @@
 import React, { useState } from "react"
 import { Trash, X } from "lucide-react"
 import { useParams } from "react-router"
+import { validators } from "@common/src/key-validators"
+import * as R from "ramda"
 import { Button } from "./button"
 import { useAppDispatch } from "@/hooks/hooks"
 import { addKeyRequested } from "@/state/valkey-features/keys/keyBrowserSlice"
@@ -42,37 +44,23 @@ export default function AddNewKey({ onClose }: AddNewKeyProps) {
     e.preventDefault()
     setError("")
 
-    if (!keyName) {
-      setError("Key name is required")
-      return
-    }
-
-    if (keyType === "Select key type") {
-      setError("Please select a key type")
-      return
-    }
-
-    if (keyType === "String" && !value) {
-      setError("Value is required for string type")
-      return
-    }
-    // Validate TTL
     const parsedTtl = ttl ? parseInt(ttl, 10) : undefined
-    if (ttl && (isNaN(parsedTtl!) || parsedTtl! < -1)) {
-      setError(
-        "TTL not a valid number (-1 for no expiration, or positive number)"
-      )
-      return
-    } else if (keyType === "Hash") {
-      // this ensures at least one field-value pair is entered
-      const validFields = hashFields.filter(
-        (field) => field.field.trim() && field.value.trim()
-      )
 
-      if (validFields.length === 0) {
-        setError("At least one field-value pair is required for hash type")
-        return
-      }
+    const validationData = {
+      keyName,
+      keyType,
+      value,
+      ttl: parsedTtl,
+      hashFields: keyType === "Hash" ? hashFields : undefined,
+    }
+
+    const validator = validators[keyType as keyof typeof validators] || validators["undefined"]
+
+    // Validate
+    const errors = validator(validationData)
+    if (R.isNotEmpty(errors)) {
+
+      return setError(errors)
     }
 
     // dispatching
@@ -251,7 +239,7 @@ export default function AddNewKey({ onClose }: AddNewKeyProps) {
               Submit
             </button>
             <button
-              className="px-4 py-2 w-full bg-tw-primary text-white rounded hover:bg-tw-primary/90"
+              className="px-4 py-2 w-full bg-tw-dark-border/50 text-white rounded hover:bg-tw-dark-border"
               onClick={onClose}
             >
               Cancel
