@@ -3,7 +3,7 @@ import { X } from "lucide-react"
 import { useParams } from "react-router"
 import { validators } from "@common/src/key-validators"
 import * as R from "ramda"
-import { HashFields, ListFields, StringFields, SetFields } from "./add-key-types"
+import { HashFields, ListFields, StringFields, SetFields } from "./key-types"
 import { useAppDispatch } from "@/hooks/hooks"
 import { addKeyRequested } from "@/state/valkey-features/keys/keyBrowserSlice"
 

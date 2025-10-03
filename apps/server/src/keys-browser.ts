@@ -259,11 +259,11 @@ async function addListKey(
   values: string[],
   ttl?: number
 ) {
-  const rpushArgs = ["RPUSH", key, ...values];
-  await client.customCommand(rpushArgs);
+  const rpushArgs = ["RPUSH", key, ...values]
+  await client.customCommand(rpushArgs)
 
   if (ttl && ttl > 0) {
-    await client.customCommand(["EXPIRE", key, ttl.toString()]);
+    await client.customCommand(["EXPIRE", key, ttl.toString()])
   }
 }
 
@@ -274,11 +274,11 @@ async function addSetKey(
   ttl?: number
 ) {
 
-  const saddArgs = ["SADD", key, ...values];
-  await client.customCommand(saddArgs);
+  const saddArgs = ["SADD", key, ...values]
+  await client.customCommand(saddArgs)
 
   if (ttl && ttl > 0) {
-    await client.customCommand(["EXPIRE", key, ttl.toString()]);
+    await client.customCommand(["EXPIRE", key, ttl.toString()])
   }
 
 }
@@ -317,16 +317,16 @@ export async function addKey(
       // to do: implement other types here
       case "list":
         if (!payload.values || payload.values.length === 0) {
-          throw new Error("At least one value is required for list type");
+          throw new Error("At least one value is required for list type")
         }
-        await addListKey(client, payload.key, payload.values, payload.ttl);
-        break;
+        await addListKey(client, payload.key, payload.values, payload.ttl)
+        break
       case "set":
         if (!payload.values || payload.values.length === 0) {
-          throw new Error("At least one value is required for set type");
+          throw new Error("At least one value is required for set type")
         }
-        await addSetKey(client, payload.key, payload.values, payload.ttl);
-        break;
+        await addSetKey(client, payload.key, payload.values, payload.ttl)
+        break
 
       default:
         throw new Error(`Unsupported key type: ${payload.keyType}`)
