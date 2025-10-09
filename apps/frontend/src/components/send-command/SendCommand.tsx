@@ -1,29 +1,29 @@
-import { ChevronRight, LayoutDashboard } from "lucide-react"
+import { BanIcon, GitCompareIcon, LayoutDashboard, RotateCwIcon } from "lucide-react"
 import React, { useRef, useState } from "react"
 import { useSelector } from "react-redux"
-import { formatTimestamp, timeAgo } from "@common/src/time-utils.ts"
 import { useParams } from "react-router"
 import { useAppDispatch } from "@/hooks/hooks.ts"
-import { Button } from "../ui/button.tsx"
 import { getNth, selectAllCommands } from "@/state/valkey-features/command/commandSelectors.ts"
 import { type CommandMetadata, sendRequested } from "@/state/valkey-features/command/commandSlice.ts"
 import RouteContainer from "@/components/ui/route-container.tsx"
 import { AppHeader } from "@/components/ui/app-header.tsx"
 import { cn } from "@/lib/utils.ts"
 import { Timestamp } from "@/components/ui/timestamp.tsx"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip.tsx"
 
 export function SendCommand() {
   const dispatch = useAppDispatch()
 
   const [text, setText] = useState("")
   const [commandIndex, setCommandIndex] = useState<number>(0)
+  const [compareWith, setCompareWith] = useState(null)
 
   const { id } = useParams()
   const allCommands = useSelector(selectAllCommands(id as string))
   const { error, response } = useSelector(getNth(commandIndex, id as string)) as CommandMetadata
 
-  const onSubmit = () => {
-    dispatch(sendRequested({ command: text, connectionId: id }))
+  const onSubmit = (command?: string) => {
+    dispatch(sendRequested({ command: command || text, connectionId: id }))
     setCommandIndex(length)
     setText("")
   }
@@ -62,24 +62,63 @@ export function SendCommand() {
           {
             allCommands?.map(({ command, timestamp }, i) =>
               <div className={cn("flex flex-row text-sm items-center", i === commandIndex && "text-tw-primary")} key={timestamp}>
-                {/*{i === commandIndex && <ChevronRight className="size-4" />}*/}
                 <Timestamp timestamp={timestamp} className="opacity-50" />
-                <div className="truncate">{command}</div>
-                {
-                  i !== commandIndex &&
-                  <>
-                  </>
-                }
-                {/*<Button*/}
-                {/*  className={`w-full overflow-hidden justify-start ${i === commandIndex ? "pointer-events-none" : ""}`}*/}
-                {/*  onClick={() => {*/}
-                {/*    setText("")*/}
-                {/*    setCommandIndex(i)*/}
-                {/*  }}*/}
-                {/*  variant={i === commandIndex ? "ghost" : "outline"}*/}
-                {/*>*/}
-                {/*  {i === commandIndex && <ChevronRight />}*/}
-                {/*</Button>*/}
+                <Tooltip delayDuration={2000}>
+                  <TooltipTrigger className="flex-1">
+                    <div
+                      className="truncate text-left cursor-pointer"
+                      onClick={() => {
+                        setText("")
+                        setCommandIndex(i)
+                      }}
+                    >
+                      {command}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="left">
+                    See response
+                  </TooltipContent>
+                </Tooltip>
+                <div className="flex flex-row justify-self-end">
+                  {
+                    compareWith === null &&
+                    <Tooltip delayDuration={1000}>
+                      <TooltipTrigger>
+                        <RotateCwIcon
+                          className={cn("size-4 ml-2 cursor-pointer hover:text-tw-primary")}
+                          onClick={() => onSubmit(command)}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Run again
+                      </TooltipContent>
+                    </Tooltip>
+                  }
+                  <Tooltip delayDuration={1000}>
+                    <TooltipTrigger>
+                      {
+                        i === compareWith ?
+                          <BanIcon
+                            className={cn("size-4 ml-2 cursor-pointer hover:text-tw-primary")}
+                            onClick={() => setCompareWith(null)}
+                          /> :
+                          <GitCompareIcon
+                            className={cn("size-4 ml-2 cursor-pointer hover:text-tw-primary")}
+                            onClick={() => setCompareWith(i)}
+                          />
+                      }
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {
+                        compareWith !== null && i === compareWith
+                          ? "Cancel"
+                          : compareWith === null && compareWith !== i
+                            ? "Compare with another run"
+                            : "Compare with this run"
+                      }
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </div>)
           }
         </div>
