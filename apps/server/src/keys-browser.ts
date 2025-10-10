@@ -15,7 +15,7 @@ interface EnrichedKeyInfo {
 
 export async function getKeyInfo(
   client: GlideClient,
-  key: string
+  key: string,
 ): Promise<EnrichedKeyInfo> {
   try {
     const [keyType, ttl, memoryUsage] = await Promise.all([
@@ -89,7 +89,7 @@ export async function getKeys(
     connectionId: string;
     pattern?: string;
     count?: number;
-  }
+  },
 ) {
   try {
     const pattern = payload.pattern || "*"
@@ -114,15 +114,15 @@ export async function getKeys(
       await Promise.all(
         R.splitEvery(batchSize, keys).map(async (batch) => {
           const settled = await Promise.allSettled(
-            batch.map((k) => getKeyInfo(client, k))
+            batch.map((k) => getKeyInfo(client, k)),
           )
           return settled.map((res, idx) =>
             res.status === "fulfilled"
               ? res.value
-              : { name: batch[idx], type: "unknown", ttl: -1, size: 0 }
+              : { name: batch[idx], type: "unknown", ttl: -1, size: 0 },
           )
-        })
-      )
+        }),
+      ),
     )
 
     ws.send(
@@ -133,7 +133,7 @@ export async function getKeys(
           keys: enrichedKeys,
           cursor: cursor || "0",
         },
-      })
+      }),
     )
   } catch (err) {
     ws.send(
@@ -143,7 +143,7 @@ export async function getKeys(
           connectionId: payload.connectionId,
           error: err instanceof Error ? err.message : String(err),
         },
-      })
+      }),
     )
     console.log("Error getting keys from Valkey", err)
   }
@@ -155,7 +155,7 @@ export async function getKeyInfoSingle(
   payload: {
     connectionId: string;
     key: string;
-  }
+  },
 ) {
   try {
     const keyInfo = await getKeyInfo(client, payload.key)
@@ -168,7 +168,7 @@ export async function getKeyInfoSingle(
           key: payload.key,
           ...keyInfo,
         },
-      })
+      }),
     )
   } catch (err) {
     ws.send(
@@ -179,7 +179,7 @@ export async function getKeyInfoSingle(
           key: payload.key,
           error: err instanceof Error ? err.message : String(err),
         },
-      })
+      }),
     )
     console.log("Error getting key info from Valkey", err)
   }
@@ -188,7 +188,7 @@ export async function getKeyInfoSingle(
 export async function deleteKey(
   client: GlideClient,
   ws: WebSocket,
-  payload: { connectionId: string; key: string }
+  payload: { connectionId: string; key: string },
 ) {
   try {
     // Using UNLINK for non-blocking deletion, DEL is also an option but can block
@@ -205,7 +205,7 @@ export async function deleteKey(
           key: payload.key,
           deleted: result === 1,
         },
-      })
+      }),
     )
   } catch (err) {
     ws.send(
@@ -216,7 +216,7 @@ export async function deleteKey(
           key: payload.key,
           error: err instanceof Error ? err.message : String(err),
         },
-      })
+      }),
     )
     console.log("Error deleting key from Valkey", err)
   }
@@ -227,7 +227,7 @@ async function addStringKey(
   client: GlideClient,
   key: string,
   value: string,
-  ttl?: number
+  ttl?: number,
 ) {
   if (ttl && ttl > 0) {
     await client.customCommand(["SETEX", key, ttl.toString(), value])
@@ -240,7 +240,7 @@ async function addHashKey(
   client: GlideClient,
   key: string,
   fields: { field: string; value: string }[],
-  ttl?: number
+  ttl?: number,
 ) {
   const hsetCommand = ["HSET", key]
   fields.forEach(({ field, value }) => {
@@ -257,7 +257,7 @@ async function addListKey(
   client: GlideClient,
   key: string,
   values: string[],
-  ttl?: number
+  ttl?: number,
 ) {
   const rpushArgs = ["RPUSH", key, ...values]
   await client.customCommand(rpushArgs)
@@ -271,7 +271,7 @@ async function addSetKey(
   client: GlideClient,
   key: string,
   values: string[],
-  ttl?: number
+  ttl?: number,
 ) {
 
   const saddArgs = ["SADD", key, ...values]
@@ -294,7 +294,7 @@ export async function addKey(
     fields?: { field: string; value: string }[]; // for hash type
     values?: string[]; // for list, set, zset types
     ttl?: number;
-  }
+  },
 ) {
   try {
     const keyType = payload.keyType.toLowerCase().trim()
@@ -342,7 +342,7 @@ export async function addKey(
           key: keyInfo,
           message: "Key added successfully",
         },
-      })
+      }),
     )
   } catch (err) {
     ws.send(
@@ -352,7 +352,7 @@ export async function addKey(
           connectionId: payload.connectionId,
           error: err instanceof Error ? err.message : String(err),
         },
-      })
+      }),
     )
     console.log("Error adding key to Valkey", err)
   }
@@ -364,7 +364,7 @@ async function updateStringKey(
   client: GlideClient,
   key: string,
   value: string,
-  ttl?: number
+  ttl?: number,
 ) {
   if (ttl && ttl > 0) {
     await client.customCommand(["SETEX", key, ttl.toString(), value])
@@ -377,7 +377,7 @@ async function updateHashKey(
   client: GlideClient,
   key: string,
   fields: { field: string; value: string }[],
-  ttl?: number
+  ttl?: number,
 ) {
   const hsetCommand = ["HSET", key]
   fields.forEach(({ field, value }) => {
@@ -395,12 +395,12 @@ async function updateListKey(
   client: GlideClient,
   key: string,
   updates: { index: number; value: string }[],
-  ttl?: number
+  ttl?: number,
 ) {
   const batch = new Batch(true)
 
   updates.map(({ index, value }) =>
-    batch.customCommand(["LSET", key, index.toString(), value])
+    batch.customCommand(["LSET", key, index.toString(), value]),
   )
 
   if (ttl && ttl > 0) {
@@ -414,7 +414,7 @@ async function updateSetKey(
   client: GlideClient,
   key: string,
   updates: { oldValue: string; newValue: string }[],
-  ttl?: number
+  ttl?: number,
 ) {
   const batch = new Batch(true)
 
@@ -442,7 +442,7 @@ export async function updateKey(
     listUpdates?: { index: number; value: string }[]; // for list type
     setUpdates?: { oldValue: string; newValue: string }[]; // for set type
     ttl?: number;
-  }
+  },
 ) {
 
   try {
@@ -489,7 +489,7 @@ export async function updateKey(
           key: keyInfo,
           message: "Key updated successfully",
         },
-      })
+      }),
     )
   } catch (err) {
     ws.send(
@@ -499,7 +499,7 @@ export async function updateKey(
           connectionId: payload.connectionId,
           error: err instanceof Error ? err.message : String(err),
         },
-      })
+      }),
     )
     console.log("Error updating key in Valkey", err)
   }

@@ -44,7 +44,7 @@ export const HashSpec: ValidationRule[] = [
   {
     validatorFn: (key) => key.keyType === "Hash" &&
       (!key.hashFields || key.hashFields.filter((field) =>
-        isNotBlank(field.field) && isNotBlank(field.value)
+        isNotBlank(field.field) && isNotBlank(field.value),
       ).length === 0),
     error: "At least one field-value pair is required for hash type",
   },
@@ -55,7 +55,7 @@ export const ListSpec: ValidationRule[] = [
   {
     validatorFn: (key) => key.keyType === "List" &&
       (!key.listFields || key.listFields.filter((field) =>
-        isNotBlank(field)
+        isNotBlank(field),
       ).length === 0),
     error: "At least one value is required for list type",
   },
@@ -66,7 +66,7 @@ export const SetSpec: ValidationRule[] = [
   {
     validatorFn: (key) => key.keyType === "Set" &&
       (!key.setFields || key.setFields.filter((field) =>
-        isNotBlank(field)
+        isNotBlank(field),
       ).length === 0),
     error: "At least one value is required for set type",
   },

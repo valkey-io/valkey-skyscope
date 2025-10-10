@@ -9,13 +9,13 @@ export const makeNamespace = <
   const Defs extends Record<string, string>
 >(
   name: Prefix,
-  defs: Defs
+  defs: Defs,
 ) =>
   ({
     name,
     ...Object.fromEntries(
       Object.entries({ ...commonDefs, ...defs } as WithError<Defs>)
-        .map(([k, v]) => [k, `${name}/${v}` as const])
+        .map(([k, v]) => [k, `${name}/${v}` as const]),
     ),
   }) as {
     name: Prefix

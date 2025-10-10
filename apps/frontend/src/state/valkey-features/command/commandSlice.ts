@@ -1,13 +1,14 @@
 import * as R from "ramda"
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 import { VALKEY } from "@common/src/constants.ts"
+import type { JSONObject } from "@common/src/json-utils.ts"
 
 type CmdMeta = { command: string, connectionId: string }
 
 export interface CommandMetadata {
   command: string
-  error: string | null
-  response: string | null
+  error: JSONObject | null
+  response: JSONObject | null
   isFulfilled: boolean
   timestamp: number
 }
@@ -19,7 +20,7 @@ interface CommandState {
   }
 }
 
-const withMetadata = (command: string, response: string, isFulfilled = true): CommandMetadata => ({
+const withMetadata = (command: string, response: JSONObject, isFulfilled = true): CommandMetadata => ({
   command,
   error: isFulfilled ? null : response,
   response: isFulfilled ? response : null,

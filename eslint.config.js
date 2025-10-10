@@ -69,7 +69,7 @@ export default tseslint.config([
           objects: "always-multiline",
           imports: "never",
           exports: "never",
-          functions: "never", // This is the key for function arguments
+          functions: "always-multiline", // This is the key for function arguments
         },
       ],
       "max-len": [

@@ -35,7 +35,7 @@ export default function AddNewKey({ onClose }: AddNewKeyProps) {
   const updateHashField = (
     index: number,
     key: "field" | "value",
-    val: string
+    val: string,
   ) => {
     const updated = [...hashFields]
     updated[index][key] = val
@@ -96,7 +96,7 @@ export default function AddNewKey({ onClose }: AddNewKeyProps) {
           addKeyRequested({
             ...basePayload,
             value: value.trim(),
-          })
+          }),
         )
       } else if (keyType === "Hash") {
         // before dispatching, filtering out the empty fields
@@ -111,7 +111,7 @@ export default function AddNewKey({ onClose }: AddNewKeyProps) {
           addKeyRequested({
             ...basePayload,
             fields: validFields,
-          })
+          }),
         )
       } else if (keyType === "List") {
         // before dispatching, filtering out the empty fields
@@ -123,7 +123,7 @@ export default function AddNewKey({ onClose }: AddNewKeyProps) {
           addKeyRequested({
             ...basePayload,
             values: validFields,
-          })
+          }),
         )
       } else if (keyType === "Set") {
         // before dispatching, filtering out the empty fields
@@ -135,7 +135,7 @@ export default function AddNewKey({ onClose }: AddNewKeyProps) {
           addKeyRequested({
             ...basePayload,
             values: validFields,
-          })
+          }),
         )
       }
 

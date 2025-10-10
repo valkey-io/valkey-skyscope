@@ -40,6 +40,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-tw-primary: var(--tw-primary);
+  --color-tw-primary-light: var(--tw-primary-light);
   --color-tw-dark-primary: var(--tw-dark-primary);
   --color-tw-dark-border: var(--tw-dark-border);
   --color-tw-accent: var(--tw-accent);
@@ -80,6 +81,7 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --tw-primary: #6883fe;
+  --tw-primary-light: hsl(229deg 100% 70% / 30%);
   --tw-dark-primary: oklch(21% 0.034 264.665);
   --tw-dark-border: oklch(55.1% 0.027 264.364);
   --tw-accent: rgba(86, 118, 248, 0.5);

@@ -41,9 +41,9 @@ const connect = (store: Store) =>
         catchError((err) => {
           console.error("WebSocket connection error:", err)
           return of(connectRejected(err))
-        })
+        }),
       )
-    })
+    }),
   )
 
 const emitActions = (store: Store) =>
@@ -64,9 +64,9 @@ const emitActions = (store: Store) =>
           console.error("WebSocket error in message stream:", err)
           return EMPTY
         }),
-        ignoreElements()
+        ignoreElements(),
       )
-    })
+    }),
   )
 
 export function getSocket(): WebSocketSubject<PayloadAction> {
@@ -78,5 +78,5 @@ export function getSocket(): WebSocketSubject<PayloadAction> {
 
 export const wsConnectionEpic = (store: Store) => merge(
   connect(store),
-  emitActions(store)
+  emitActions(store),
 )

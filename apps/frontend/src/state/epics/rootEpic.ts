@@ -11,7 +11,7 @@ export const registerEpics = (store: Store) => {
     deleteConnectionEpic(),
     sendRequestEpic(),
     setDataEpic(),
-    keyBrowserEpic()
+    keyBrowserEpic(),
   ).subscribe({
     error: (err) => console.error("Epic error:", err),
   })
