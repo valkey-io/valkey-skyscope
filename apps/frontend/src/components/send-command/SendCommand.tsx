@@ -2,6 +2,7 @@ import { CopyIcon, GitCompareIcon, LayoutDashboard, RotateCwIcon } from "lucide-
 import React, { useRef, useState } from "react"
 import { useSelector } from "react-redux"
 import { useParams } from "react-router"
+import { toast } from "sonner"
 import type { JSONObject } from "@common/src/json-utils.ts"
 import { getNth, selectAllCommands } from "@/state/valkey-features/command/commandSelectors.ts"
 import { type CommandMetadata, sendRequested } from "@/state/valkey-features/command/commandSlice.ts"
@@ -13,7 +14,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import DiffCommands from "@/components/send-command/DiffCommands.tsx"
 import Response from "@/components/send-command/Response.tsx"
 import { useAppDispatch } from "@/hooks/hooks.ts"
-import { toast } from "sonner"
 
 export function SendCommand() {
   const dispatch = useAppDispatch()
