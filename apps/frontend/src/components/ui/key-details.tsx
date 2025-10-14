@@ -12,44 +12,36 @@ import KeyDetailsSet from "./key-details-set"
 import { useAppDispatch } from "@/hooks/hooks"
 import { deleteKeyRequested } from "@/state/valkey-features/keys/keyBrowserSlice"
 
+interface BaseKeyInfo {
+  name: string;
+  ttl: number;
+  size: number;
+  collectionSize?: number;
+}
+
 interface ElementInfo {
   key: string;
   value: string;
 }
 
-type KeyInfo = 
-  | {
-    name: string;
+type KeyInfo =
+  | (BaseKeyInfo & {
     type: "string";
-    ttl: number;
-    size: number;
-    collectionSize?: number;
     elements: string;
-  }
-  | {
-    name: string;
+  })
+  | (BaseKeyInfo & {
     type: "hash";
-    ttl: number;
-    size: number;
-    collectionSize?: number;
     elements: ElementInfo[];
-  }
-  | {
-    name: string;
+  })
+  | (BaseKeyInfo & {
     type: "list";
-    ttl: number;
-    size: number;
-    collectionSize?: number;
     elements: string[];
-  }
-  | {
-    name: string;
+  })
+  | (BaseKeyInfo & {
     type: "set";
-    ttl: number;
-    size: number;
-    collectionSize?: number;
     elements: string[];
-  };
+  });
+
 
 interface keyDetailsProps {
   selectedKey: string | null;
