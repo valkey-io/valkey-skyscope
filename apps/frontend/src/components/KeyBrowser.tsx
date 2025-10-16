@@ -13,7 +13,8 @@ import {
   Database,
   RefreshCw,
   Search,
-  ListFilter
+  ListFilter,
+  CircleX
 } from "lucide-react"
 import { CustomTooltip } from "./ui/custom-tooltip"
 import { AppHeader } from "./ui/app-header"
@@ -62,6 +63,16 @@ export function KeyBrowser() {
       dispatch(getKeysRequested({
         connectionId: id,
         pattern: searchPattern || "*",
+      }))
+    }
+  }
+
+  const handleClearSearch = () => {
+    setSearchPattern("")
+    if (id) {
+      dispatch(getKeysRequested({ 
+        connectionId: id, 
+        pattern: "*",
       }))
     }
   }
@@ -152,6 +163,9 @@ export function KeyBrowser() {
           </select>
         </div>
         <form className="flex items-center justify-between flex-1 h-10 p-2 dark:border-tw-dark-border border rounded" onSubmit={handleSearch}>
+          <button className={`mr-1 ${!searchPattern ? "invisible" : "text-tw-primary"}`} onClick={handleClearSearch} type="button">
+            <CircleX size={14}/>
+          </button>
           <input
             className="flex-1 bg-transparent outline-none"
             disabled={loading}
