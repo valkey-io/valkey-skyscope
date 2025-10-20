@@ -15,7 +15,7 @@ interface EnrichedKeyInfo {
 
 export async function getKeyInfo(
   client: GlideClient | GlideClusterClient,
-  key: string
+  key: string,
 ): Promise<EnrichedKeyInfo> {
   try {
     const [keyType, ttl, memoryUsage] = await Promise.all([

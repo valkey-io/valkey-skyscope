@@ -182,7 +182,7 @@ async function connectToValkey(
     port: number;
     connectionId: string;
   },
-  clients: Map<string, GlideClient | GlideClusterClient>
+  clients: Map<string, GlideClient | GlideClusterClient>,
 ) {
   if(clients.has(payload.connectionId)) {
     ws.send(
@@ -191,7 +191,7 @@ async function connectToValkey(
         payload: {
           connectionId: payload.connectionId,
         },
-      })
+      }),
     )
     return clients.get(payload.connectionId)
   }
@@ -288,7 +288,7 @@ async function connectToCluster(
   ws: WebSocket, 
   clients: Map<string, GlideClient | GlideClusterClient>, 
   payload: { host: string; port: number; connectionId: string;},
-  addresses: { host: string, port: number | undefined }[]
+  addresses: { host: string, port: number | undefined }[],
 ) {
   const { clusterNodes, clusterId } = await discoverCluster(standaloneClient)
   if (Object.keys(clusterNodes!).length === 0) {
@@ -299,7 +299,7 @@ async function connectToCluster(
     JSON.stringify({
       type: VALKEY.CLUSTER.addCluster,
       payload: { clusterId, clusterNodes },
-    })
+    }),
   )
   const clusterClient = await GlideClusterClient.createClient({
     addresses,
@@ -317,7 +317,7 @@ async function connectToCluster(
         clusterNodes,
         clusterId: clusterId,
       },
-    })
+    }),
   )
   return clusterClient
 }
@@ -357,7 +357,7 @@ async function setDashboardData(
 async function setClusterDashboardData(
   clusterId: string,
   client: GlideClusterClient,
-  ws: WebSocket
+  ws: WebSocket,
 ) {
   const rawInfo = await client.info({ route:"allNodes" })
   const info = parseClusterInfo(rawInfo)
@@ -370,7 +370,7 @@ async function setClusterDashboardData(
         clusterId,
         info: info,
       },
-    })
+    }),
   )
 }
 

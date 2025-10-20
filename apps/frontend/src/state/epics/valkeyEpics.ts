@@ -90,5 +90,5 @@ export const setDataEpic = () =>
       if(clusterId)
         socket.next({ type: setClusterData.type, payload: { clusterId, connectionId } })
       else socket.next({ type: setData.type, payload: { connectionId } })
-    })
+    }),
   )
