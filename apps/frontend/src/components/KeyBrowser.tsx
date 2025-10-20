@@ -8,16 +8,18 @@ import { formatBytes } from "@common/src/bytes-conversion"
 import { calculateTotalMemoryUsage } from "@common/src/memory-usage-calculation"
 import {
   Compass,
-  RefreshCcw,
   Key,
   Hourglass,
   Database,
-  Trash
+  RefreshCw,
+  Search,
+  ListFilter,
+  CircleX
 } from "lucide-react"
 import { CustomTooltip } from "./ui/custom-tooltip"
 import { AppHeader } from "./ui/app-header"
-import { Button } from "./ui/button"
-import DeleteModal from "./ui/delete-modal"
+import AddNewKey from "./ui/add-key"
+import KeyDetails from "./ui/key-details"
 import { useAppDispatch } from "@/hooks/hooks"
 import {
   selectKeys,
@@ -26,8 +28,7 @@ import {
 } from "@/state/valkey-features/keys/keyBrowserSelectors"
 import {
   getKeysRequested,
-  getKeyTypeRequested,
-  deleteKeyRequested
+  getKeyTypeRequested
 } from "@/state/valkey-features/keys/keyBrowserSlice"
 
 interface KeyInfo {
@@ -40,19 +41,44 @@ interface KeyInfo {
   elements?: any;
 }
 
-interface ElementInfo {
-  key: string;
-  value: string;
-}
-
 export function KeyBrowser() {
   const { id } = useParams()
   const dispatch = useAppDispatch()
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isAddKeyOpen, setIsAddKeyOpen] = useState(false)
+  const [searchPattern, setSearchPattern] = useState("")
+  const [selectedType, setSelectedType] = useState<string>("all")
 
-  const handleDeleteModal = () => {
-    setIsDeleteModalOpen(!isDeleteModalOpen)
+  const keyTypes = [
+    { value: "all", label: "All Key Types" },
+    { value: "string", label: "String" },
+    { value: "hash", label: "Hash" },
+    { value: "list", label: "List" },
+    { value: "set", label: "Set" },
+  ]
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (id) {
+      dispatch(getKeysRequested({
+        connectionId: id,
+        pattern: searchPattern || "*",
+      }))
+    }
+  }
+
+  const handleClearSearch = () => {
+    setSearchPattern("")
+    if (id) {
+      dispatch(getKeysRequested({ 
+        connectionId: id, 
+        pattern: "*",
+      }))
+    }
+  }
+
+  const handleAddKeyModal = () => {
+    setIsAddKeyOpen(!isAddKeyOpen)
   }
 
   const keys: KeyInfo[] = useSelector(selectKeys(id!))
@@ -70,17 +96,13 @@ export function KeyBrowser() {
   }
 
   const handleKeyClick = (keyName: string) => {
+    if (loading) return
     setSelectedKey(keyName)
 
     const keyInfo = keys.find((k) => k.name === keyName)
     if (R.isNotEmpty(keyInfo) && !keyInfo!.type) {
       dispatch(getKeyTypeRequested({ connectionId: id!, key: keyName }))
     }
-  }
-
-  const handleKeyDelete = (keyName: string) => {
-    dispatch(deleteKeyRequested({ connectionId: id!, key: keyName }))
-    setSelectedKey(null)
   }
 
   // Get selected key info from the keys data
@@ -91,11 +113,14 @@ export function KeyBrowser() {
   // Calculate total memory usage
   const totalMemoryUsage = calculateTotalMemoryUsage(keys)
 
+  const filteredKeys = selectedType === "all"
+    ? keys
+    : keys.filter((key) => key.type.toLowerCase() === selectedType.toLowerCase())
+
   return (
     <div className="flex flex-col h-screen p-4">
       <AppHeader icon={<Compass size={20} />} title="Key Browser" />
 
-      {loading && <div className="ml-2">Loading keys...</div>}
       {error && <div className="ml-2">Error loading keys: {error}</div>}
 
       {/* Total Keys and Key Stats */}
@@ -121,32 +146,70 @@ export function KeyBrowser() {
       </div>
 
       {/* Search and Refresh */}
-      <div className="flex items-center w-full mb-4">
-        <input
-          className="w-full h-10 p-2 dark:border-tw-dark-border border rounded"
-          placeholder="search"
-        />
+      <div className="flex items-center w-full mb-4 text-sm font-light">
+        <div className="h-10 mr-2 px-4 py-2 dark:border-tw-dark-border border rounded bg-white dark:bg-gray-800">
+          <ListFilter className="inline mr-2" />
+          <select
+            className="flex-1 bg-transparent outline-none px-1"
+            disabled={loading}
+            onChange={(e) => setSelectedType(e.target.value)}
+            value={selectedType}
+          >
+            {keyTypes.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <form className="flex items-center justify-between flex-1 h-10 p-2 dark:border-tw-dark-border border rounded" onSubmit={handleSearch}>
+          <button className={`mr-1 ${!searchPattern ? "invisible" : "text-tw-primary"}`} onClick={handleClearSearch} type="button">
+            <CircleX size={14}/>
+          </button>
+          <input
+            className="flex-1 bg-transparent outline-none"
+            disabled={loading}
+            onChange={(e) => setSearchPattern(e.target.value)}
+            placeholder="Search keys (use * to search patterns like user:*)"
+            value={searchPattern}
+          />
+          <button
+            className="text-tw-primary/80 hover:text-tw-primary"
+            disabled={loading}
+            type="submit"><Search /></button>
+        </form>
         <button
-          className="ml-2 px-4 py-2 bg-tw-primary text-white rounded"
+          className="h-10 ml-2 px-4 py-2 bg-tw-primary text-white rounded "
+          disabled={loading}
+          onClick={handleAddKeyModal}
+        >
+          + Add Key
+        </button>
+        <button
+          className="h-10 ml-2 px-4 py-2 bg-tw-primary text-white rounded"
+          disabled={loading}
           onClick={handleRefresh}
         >
-          <RefreshCcw />
+          <RefreshCw className={loading ? "animate-spin" : ""} />
         </button>
       </div>
+
+      {/* Add Key Modal */}
+      {isAddKeyOpen && <AddNewKey onClose={handleAddKeyModal} />}
 
       {/* Key Viewer */}
       <TooltipProvider>
         <div className="flex flex-1 min-h-0">
           {/* Keys List */}
           <div className="w-1/2 pr-2">
-            {keys.length === 0 ? (
+            {filteredKeys.length === 0 && !loading ? (
               <div className="h-full p-2 dark:border-tw-dark-border border rounded flex items-center justify-center">
-                No keys found
+                {selectedType === "all" ? "No keys found" : `No ${selectedType} keys found`}
               </div>
             ) : (
-              <div className="h-full dark:border-tw-dark-border border rounded overflow-hidden">
+              <div className={`h-full dark:border-tw-dark-border border rounded overflow-hidden ${loading ? "opacity-50 pointer-events-none" : ""}`}>
                 <ul className="h-full overflow-y-auto space-y-2 p-2">
-                  {keys.map((keyInfo: KeyInfo, index) => (
+                  {filteredKeys.map((keyInfo: KeyInfo, index) => (
                     <li
                       className="h-16 p-2 dark:border-tw-dark-border border hover:text-tw-primary 
                       cursor-pointer rounded flex items-center gap-2 justify-between"
@@ -164,8 +227,10 @@ export function KeyBrowser() {
                       <div className="flex items-center gap-1 text-xs">
                         {keyInfo.size && (
                           <CustomTooltip content="Size">
-                            <span className="flex items-center justify-between gap-1 text-xs px-2 py-1 
-                            rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
+                            <span
+                              className="flex items-center justify-between gap-1 text-xs px-2 py-1 
+                             text-tw-primary dark:text-white"
+                            >
                               <Database
                                 className="text-white bg-tw-primary p-1 rounded-full"
                                 size={20}
@@ -176,8 +241,10 @@ export function KeyBrowser() {
                         )}
                         {/* text-red-400 is a placehodler for now, will change to a custom tw color */}
                         <CustomTooltip content="TTL">
-                          <span className="flex items-center justify-between gap-1 text-xs px-2 py-1 
-                          rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
+                          <span
+                            className="flex items-center justify-between gap-1 text-xs px-2 py-1 
+                           text-tw-primary dark:text-white"
+                          >
                             <Hourglass
                               className="text-white bg-tw-primary p-1 rounded-full"
                               size={20}
@@ -192,104 +259,8 @@ export function KeyBrowser() {
               </div>
             )}
           </div>
-
           {/* Key Details */}
-          <div className="w-1/2 pl-2">
-            <div className="h-full dark:border-tw-dark-border border rounded overflow-hidden">
-              {selectedKey && selectedKeyInfo ? (
-                <div className="h-full p-4 text-sm font-light overflow-y-auto">
-                  <div className="flex justify-between items-center mb-2 border-b pb-4 border-tw-dark-border">
-                    <span className="font-semibold flex items-center gap-2">
-                      <Key size={16} />
-                      {selectedKey}
-                    </span>
-                    <div className="space-x-2 flex items-center relative">
-                      <CustomTooltip content="TTL">
-                        <span className="text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
-                          {convertTTL(selectedKeyInfo.ttl)}
-                        </span>
-                      </CustomTooltip>
-                      <CustomTooltip content="Type">
-                        <span className="text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
-                          {selectedKeyInfo.type}
-                        </span>
-                      </CustomTooltip>
-                      <CustomTooltip content="Size">
-                        <span className="text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
-                          {formatBytes(selectedKeyInfo.size)}
-                        </span>
-                      </CustomTooltip>
-                      {selectedKeyInfo.collectionSize !== undefined && (
-                        <CustomTooltip content="Collection size">
-                          <span className="text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
-                            {selectedKeyInfo.collectionSize.toLocaleString()}
-                          </span>
-                        </CustomTooltip>
-                      )}
-                      <CustomTooltip content="Delete">
-                        <Button
-                          className="mr-0.5"
-                          onClick={handleDeleteModal}
-                          variant={"destructiveGhost"}
-                        >
-                          <Trash />
-                        </Button>
-                      </CustomTooltip>
-                    </div>
-                  </div>
-                  {isDeleteModalOpen && (
-                    <DeleteModal
-                      keyName={selectedKeyInfo.name}
-                      onCancel={handleDeleteModal}
-                      onConfirm={() => handleKeyDelete(selectedKeyInfo.name)}
-                    />
-                  )}
-                  {/* TO DO: Refactor KeyBrowser and build smaller components */}
-                  {/* Key Elements */}
-                  <div className="flex items-center justify-center w-full p-4">
-                    <table className="table-fixed w-full overflow-hidden">
-                      <thead className="bg-tw-dark-border opacity-85 text-white">
-                        <tr>
-                          <th className="w-1/2 py-3 px-4 text-left font-semibold">
-                            {selectedKeyInfo.type === "list"
-                              ? "Index"
-                              : "Field"}
-                          </th>
-                          <th className="w-1/2 py-3 px-4 text-left font-semibold">
-                            {selectedKeyInfo.type === "list"
-                              ? "Elements"
-                              : "Value"}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {selectedKeyInfo.elements.map(
-                          (element: ElementInfo, index: number) => (
-                            <tr key={index}>
-                              <td className="py-3 px-4 border-b border-tw-dark-border font-light dark:text-white">
-                                {selectedKeyInfo.type === "list"
-                                  ? index
-                                  : element.key}
-                              </td>
-                              <td className="py-3 px-4 border-b border-tw-dark-border font-light dark:text-white">
-                                {selectedKeyInfo.type === "list"
-                                  ? String(element)
-                                  : element.value}
-                              </td>
-                            </tr>
-                          )
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-full p-4 text-sm font-light flex items-center justify-center text-gray-500">
-                  Select a key to see details
-                </div>
-              )}
-            </div>
-          </div>
+          <KeyDetails conectionId={id!} selectedKey={selectedKey} selectedKeyInfo={selectedKeyInfo!} setSelectedKey={setSelectedKey} />
         </div>
       </TooltipProvider>
     </div>

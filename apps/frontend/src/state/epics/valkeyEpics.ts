@@ -20,7 +20,7 @@ export const connectionEpic = (store: Store) =>
         console.log("Sending message to server from connecting epic...")
         socket.next(action)
       }),
-      ignoreElements()
+      ignoreElements(),
     ),
 
     action$.pipe(
@@ -29,7 +29,7 @@ export const connectionEpic = (store: Store) =>
         try {
           const currentConnections = R.pipe(
             (v: string) => localStorage.getItem(v),
-            (s) => (s === null ? {} : JSON.parse(s))
+            (s) => (s === null ? {} : JSON.parse(s)),
           )(LOCAL_STORAGE.VALKEY_CONNECTIONS)
 
           R.pipe( // merge fulfilled connection with existing connections in localStorage
@@ -37,15 +37,15 @@ export const connectionEpic = (store: Store) =>
             R.evolve({ status: R.always(NOT_CONNECTED) }),
             R.assoc(connectionId, R.__, currentConnections),
             JSON.stringify,
-            (updated) => localStorage.setItem(LOCAL_STORAGE.VALKEY_CONNECTIONS, updated)
+            (updated) => localStorage.setItem(LOCAL_STORAGE.VALKEY_CONNECTIONS, updated),
           )(store.getState())
           toast.success("Connected to server successfully!")
         } catch (e) {
           toast.error("Connection to server failed!")
           console.error(e)
         }
-      })
-    )
+      }),
+    ),
   )
 
 export const deleteConnectionEpic = () => 
@@ -56,12 +56,12 @@ export const deleteConnectionEpic = () =>
       try {
         const currentConnections = R.pipe(
           (v: string) => localStorage.getItem(v),
-          (s) => (s === null ? {} : JSON.parse(s))
+          (s) => (s === null ? {} : JSON.parse(s)),
         )(LOCAL_STORAGE.VALKEY_CONNECTIONS)
         R.pipe(
           R.dissoc(connectionId), 
           JSON.stringify,
-          (updated) => localStorage.setItem(LOCAL_STORAGE.VALKEY_CONNECTIONS, updated)
+          (updated) => localStorage.setItem(LOCAL_STORAGE.VALKEY_CONNECTIONS, updated),
         )(currentConnections)
 
         toast.success("Connection removed successfully!")
@@ -69,7 +69,7 @@ export const deleteConnectionEpic = () =>
         toast.error("Failed to remove connection!")
         console.error(e)
       }
-    })
+    }),
   )
 
 export const sendRequestEpic = () =>
@@ -78,7 +78,7 @@ export const sendRequestEpic = () =>
     tap((action) => {
       const socket = getSocket()
       socket.next(action)
-    })
+    }),
   )
 
 export const setDataEpic = () =>

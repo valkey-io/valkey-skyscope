@@ -18,7 +18,7 @@ type RTKCreator<A extends { type: string }> =
   ((...args: any[]) => A) & { type: string; match(action: Action): action is A }
 
 export function select<AC extends RTKCreator<any>>(
-  creator: AC
+  creator: AC,
 ): OperatorFunction<Action, ReturnType<AC>> {
   return filter(creator.match)
 }
@@ -28,6 +28,6 @@ export function selectMany<
 >(...creators: ACs): OperatorFunction<Action, ReturnType<ACs[number]>> {
   return filter(
     (a: Action): a is ReturnType<ACs[number]> =>
-      creators.some((c) => c.match(a))
+      creators.some((c) => c.match(a)),
   )
 }

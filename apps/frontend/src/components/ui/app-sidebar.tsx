@@ -80,7 +80,7 @@ export function AppSidebar() {
               <li key={to}>
                 <Link
                   className={`flex p-2 dark:text-white ${getNavItemClasses(
-                    to
+                    to,
                   )} h-10`}
                   title={title}
                   to={to}
@@ -133,7 +133,7 @@ export function AppSidebar() {
               ) : (
                 <Link
                   className={`flex p-2 items-center dark:text-white ${getNavItemClasses(
-                    item.to || ""
+                    item.to || "",
                   )} h-10`}
                   title={item.title}
                   to={item.to || ""}

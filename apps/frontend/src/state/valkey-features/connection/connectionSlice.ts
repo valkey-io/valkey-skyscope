@@ -27,7 +27,7 @@ interface ValkeyConnectionsState {
 
 const currentConnections = R.pipe(
   (v: string) => localStorage.getItem(v),
-  (s) => (s === null ? {} : JSON.parse(s))
+  (s) => (s === null ? {} : JSON.parse(s)),
 )(LOCAL_STORAGE.VALKEY_CONNECTIONS)
 
 const connectionSlice = createSlice({
@@ -44,7 +44,7 @@ const connectionSlice = createSlice({
         port: string;
         username?: string;
         password?: string;
-      }>
+      }>,
     ) => {
       const { connectionId, host, port, username = "", password = "" } = action.payload
       state.connections[connectionId] = {

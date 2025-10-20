@@ -38,7 +38,7 @@ const keyBrowserSlice = createSlice({
         connectionId: string;
         pattern?: string;
         count?: number;
-      }>
+      }>,
     ) => {
       const { connectionId } = action.payload
       if (!state[connectionId]) {
@@ -53,7 +53,7 @@ const keyBrowserSlice = createSlice({
         connectionId: string;
         keys: KeyInfo[];
         cursor: string;
-      }>
+      }>,
     ) => {
       const { connectionId, keys, cursor } = action.payload
       if (state[connectionId]) {
@@ -67,7 +67,7 @@ const keyBrowserSlice = createSlice({
       action: PayloadAction<{
         connectionId: string;
         error: string;
-      }>
+      }>,
     ) => {
       const { connectionId, error } = action.payload
       if (state[connectionId]) {
@@ -77,7 +77,7 @@ const keyBrowserSlice = createSlice({
     },
     getKeyTypeRequested: (
       state,
-      action: PayloadAction<{ connectionId: string; key: string }>
+      action: PayloadAction<{ connectionId: string; key: string }>,
     ) => {
       const { connectionId, key } = action.payload
       if (!state[connectionId]) {
@@ -94,13 +94,13 @@ const keyBrowserSlice = createSlice({
         ttl: number;
         size: number;
         collectionSize?: number;
-      }>
+      }>,
     ) => {
       const { connectionId, key, keyType, ttl, size, collectionSize } =
         action.payload
       if (state[connectionId]) {
         const existingKey = state[connectionId].keys.find(
-          (k) => k.name === key
+          (k) => k.name === key,
         )
         if (existingKey) {
           existingKey.type = keyType
@@ -118,7 +118,7 @@ const keyBrowserSlice = createSlice({
         connectionId: string;
         key: string;
         error: string;
-      }>
+      }>,
     ) => {
       const { connectionId, key } = action.payload
       if (state[connectionId]) {
@@ -127,7 +127,7 @@ const keyBrowserSlice = createSlice({
     },
     deleteKeyRequested: (
       state,
-      action: PayloadAction<{ connectionId: string; key: string }>
+      action: PayloadAction<{ connectionId: string; key: string }>,
     ) => {
       const { connectionId, key } = action.payload
       if (!state[connectionId]) {
@@ -141,7 +141,7 @@ const keyBrowserSlice = createSlice({
         connectionId: string;
         key: string;
         deleted: boolean;
-      }>
+      }>,
     ) => {
       const { connectionId, key, deleted } = action.payload
       if (state[connectionId]) {
@@ -150,21 +150,123 @@ const keyBrowserSlice = createSlice({
         // remove key from keys array when deleted
         if (deleted && state[connectionId].keys) {
           state[connectionId].keys = state[connectionId].keys.filter(
-            (keyInfo) => keyInfo.name !== key
+            (keyInfo) => keyInfo.name !== key,
           )
         }
       }
     },
-    deleteKeyFailed: (state, action: PayloadAction<{
-      connectionId: string
-      key: string
-      error: string
-    }>) => {
+    deleteKeyFailed: (
+      state,
+      action: PayloadAction<{
+        connectionId: string;
+        key: string;
+        error: string;
+      }>,
+    ) => {
       const { connectionId, key } = action.payload
       if (state[connectionId]) {
         delete state[connectionId].keyTypeLoading[key]
       }
     },
+    addKeyRequested: (
+      state,
+      action: PayloadAction<{
+        connectionId: string;
+        key: string;
+        keyType: string;
+        value?: string;
+        fields?: { field: string; value: string }[];
+        values?: string[];
+        ttl?: number;
+      }>,
+    ) => {
+      const { connectionId } = action.payload
+      if (!state[connectionId]) {
+        state[connectionId] = { ...defaultConnectionState }
+      }
+      state[connectionId].loading = true
+      state[connectionId].error = null
+    },
+    addKeyFulfilled: (
+      state,
+      action: PayloadAction<{
+        connectionId: string;
+        key: KeyInfo;
+        message: string;
+      }>,
+    ) => {
+      const { connectionId, key } = action.payload
+      if (state[connectionId]) {
+        state[connectionId].loading = false
+        state[connectionId].keys.push(key)
+      }
+    },
+    addKeyFailed: (
+      state,
+      action: PayloadAction<{
+        connectionId: string;
+        error: string;
+      }>,
+    ) => {
+      const { connectionId, error } = action.payload
+      if (state[connectionId]) {
+        state[connectionId].loading = false
+        state[connectionId].error = error
+      }
+    },
+    updateKeyRequested: (
+      state,
+      action: PayloadAction<{
+        connectionId: string;
+        key: string;
+        keyType: string;
+        value?: string;
+        fields?: { field: string; value: string }[];
+        listUpdates?: { index: number; value: string }[];
+        setUpdates?: { oldValue: string; newValue: string }[];
+        ttl?: number;
+      }>,
+    ) => {
+      const { connectionId } = action.payload
+      if (!state[connectionId]) {
+        state[connectionId] = { ...defaultConnectionState }
+      }
+      state[connectionId].loading = true
+      state[connectionId].error = null
+    },
+    updateKeyFulfilled: (
+      state,
+      action: PayloadAction<{
+        connectionId: string;
+        key: KeyInfo;
+        message: string;
+      }>,
+    ) => {
+      const { connectionId, key } = action.payload
+      if (state[connectionId]) {
+        state[connectionId].loading = false
+        const index = state[connectionId].keys.findIndex(
+          (k) => k.name === key.name,
+        )
+        if (index !== -1) {
+          state[connectionId].keys[index] = key
+        }
+      }
+    },
+    updateKeyFailed: (
+      state,
+      action: PayloadAction<{
+        connectionId: string;
+        error: string;
+      }>,
+    ) => {
+      const { connectionId, error } = action.payload
+      if (state[connectionId]) {
+        state[connectionId].loading = false
+        state[connectionId].error = error
+      }
+    },
+
   },
 })
 
@@ -179,4 +281,10 @@ export const {
   deleteKeyRequested,
   deleteKeyFulfilled,
   deleteKeyFailed,
+  addKeyRequested,
+  addKeyFulfilled,
+  addKeyFailed,
+  updateKeyRequested,
+  updateKeyFulfilled,
+  updateKeyFailed,
 } = keyBrowserSlice.actions

@@ -1,7 +1,13 @@
 import { WebSocket, WebSocketServer } from "ws"
 import {  ClusterResponse, Decoder, GlideClient, GlideClusterClient, InfoOptions } from "@valkey/valkey-glide"
 import { VALKEY } from "../../../common/src/constants.ts"
-import { getKeys, getKeyInfoSingle, deleteKey } from "./keys-browser.ts"
+import {
+  getKeys,
+  getKeyInfoSingle,
+  deleteKey,
+  addKey,
+  updateKey
+} from "./keys-browser.ts"
 
 const wss = new WebSocketServer({ port: 8080 })
 
@@ -35,7 +41,7 @@ wss.on("connection", (ws: WebSocket) => {
             payload: {
               error: "Invalid connection Id",
             },
-          })
+          }),
         )
       }
     }
@@ -74,7 +80,7 @@ wss.on("connection", (ws: WebSocket) => {
               connectionId,
               error: "Invalid connection Id",
             },
-          })
+          }),
         )
       }
     } if (action.type === VALKEY.KEYS.getKeyTypeRequested) {
@@ -93,7 +99,7 @@ wss.on("connection", (ws: WebSocket) => {
               key: action.payload?.key,
               error: "Invalid connection Id",
             },
-          })
+          }),
         )
       }
     } if (action.type === VALKEY.KEYS.deleteKeyRequested) {
@@ -112,10 +118,48 @@ wss.on("connection", (ws: WebSocket) => {
               key: action.payload?.key,
               error: "Invalid connection Id",
             },
-          })
+          }),
         )
       }
-    } else {
+    } else if (action.type === VALKEY.KEYS.addKeyRequested) {
+      console.log("Handling addKeyRequested for key:", action.payload?.key)
+      const client = clients.get(connectionId)
+      if (client) {
+        await addKey(client, ws, action.payload)
+      } else {
+        console.log("No client found for connectionId:", connectionId)
+        ws.send(
+          JSON.stringify({
+            type: VALKEY.KEYS.addKeyFailed,
+            payload: {
+              connectionId,
+              key: action.payload?.key,
+              error: "Invalid connection Id",
+            },
+          }),
+        )
+      }
+    } else if (action.type === VALKEY.KEYS.updateKeyRequested) {
+      console.log("Handling updateKeyRequested for key:", action.payload?.key)
+      const client = clients.get(connectionId)
+      if (client) {
+        await updateKey(client, ws, action.payload)
+      } else {
+        console.log("No client found for connectionId:", connectionId)
+        ws.send(
+          JSON.stringify({
+            type: VALKEY.KEYS.addKeyFailed,
+            payload: {
+              connectionId,
+              key: action.payload?.key,
+              error: "Invalid connection Id",
+            },
+          }),
+        )
+      }
+    }
+
+    else {
       console.log("Unknown action type:", action.type)
     }
   })
@@ -175,7 +219,7 @@ async function connectToValkey(
         payload: {
           connectionId: payload.connectionId,
         },
-      })
+      }),
     )
     return standaloneClient
 
@@ -188,7 +232,7 @@ async function connectToValkey(
           err,
           connectionId: payload.connectionId,
         },
-      })
+      }),
     )
   }
 }
@@ -281,7 +325,7 @@ async function connectToCluster(
 async function setDashboardData(
   connectionId: string,
   client: GlideClient,
-  ws: WebSocket
+  ws: WebSocket,
 ) {
   const rawInfo = await client.info()
   const info = parseInfo(rawInfo)
@@ -306,7 +350,7 @@ async function setDashboardData(
         info: info,
         memory: memoryStats,
       },
-    })
+    }),
   )
 }
 
@@ -378,11 +422,11 @@ const parseInfo = (infoStr: string): Record<string, string> =>
 async function sendValkeyRunCommand(
   client: GlideClient | GlideClusterClient,
   ws: WebSocket,
-  payload: { command: string; connectionId: string }
+  payload: { command: string; connectionId: string },
 ) {
   try {
     const rawResponse = (await client.customCommand(
-      payload.command.split(" ")
+      payload.command.split(" "),
     )) as string
     console.log("========")
     console.log(typeof rawResponse)
@@ -398,7 +442,7 @@ async function sendValkeyRunCommand(
           meta: { command: payload.command },
           type: VALKEY.COMMAND.sendFailed,
           payload: rawResponse,
-        })
+        }),
       )
     }
     ws.send(
@@ -406,7 +450,7 @@ async function sendValkeyRunCommand(
         meta: { connectionId: payload.connectionId, command: payload.command },
         type: VALKEY.COMMAND.sendFulfilled,
         payload: response,
-      })
+      }),
     )
   } catch (err) {
     ws.send(
@@ -414,7 +458,7 @@ async function sendValkeyRunCommand(
         meta: { connectionId: payload.connectionId, command: payload.command },
         type: VALKEY.COMMAND.sendFailed,
         payload: err,
-      })
+      }),
     )
     console.log("Error sending command to Valkey", err)
   }

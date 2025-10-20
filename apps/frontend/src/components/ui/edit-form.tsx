@@ -42,7 +42,7 @@ function EditForm({ onClose }: EditFormProps) {
         port,
         username,
         password,
-      })
+      }),
     )
 
     // Disconnect First
@@ -56,7 +56,7 @@ function EditForm({ onClose }: EditFormProps) {
           port,
           username,
           password,
-        })
+        }),
       )
     }, 100)
 

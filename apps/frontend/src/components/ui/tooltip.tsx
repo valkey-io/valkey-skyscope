@@ -49,7 +49,7 @@ function TooltipContent({
           " data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2"+
           " data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin)"+
           " rounded-md px-3 py-1.5 text-xs text-balance",
-          className
+          className,
         )}
         data-slot="tooltip-content"
         sideOffset={sideOffset}

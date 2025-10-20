@@ -20,7 +20,7 @@ function ConnectionForm({ onClose }: ConnectionFormProps) {
     e.preventDefault()
     const connectionId = sanitizeUrl(`${host}-${port}`)
     dispatch(
-      connectPending({ host, port, username, password, connectionId })
+      connectPending({ host, port, username, password, connectionId }),
     )
     onClose()
   }

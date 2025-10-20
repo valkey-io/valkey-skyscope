@@ -9,13 +9,13 @@ export const makeNamespace = <
   const Defs extends Record<string, string>
 >(
   name: Prefix,
-  defs: Defs
+  defs: Defs,
 ) =>
   ({
     name,
     ...Object.fromEntries(
       Object.entries({ ...commonDefs, ...defs } as WithError<Defs>)
-        .map(([k, v]) => [k, `${name}/${v}` as const])
+        .map(([k, v]) => [k, `${name}/${v}` as const]),
     ),
   }) as {
     name: Prefix
@@ -47,6 +47,12 @@ export const VALKEY = {
     deleteKeyRequested: "deleteKeyRequested",
     deleteKeyFulfilled: "deleteKeyFulfilled",
     deleteKeyFailed: "deleteKeyFailed",
+    addKeyRequested: "addKeyRequested",
+    addKeyFulfilled: "addKeyFulfilled",
+    addKeyFailed: "addKeyFailed",
+    updateKeyRequested: "updateKeyRequested",
+    updateKeyFulfilled: "updateKeyFulfilled",
+    updateKeyFailed: "updateKeyFailed",
   } as const),
   CLUSTER: makeNamespace( "valkeyCluster", {
     addCluster: "addCluster",
