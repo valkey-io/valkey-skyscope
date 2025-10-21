@@ -67,7 +67,7 @@ export function AppSidebar() {
                   ...(clusterId
                     ? [
                       {
-                        to: `/${clusterId}/${id}/clustertopology`,
+                        to: `/${clusterId}/${id}/cluster-topology`,
                         title: "Cluster Topology",
                         icon: Server,
                       },

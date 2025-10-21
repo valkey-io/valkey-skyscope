@@ -68,7 +68,7 @@ export const ConnectionEntry = ({ connectionId, connection, clusterId }: Connect
         {
           isConnected &&
           <>
-            <Button onClick={() => history.navigate(clusterId ? `/${clusterId}/${connectionId}/clustertopology` : `/${connectionId}/dashboard`)} variant="ghost">
+            <Button onClick={() => history.navigate(clusterId ? `/${clusterId}/${connectionId}/cluster-topology` : `/${connectionId}/dashboard`)} variant="ghost">
               <CircleChevronRight />
               Open
             </Button>

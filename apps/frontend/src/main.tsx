@@ -40,7 +40,7 @@ const AppWithHistory = () => {
           <Route element={<Dashboard />} path="/:clusterId/:id/dashboard" />
           <Route element={<SendCommand />} path="/:clusterId/:id/sendcommand" />
           <Route element={<KeyBrowser />} path="/:clusterId/:id/browse" />
-          <Route element={<Cluster />} path="/:clusterId/:id/clustertopology"/>
+          <Route element={<Cluster />} path="/:clusterId/:id/cluster-topology"/>
         </Route>
 
         {/* Routes without clusterId */}

@@ -1,5 +1,6 @@
 import { WebSocket, WebSocketServer } from "ws"
 import {  ClusterResponse, Decoder, GlideClient, GlideClusterClient, InfoOptions } from "@valkey/valkey-glide"
+import * as R from "ramda"
 import { VALKEY } from "../../../common/src/constants.ts"
 import {
   getKeys,
@@ -48,13 +49,13 @@ wss.on("connection", (ws: WebSocket) => {
     if (action.type === VALKEY.STATS.setData) {
       const client = clients.get(connectionId)
 
-      if(client instanceof GlideClient)
+      if (client instanceof GlideClient)
         await setDashboardData(connectionId, client, ws)
 
     }
-    if(action.type === VALKEY.CLUSTER.setClusterData) {
+    if (action.type === VALKEY.CLUSTER.setClusterData) {
       const client = clients.get(connectionId)
-      if(client instanceof GlideClusterClient ) {
+      if (client instanceof GlideClusterClient) {
         await setClusterDashboardData(action.payload.clusterId, client, ws)
       }
 
@@ -184,17 +185,7 @@ async function connectToValkey(
   },
   clients: Map<string, GlideClient | GlideClusterClient>,
 ) {
-  if(clients.has(payload.connectionId)) {
-    ws.send(
-      JSON.stringify({
-        type: VALKEY.CONNECTION.connectFulfilled,
-        payload: {
-          connectionId: payload.connectionId,
-        },
-      }),
-    )
-    return clients.get(payload.connectionId)
-  }
+
   const addresses = [
     {
       host: payload.host,
@@ -208,7 +199,7 @@ async function connectToValkey(
       clientName: "test_client",
     })
 
-    if(await belongsToCluster(standaloneClient)) {
+    if (await belongsToCluster(standaloneClient)) {
       return connectToCluster(standaloneClient, ws, clients, payload, addresses)
     }
     
@@ -248,27 +239,21 @@ async function discoverCluster(client: GlideClient) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response = await client.customCommand(["CLUSTER", "SLOTS"]) as any[][]
 
-    const firstSlotRange = response[0]
-    const firstPrimaryNode = firstSlotRange?.[2]
-    const clusterId = firstPrimaryNode?.[2]
+    const { clusterId } = R.applySpec({
+      firstSlotRange: R.nth(0),
+      firstPrimaryNode: R.path([0, 2]), // firstSlotRange[2]
+      clusterId: R.path([0, 2, 2]), // firstPrimaryNode[2]
+    })(response)
 
     const clusterNodes = response.reduce((acc, slotRange) => {
       const [, , ...nodes] = slotRange
 
-      nodes.forEach((node, index) => {
-        const [host, port] = node
-        const connectionId = `${host}-${port}`
-
-        if (!acc[connectionId]) {
-          acc[connectionId] = {
-            host,
-            port,
-            role: index === 0 ? "primary" : "replica",
-          }
-        }
-      })
-
-      return acc
+      return nodes.reduce((nodesById, [host, port], idx) => {
+        const id = `${host}-${port}`
+        return nodesById[id]
+          ? nodesById
+          :  { ...nodesById, [id]: { host, port, role: idx === 0 ? "primary" : "replica" } }
+      }, acc)
     }, {} as Record<string, {
       host: string;
       port: number;
@@ -291,7 +276,7 @@ async function connectToCluster(
   addresses: { host: string, port: number | undefined }[],
 ) {
   const { clusterNodes, clusterId } = await discoverCluster(standaloneClient)
-  if (Object.keys(clusterNodes!).length === 0) {
+  if (R.isEmpty(clusterNodes)) {
     throw new Error("No cluster nodes discovered")
   }
   // May remove this if we agree to remove clusterSlice
@@ -329,7 +314,6 @@ async function setDashboardData(
 ) {
   const rawInfo = await client.info()
   const info = parseInfo(rawInfo)
-  console.log(info)
   const rawMemoryStats = (await client.customCommand(["MEMORY", "STATS"], {
     decoder: Decoder.String,
   })) as Array<{
@@ -361,7 +345,6 @@ async function setClusterDashboardData(
 ) {
   const rawInfo = await client.info({ route:"allNodes" })
   const info = parseClusterInfo(rawInfo)
-  console.log("The info is: ", info)
 
   ws.send(
     JSON.stringify({
@@ -428,10 +411,6 @@ async function sendValkeyRunCommand(
     const rawResponse = (await client.customCommand(
       payload.command.split(" "),
     )) as string
-    console.log("========")
-    console.log(typeof rawResponse)
-    console.log(rawResponse)
-    console.log("========")
 
     // todo fixme!!! they are not all strings!
     const response =

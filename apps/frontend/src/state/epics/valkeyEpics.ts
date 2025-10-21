@@ -87,8 +87,7 @@ export const setDataEpic = () =>
     tap((action) => {
       const socket = getSocket()
       const { clusterId, connectionId } = action.payload
-      if(clusterId)
-        socket.next({ type: setClusterData.type, payload: { clusterId, connectionId } })
+      if (clusterId) socket.next({ type: setClusterData.type, payload: { clusterId, connectionId } })
       else socket.next({ type: setData.type, payload: { connectionId } })
     }),
   )

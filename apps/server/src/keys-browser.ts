@@ -224,7 +224,7 @@ export async function deleteKey(
 
 // functions for adding different key types
 async function addStringKey(
-  client: GlideClient,
+  client: GlideClient | GlideClusterClient,
   key: string,
   value: string,
   ttl?: number,
@@ -237,7 +237,7 @@ async function addStringKey(
 }
 
 async function addHashKey(
-  client: GlideClient,
+  client: GlideClient | GlideClusterClient,
   key: string,
   fields: { field: string; value: string }[],
   ttl?: number,
@@ -254,7 +254,7 @@ async function addHashKey(
 }
 
 async function addListKey(
-  client: GlideClient,
+  client: GlideClient | GlideClusterClient,
   key: string,
   values: string[],
   ttl?: number,
@@ -268,7 +268,7 @@ async function addListKey(
 }
 
 async function addSetKey(
-  client: GlideClient,
+  client: GlideClient | GlideClusterClient,
   key: string,
   values: string[],
   ttl?: number,
@@ -284,7 +284,7 @@ async function addSetKey(
 }
 
 export async function addKey(
-  client: GlideClient,
+  client: GlideClient | GlideClusterClient,
   ws: WebSocket,
   payload: {
     connectionId: string;
@@ -361,7 +361,7 @@ export async function addKey(
 // functions for updatin/editing different key types
 // Note : the update and add functions are quite similar MAYBE can be refactored later
 async function updateStringKey(
-  client: GlideClient,
+  client: GlideClient | GlideClusterClient,
   key: string,
   value: string,
   ttl?: number,
@@ -374,7 +374,7 @@ async function updateStringKey(
 }
 
 async function updateHashKey(
-  client: GlideClient,
+  client: GlideClient | GlideClusterClient,
   key: string,
   fields: { field: string; value: string }[],
   ttl?: number,
@@ -392,7 +392,7 @@ async function updateHashKey(
 }
 
 async function updateListKey(
-  client: GlideClient,
+  client: GlideClient | GlideClusterClient,
   key: string,
   updates: { index: number; value: string }[],
   ttl?: number,
@@ -411,7 +411,7 @@ async function updateListKey(
 }
 
 async function updateSetKey(
-  client: GlideClient,
+  client: GlideClient | GlideClusterClient,
   key: string,
   updates: { oldValue: string; newValue: string }[],
   ttl?: number,
@@ -431,7 +431,7 @@ async function updateSetKey(
 }
 
 export async function updateKey(
-  client: GlideClient,
+  client: GlideClient | GlideClusterClient,
   ws: WebSocket,
   payload: {
     connectionId: string;
