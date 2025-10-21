@@ -7,6 +7,7 @@
     "apps/server",
     "common/*"
   ],
+  "main": "apps/frontend/electron.main.js",
   "devDependencies": {
     "@eslint/js": "^9.32.0",
     "@stylistic/eslint-plugin": "^5.3.1",
@@ -21,6 +22,31 @@
   },
   "scripts": {
     "dev": "concurrently \"npm --workspace apps/frontend run dev\" \"npm --workspace apps/server run dev\"",
+    "package-server": "npm --workspace apps/server run bundle",
     "lint": "eslint ."
+  },
+  "build": {
+    "appId": "com.valkey.skyscope",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "apps/frontend/main.js",
+      "apps/frontend/dist/**/*",
+      "package.json"
+    ],
+    "extraFiles": [
+      {
+        "from": "apps/server/dist/server-bundle.cjs",
+        "to": "bin/server-backend.js"
+      },
+      {
+        "from": "node_modules/@valkey",
+        "to": "resources/app/node_modules/@valkey"
+      }
+    ],
+    "mac": {
+      "target": "dmg"
+    }
   }
 }
