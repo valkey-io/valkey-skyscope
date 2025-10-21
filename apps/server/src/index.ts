@@ -345,7 +345,7 @@ async function setClusterDashboardData(
 ) {
   const rawInfo = await client.info({ route:"allNodes" })
   const info = parseClusterInfo(rawInfo)
-
+  
   ws.send(
     JSON.stringify({
       type: VALKEY.CLUSTER.setClusterData,
@@ -365,35 +365,56 @@ type ParsedClusterInfo = {
   }
 }
 
-function parseClusterInfo(rawInfo: ClusterResponse<string>): ParsedClusterInfo {
-  const result: ParsedClusterInfo = {}
-
-  for (const [host, infoString] of Object.entries(rawInfo)) {
-    const lines = infoString.split("\r\n")
-    let currentSection: string | null = null
-    const hostData: ParsedClusterInfo[string] = {}
-
-    for (const line of lines) {
-      if (line.trim() === "") continue
-
-      if (line.startsWith("# ")) {
-
-        currentSection = line.slice(2).trim()
-        hostData[currentSection] = {}
-      } else {
-
-        if (!currentSection) continue 
-
-        const [key, ...rest] = line.split(":")
-        const value = rest.join(":") 
-        hostData[currentSection][key] = value
-      }
-    }
-    result[host] = hostData
+export const parseClusterInfo = (rawInfo: ClusterResponse<string>): ParsedClusterInfo =>
+{
+  // Required to satisfy compiler
+  if (typeof rawInfo !== "object" || rawInfo === null) {
+    throw new Error("Invalid ClusterResponse: expected an object with host keys.")
   }
-  return result
-}
+  return R.pipe(
+    R.toPairs,
+    R.map(([host, infoString]) =>
+      [
+        host,
+        R.pipe(
+          R.split("\r\n"),
+          R.reduce(
+            (
+              state: { currentSection: string | null; hostData: ParsedClusterInfo[string] },
+              line: string,
+            ) => {
+              const trimmed = line.trim()
+              if (trimmed === "") return state
 
+              if (trimmed.startsWith("# ")) {
+                const section = trimmed.slice(2).trim()
+                state.currentSection = section
+                state.hostData[section] = state.hostData[section] || {}
+                return state
+              }
+
+              if (!state.currentSection) return state
+
+              const idx = line.indexOf(":")
+              if (idx === -1) return state
+
+              const key = line.slice(0, idx)
+              const value = line.slice(idx + 1)
+
+              state.hostData[state.currentSection] = state.hostData[state.currentSection] || {}
+              state.hostData[state.currentSection]![key] = value
+              return state
+            },
+            { currentSection: null, hostData: {} },
+          ),
+          (s: { hostData: ParsedClusterInfo[string] }) => s.hostData,
+        )(infoString as string),
+      ] as [string, ParsedClusterInfo[string]],
+    ),
+    R.fromPairs,
+  )(rawInfo) as ParsedClusterInfo
+}
+  
 const parseInfo = (infoStr: string): Record<string, string> =>
   infoStr.split("\n").reduce((acc, line) => {
     if (!line || line.startsWith("#") || !line.includes(":")) return acc
