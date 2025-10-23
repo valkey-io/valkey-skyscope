@@ -48,10 +48,7 @@ export default function DonutChart() {
 
   // count and memory usage per each key type
   const keyTypeInfo = keys.reduce((stats, key) => {
-    if (!stats[key.type]) {
-      stats[key.type] = { count: 0, totalSize: 0 }
-    }
-    stats[key.type].count += 1
+    (stats[key.type] ??= { count: 0, totalSize: 0 }).count += 1
     stats[key.type].totalSize += key.size
     return stats
   }, {} as Record<string, { count: number; totalSize: number }>)
@@ -68,10 +65,10 @@ export default function DonutChart() {
   const totalMemory = calculateTotalMemoryUsage(keys)
 
   const chartColors: Record<string, string> = {
-    "Set": "#009688",
-    "Hash": "#6883fe",
-    "List": "#FFBB28",
-    "String": "#FF8042",
+    "Set": "var(--tw-chart-set)",
+    "Hash": "var(--tw-chart-hash)",
+    "List": "var(--tw-chart-list)",
+    "String": "var(--tw-chart-string)",
   }
 
   const CustomTooltip = ({ active, payload }: TooltipProps) => {

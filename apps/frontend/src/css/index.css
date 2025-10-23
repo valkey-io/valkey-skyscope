@@ -45,6 +45,10 @@
   --color-tw-dark-border: var(--tw-dark-border);
   --color-tw-accent: var(--tw-accent);
   --color-tw-accent2: var(--tw-accent2);
+  --color-tw-chart-hash: var(--tw-chart-hash);
+  --color-tw-chart-string: var(--tw-chart-string);
+  --color-tw-chart-list: var(--tw-chart-list);
+  --color-tw-chart-set: var(--tw-chart-set);
 }
 
 :root {
@@ -86,6 +90,10 @@
   --tw-dark-border: oklch(55.1% 0.027 264.364);
   --tw-accent: rgba(86, 118, 248, 0.5);
   --tw-accent2: rgba(255, 136, 138, 0.4); 
+  --tw-chart-hash: var(--tw-primary);
+  --tw-chart-string: #FF8042;
+  --tw-chart-list: #FFBB28;
+  --tw-chart-set: #009688;
 }
 
 .dark {
