@@ -203,7 +203,7 @@ async function connectToValkey(
       requestTimeout: 5000,
       clientName: "test_client",
     })
-
+    console.log("Connected to standalone")
     clients.set(payload.connectionId, standaloneClient)
     ws.send(
       JSON.stringify({

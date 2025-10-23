@@ -4,7 +4,7 @@ import * as R from "ramda"
 import { LOCAL_STORAGE, NOT_CONNECTED } from "@common/src/constants.ts"
 import { toast } from "sonner"
 import { getSocket } from "./wsEpics"
-import { connectFulfilled, connectPending, deleteConnection } from "../valkey-features/connection/connectionSlice"
+import { connectFulfilled, connectPending, deleteConnection , connectRejected } from "../valkey-features/connection/connectionSlice"
 import { sendRequested } from "../valkey-features/command/commandSlice"
 import { setData } from "../valkey-features/info/infoSlice"
 import { action$, select } from "../middleware/rxjsMiddleware/rxjsMiddlware"
@@ -44,6 +44,13 @@ export const connectionEpic = (store: Store) =>
           toast.error("Connection to server failed!")
           console.error(e)
         }
+      }),
+    ),
+    action$.pipe(
+      select(connectRejected),
+      tap(({ payload: { err, connectionId } }) => {
+        console.error("Connection rejected for", connectionId, ":", err)
+        toast.error(`Failed to connect: ${err?.message || "Unknown error"}`)
       }),
     ),
   )
