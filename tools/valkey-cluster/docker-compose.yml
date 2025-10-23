@@ -229,4 +229,3 @@ volumes:
     valkey-7004:
     valkey-7005:
     valkey-7006:
-    populate_node_modules: {}
