@@ -31,7 +31,7 @@ const connect = (store: Store) =>
       if (socket$) {
         return EMPTY
       }
-
+      // Create new WebSocket instance - required for retry logic to work
       const createSocket = () => {
         socket$ = webSocket({
           url: "ws://localhost:8080",
