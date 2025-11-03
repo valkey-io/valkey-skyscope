@@ -67,9 +67,9 @@ app.get('/slowlog_len', async (_req, res) => {
   }
 })
 
-app.get('/hotkeys', async (_req, res) => {
+app.get('/monitor', async (_req, res) => {
   try {
-    const rows = await Reader.hotkeys();
+    const rows = await Reader.monitor();
     res.json({ rows });
   } catch (e) {
     res.status(500).json({ error: e.message });

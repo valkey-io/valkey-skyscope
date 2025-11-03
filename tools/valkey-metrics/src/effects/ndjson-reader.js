@@ -42,5 +42,5 @@ const readTwoDaysRows = async prefix => {
 }
 
 // Reader API to match express public API
-export const [memory_stats, info_cpu, slowlog_len, slowlog_get, hotkeys] =
-  ['memory', 'cpu', 'slowlog_len', 'slowlog', 'hotkeys'].map(filePrefix => () => readTwoDaysRows(filePrefix))
+export const [memory_stats, info_cpu, slowlog_len, slowlog_get, monitor] =
+  ['memory', 'cpu', 'slowlog_len', 'slowlog', 'monitor'].map(filePrefix => () => readTwoDaysRows(filePrefix))
