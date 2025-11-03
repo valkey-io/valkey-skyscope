@@ -9,6 +9,14 @@ export function Cluster() {
   const { clusterId } = useParams()
   const clusterData = useSelector(selectClusterData(clusterId!))
 
+  const formatRole = (role: string | null) => {
+    if (!role) return "UNKNOWN"
+    const normalized = role.toLowerCase()
+    if (normalized === "master") return "PRIMARY"
+    if (normalized === "slave") return "REPLICA"
+    return role.toUpperCase()
+  }
+
   return (
     <div className="p-4">
       <AppHeader icon={<Server size={20} />} title="Cluster Topology" />
@@ -17,7 +25,7 @@ export function Cluster() {
         {Object.entries(clusterData).map(([nodeAddress, nodeInfo]) => (
           <Card className="flex flex-col p-4 w-[280px]" key={nodeAddress}>
             <div className="text-xl font-semibold mb-1 truncate">
-              {nodeInfo.role?.toUpperCase() ?? "UNKNOWN"} 
+              {formatRole(nodeInfo.role)} 
             </div>
             <div className="text-sm text-muted-foreground mb-2">
               {nodeInfo.server_name ?? "Unnamed Node"}@ {nodeAddress}
