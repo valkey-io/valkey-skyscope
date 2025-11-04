@@ -1,5 +1,5 @@
 import { makeFetcher } from "./effects/fetchers.js"
-import { makeMonitorFetcher } from "./effects/monitor-fetcher.js"
+import { makeMonitorStream } from "./effects/monitor-stream.js"
 import { makeNdjsonWriter } from "./effects/ndjson-writer.js"
 import { startCollector } from "./epics/collector-rx.js"
 import { loadConfig } from "./config.js"
@@ -22,14 +22,23 @@ const setupCollectors = async client => {
       sink = {
         appendRows: async rows => {
           await nd.appendRows(rows, { newFile: true }) // new file per batch
-          console.info(`[${f.name}] wrote ${rows.length} logs to ${nd.dataDir}`)
+          console.info(`[${f.name}] wrote ${rows.length} logs to ${cfg.server.data_dir}/${f.file_prefix || f.name}`)
         },
         close: nd.close
       }
-      fn = makeMonitorFetcher(async logs => {
+      const stream$ = makeMonitorStream(async logs => {
         await sink.appendRows(logs)
       }, f)
-      stoppers[f.name] = fn
+      const subscription = stream$.subscribe({
+        next: logs => console.info(`[${f.name}] monitor cycle complete (${logs.length} logs)`),
+        error: err => console.error(`[${f.name}] monitor error:`, err),
+        complete: () => console.info(`[${f.name}] monitor completed`),
+      })
+      stoppers[f.name] = async () => {
+        console.info(`[${f.name}] stopping monitor...`)
+        subscription.unsubscribe()
+        await sink.close()
+      }
     }  
     else {
       fn = fetcher[f.type]

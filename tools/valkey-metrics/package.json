@@ -7,7 +7,6 @@
   },
   "dependencies": {
     "@valkey/client": "^1.0.0",
-    "events": "^3.3.0",
     "express": "^4.21.2",
     "iovalkey": "^0.3.3",
     "ramda": "^0.31.3",
