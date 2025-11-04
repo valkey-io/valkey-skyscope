@@ -3,9 +3,9 @@ import { useDispatch, useSelector } from "react-redux"
 import { useNavigate, useParams } from "react-router"
 import { CONNECTED, CONNECTING, ERROR } from "@common/src/constants"
 import { Loader2, Database, AlertCircle } from "lucide-react"
+import RetryProgress from "./ui/retry-progress"
 import type { RootState } from "@/store"
 import { connectPending } from "@/state/valkey-features/connection/connectionSlice"
-import RetryProgress from "./ui/retry-progress"
 
 export function ValkeyReconnect() {
   const dispatch = useDispatch()

@@ -3,9 +3,9 @@ import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router"
 import { CONNECTED, CONNECTING, ERROR } from "@common/src/constants"
 import { Loader2, WifiOff, AlertCircle, ServerOff } from "lucide-react"
+import RetryProgress from "./ui/retry-progress"
 import type { RootState } from "@/store"
 import { connectPending } from "@/state/wsconnection/wsConnectionSlice"
-import RetryProgress from "./ui/retry-progress"
 
 export function WebSocketReconnect() {
   const dispatch = useDispatch()
