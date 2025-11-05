@@ -9,11 +9,6 @@ type ParsedClusterInfo = {
   }
 }
 
-export const parseResponse = (response: string) => {
-  if (response.includes(":")) return parseInfo(response)
-  else return response
-}
-
 export const parseInfo = (infoStr: string): Record<string, string> =>
   infoStr.split("\n").reduce((acc, line) => {
     if (!line || line.startsWith("#") || !line.includes(":")) return acc
@@ -21,6 +16,8 @@ export const parseInfo = (infoStr: string): Record<string, string> =>
     acc[key] = value
     return acc
   }, {} as Record<string, string>)
+
+export const parseResponse = R.when(R.includes(":"), parseInfo)
 
 export const parseClusterInfo = (rawInfo: ClusterResponse<string>): ParsedClusterInfo =>
 {
