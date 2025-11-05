@@ -30,3 +30,10 @@ epics:
     type: "slowlog_len"
     poll_ms: 60000
     file_prefix: "slowlog_len"
+  
+  - name: "monitor"
+    type: "monitor"
+    monitoringDuration: 60000
+    monitoringInterval: 60000
+    maxCommandsPerRun: 1000000
+    monitor: "monitor"
