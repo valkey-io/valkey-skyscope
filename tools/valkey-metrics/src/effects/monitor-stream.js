@@ -22,10 +22,10 @@ export const makeMonitorStream = (onLogs = async () => {}, config) => {
 
     monitor.on("monitor", processEvent)
 
-    let reason
+    let monitorCompletionReason
 
     try {
-      reason = await firstValueFrom(
+      monitorCompletionReason = await firstValueFrom(
         race([
           timer(monitoringDuration).pipe(map(() => "Monitor duration completed.")),
           overflow$.pipe(map(() => "Max logs read" )),
@@ -33,10 +33,12 @@ export const makeMonitorStream = (onLogs = async () => {}, config) => {
       )
     } finally {
       monitor.off("monitor", processEvent)
-      await monitor.disconnect()
-      await monitorClient.disconnect()
-      overflow$.complete()
-      console.info(`Monitor run complete (${reason}).`)
+      await Promise.all([
+      monitor.disconnect(),
+      monitorClient.disconnect(),
+      (async () => { overflow$.complete() })(),
+      ])
+      console.info(`Monitor run complete (${monitorCompletionReason}).`)
     }
 
     if(rows.length > 0) await onLogs(rows)
