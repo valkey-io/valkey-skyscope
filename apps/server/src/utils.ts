@@ -17,6 +17,8 @@ export const parseInfo = (infoStr: string): Record<string, string> =>
     return acc
   }, {} as Record<string, string>)
 
+export const parseResponse = R.when(R.includes(":"), parseInfo)
+
 export const parseClusterInfo = (rawInfo: ClusterResponse<string>): ParsedClusterInfo =>
 {
   // Required to satisfy compiler

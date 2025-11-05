@@ -23,22 +23,28 @@ const Response = ({ filter, response }: { filter: string, response: JSONObject }
       R.tap(() => toast.success("Copied!")),
     )(filtered)
 
+  if (R.isEmpty(filtered)) return null
+
   return (
-    R.isNotEmpty(filtered) &&
     <>
       <CopyToClipboard onClick={onCopy} />
-      {
-        filtered.map(({ keyPath, keyPathString }) =>
+      {filtered.map(({ keyPath, keyPathString }) => {
+        const hasKey = keyPath.length > 0 && keyPathString.trim() !== ""
+
+        return (
           <KV key={keyPathString}>
-            <KeyFilterable
-              filter={filter}
-              keyPathString={keyPathString}
-            />
+            {hasKey && (
+              <KeyFilterable
+                filter={filter}
+                keyPathString={keyPathString}
+              />
+            )}
             <div className={cn("bg-white dark:bg-black", spacing)}>
               {R.path(keyPath as string[], response)}
             </div>
-          </KV>)
-      }
+          </KV>
+        )
+      })}
     </>
   )
 }
