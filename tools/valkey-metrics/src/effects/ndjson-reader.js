@@ -1,5 +1,5 @@
 import path from "node:path"
-import { readFile } from "node:fs/promises"
+import { readdir, readFile } from "node:fs/promises"
 
 const DATA_DIR = process.env.METRICS_DIR || path.resolve(process.cwd(), "data")
 
@@ -7,10 +7,17 @@ const ymd = d => {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, "0")
   const day = String(d.getDate()).padStart(2, "0")
-  return `${y}${m}${day}` // "20250924"
+  return `${y}${m}${day}` // e.g. "20251106"
 }
 
-const fileFor = (prefix, date) => path.join(DATA_DIR, `${prefix}_${ymd(date)}.ndjson`)
+// Return all files matching prefix_YYYYMMDD*.ndjson
+const filesForDate = async (prefix, date) => {
+  const dateStr = ymd(date)
+  const dirFiles = await readdir(DATA_DIR)
+  return dirFiles
+    .filter(f => f.startsWith(`${prefix}_${dateStr}`) && f.endsWith(".ndjson"))
+    .map(f => path.join(DATA_DIR, f))
+}
 
 // read file text or "" (ENOENT-safe)
 const readText = async file => {
@@ -20,6 +27,14 @@ const readText = async file => {
     return e?.code === "ENOENT" ? "" : Promise.reject(e)
   }
 }
+
+// Read + merge all files for a date
+const readAllFilesForDate = async (prefix, date) => {
+  const files = await filesForDate(prefix, date)
+  const contents = await Promise.all(files.map(readText))
+  return contents.join("\n")
+}
+
 
 // parse once after concatenation; ignore any bad/partial line at the tail
 const parseNdjson = txt =>
@@ -34,8 +49,8 @@ const readTwoDaysRows = async prefix => {
   const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1)
 
   const [t, y] = await Promise.all([
-    readText(fileFor(prefix, today)),
-    readText(fileFor(prefix, yesterday))
+    readAllFilesForDate(prefix, today),
+    readAllFilesForDate(prefix, yesterday)
   ])
 
   return parseNdjson([t, y].filter(Boolean).join('\n'))

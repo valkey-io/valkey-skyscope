@@ -36,4 +36,4 @@ epics:
     monitoringDuration: 60000
     monitoringInterval: 60000
     maxCommandsPerRun: 1000000
-    monitor: "monitor"
+    file_prefix: "monitor"
