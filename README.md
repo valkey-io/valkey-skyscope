@@ -27,5 +27,3 @@ This requires ESLint v9.0.0 and above.
 ## Create DMG
 In the root directory, create a DMG by running `npm run package:mac`.
 **Note:** The DMG is not signed. Distributing it will lead to a `"Skyscope" is damaged and can't be opened` error when running the application. To bypass this, run `xattr -c <path/to/app>` in terminal to disable the quarantine flag.
-
-TEST_PUSH
