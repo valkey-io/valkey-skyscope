@@ -21,14 +21,10 @@ export function Connection() {
   }>(
     (acc, [connectionId, connection]) => {
       const clusterId = connection.connectionDetails.clusterId
-      if (clusterId) {
-        if (!acc.clusterGroups[clusterId]) {
-          acc.clusterGroups[clusterId] = []
-        }
-        acc.clusterGroups[clusterId].push({ connectionId, connection })
-      } else {
+      if (clusterId)
+        (acc.clusterGroups[clusterId] ??= []).push({ connectionId, connection })
+      else
         acc.standaloneConnections.push({ connectionId, connection })
-      }
       return acc
     },
     { clusterGroups: {}, standaloneConnections: [] },

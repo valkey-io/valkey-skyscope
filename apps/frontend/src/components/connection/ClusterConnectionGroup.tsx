@@ -27,10 +27,10 @@ export const ClusterConnectionGroup = ({ clusterId, connections }: ClusterConnec
     }
   }, [isOpen])
 
-  const hasConnectedInstance = connections.some(({ connection }) => connection.status === CONNECTED)
-  const connectedCount = connections.filter(({ connection }) => connection.status === CONNECTED).length
-
-  const firstConnectedConnection = connections.find(({ connection }) => connection.status === CONNECTED)
+  const connected = connections.filter(({ connection }) => connection.status === CONNECTED)
+  const connectedCount = connected.length
+  const hasConnectedInstance = connectedCount > 0
+  const firstConnectedConnection = connected[0]
 
   const handleOpenCluster = () => {
     if (firstConnectedConnection) {
