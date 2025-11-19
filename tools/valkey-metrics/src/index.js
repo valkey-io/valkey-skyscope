@@ -68,43 +68,63 @@ app.get('/slowlog_len', async (_req, res) => {
   }
 })
 
+const monitorConfig = cfg.epics.find(e => e.name === MONITOR)
+const monitorDuration = monitorConfig.monitoringDuration
+const monitorInterval = monitorConfig.monitoringInterval
 let monitorRunning = false
-app.get('/monitor', async (req, res) => {
-  const action = req.query.action
+let checkAt
+
+const monitorHandler = async action => {
   try {
     switch (action) {
       case 'start':
         if (monitorRunning) {
-          return res.json({ status: 'Monitor already running.' })
+          return { status: 'Monitor already running.', }
         }
         await startMonitor()
         monitorRunning = true
-        return res.json({ status: 'Monitor started' })
+        return { status: 'Monitor started.', checkAt: Date.now() + monitorDuration}
 
       case 'stop':
         if (!monitorRunning) {
-          return res.json({ status: 'Monitor is already stopped.' })
+          return { status: 'Monitor is already stopped.' }
         }
         await stopMonitor()
         monitorRunning = false
-        return res.json({ status: 'Monitor stopped.' })
+        return { status: 'Monitor stopped.' }
 
       case 'status':
-        return res.json({ running: monitorRunning })
+        return { running: monitorRunning }
 
       default:
-        return res.status(400).json({ error: 'Invalid action. Use ?action=start|stop|status' })
+        return { error: 'Invalid action. Use ?action=start|stop|status' }
     }
   } catch (e) {
     console.error(`[monitor] ${action} error:`, e)
-    return res.status(500).json({ error: e.message })
+    return { error: e.message }
   }
+}
+app.get('/monitor', async (req, res) => {
+  const result = await monitorHandler(req.query.action)
+  if (result.checkAt) checkAt = result.checkAt;
+  return res.json(result)
 })
 
 app.get('/hot-keys', async (_req, res) => {
   try {
-    const hotkeys = await calculateHotKeys()
-    res.json(hotkeys)
+    if(!monitorRunning) {
+      const result = await monitorHandler("start")
+      checkAt = result.checkAt
+      return res.json({checkAt})
+    }
+    const currentTime = Date.now()
+    const monitorCycle = monitorInterval + monitorDuration
+    if (currentTime > checkAt) {
+      const hotkeys = await calculateHotKeys()
+      checkAt = currentTime + monitorCycle
+      return res.json(hotkeys)
+    }
+    return res.json({checkAt})
   } catch (e) {
     res.status(500).json({error: e.message})
   }
