@@ -50,7 +50,7 @@ function startMetrics(serverConnectionId, serverConnectionDetails) {
 
     metricsProcess.on('message', (message) => {
         if (message && message.type === 'metrics-started') {
-            console.log(`Metrics server for ${serverConnectionId} started successfully on port ${message.port}`);
+            console.log(`Metrics server for ${serverConnectionId} started successfully on host: ${message.payload.metricsHost} port ${message.payload.metricsPort}`);
         }
     });
 

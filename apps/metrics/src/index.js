@@ -1,4 +1,4 @@
-import fs from "fs"
+import fs from "node:fs"
 import express from "express"
 import { createClient } from "@valkey/client"
 import { loadConfig } from "./config.js"
