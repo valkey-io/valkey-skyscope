@@ -7,6 +7,7 @@ import { setupCollectors, startMonitor, stopMonitor } from "./init-collectors.js
 import { calculateHotKeys } from "./analyzers/calculateHotKeys.js"
 
 const cfg = loadConfig()
+const MONITOR = "monitor"
 
 const ensureDir = dir => { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }) }
 ensureDir(cfg.server.data_dir)
