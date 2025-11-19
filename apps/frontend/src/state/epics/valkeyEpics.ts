@@ -203,10 +203,9 @@ export const setDataEpic = () =>
     tap((action) => {
       const socket = getSocket()
 
-      const { connectionId } = action.payload
+      const { clusterId, connectionId } = action.payload
     
       if (action.type === clusterConnectFulfilled.type) {
-        const { clusterId } = action.payload
         socket.next({ type: setClusterData.type, payload: { clusterId, connectionId } })
       }
       
