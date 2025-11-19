@@ -1,5 +1,5 @@
 {
-  "name": "valkey-metrics",
+  "name": "metrics",
   "private": true,
   "type": "module",
   "scripts": {
