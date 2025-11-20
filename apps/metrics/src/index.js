@@ -122,7 +122,6 @@ async function main() {
       }
       if (Date.now() > checkAt) {
         const hotkeys = await calculateHotKeys()
-        console.log
         if(req.query.mode !== MODE.CONTINUOUS) {
           result = await monitorHandler(ACTION.STOP) 
         }
