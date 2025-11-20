@@ -21,7 +21,7 @@ import { connectFulfilled as wsConnectFulfilled } from "../wsconnection/wsConnec
 import history from "../../history.ts"
 import type { Store } from "@reduxjs/toolkit"
 
-export const connectionEpic = (store: Store) =>
+export const connectionEpic = () =>
   merge(
     action$.pipe(
       select(connectPending),
