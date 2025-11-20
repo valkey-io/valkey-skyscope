@@ -71,7 +71,6 @@ app.get('/slowlog_len', async (_req, res) => {
 
 const monitorConfig = cfg.epics.find(e => e.name === MONITOR)
 const monitorDuration = monitorConfig.monitoringDuration
-const monitorInterval = monitorConfig.monitoringInterval
 let monitorRunning = false
 let checkAt
 
@@ -84,15 +83,16 @@ const monitorHandler = async action => {
         }
         await startMonitor()
         monitorRunning = true
+        console.log(monitorDuration)
         return { status: 'Monitor started.', checkAt: Date.now() + monitorDuration}
 
       case 'stop':
         if (!monitorRunning) {
-          return { status: 'Monitor is already stopped.' }
+          return { status: 'Monitor is already stopped.', checkAt: null }
         }
         await stopMonitor()
         monitorRunning = false
-        return { status: 'Monitor stopped.' }
+        return { status: 'Monitor stopped.', checkAt: null }
 
       case 'status':
         return { running: monitorRunning }
@@ -107,23 +107,27 @@ const monitorHandler = async action => {
 }
 app.get('/monitor', async (req, res) => {
   const result = await monitorHandler(req.query.action)
-  if (result.checkAt) checkAt = result.checkAt;
+  checkAt = result.checkAt
   return res.json(result)
 })
 
-app.get('/hot-keys', async (_req, res) => {
+app.get('/hot-keys', async (req, res) => {
+  let result = {}
+  console.log("Req is ", req)
   try {
     if(!monitorRunning) {
-      const result = await monitorHandler("start")
+      result = await monitorHandler("start")
       checkAt = result.checkAt
-      return res.json({checkAt})
+      return res.json(result)
     }
-    const currentTime = Date.now()
-    const monitorCycle = monitorInterval + monitorDuration
-    if (currentTime > checkAt) {
+    if (Date.now() > checkAt) {
       const hotkeys = await calculateHotKeys()
-      checkAt = currentTime + monitorCycle
-      return res.json(hotkeys)
+      console.log
+      if(req.query.mode !== "continuous") {
+        result = await monitorHandler("stop") 
+      }
+      return res.json({hotkeys, ...result})
+      
     }
     return res.json({checkAt})
   } catch (e) {

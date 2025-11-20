@@ -33,7 +33,7 @@ epics:
   
   - name: "monitor"
     type: "monitor"
-    monitoringDuration: 60000
-    monitoringInterval: 60000
+    monitoringDuration: 6000
+    monitoringInterval: 6000
     maxCommandsPerRun: 1000000
     file_prefix: "monitor"
