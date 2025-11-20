@@ -6,6 +6,7 @@ import * as Streamer from "./effects/ndjson-streamer.js"
 import { setupCollectors, startMonitor, stopMonitor } from "./init-collectors.js"
 import { calculateHotKeys } from "./analyzers/calculateHotKeys.js"
 import { MODE, ACTION, MONITOR } from "./utils/constants.js"
+
 async function main() {
   const cfg = loadConfig()
 
