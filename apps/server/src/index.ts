@@ -16,13 +16,13 @@ const wss = new WebSocketServer({ port: 8080 })
 const metricsServerURIs: Map<string, string> = new Map()
 
 process.on("message", (message) => {
-  if (message && message.type === "metrics-started") {
+  if (message?.type === "metrics-started") {
     const metricsServerURI = `${message.payload.metricsHost}:${message.payload.metricsPort}`
     metricsServerURIs.set(message.payload.serverConnectionId, metricsServerURI)
     console.log(`Metrics server for ${message.payload.serverConnectionId} saved with URI ${metricsServerURI}`)
   }
 
-  if (message && message.type === "metrics-closed"){
+  if (message?.type === "metrics-closed"){
     if (metricsServerURIs.delete(message.payload.serverConnectionId)) {
       console.log(`Metrics server for ${message.payload.serverConnectionId} closed.`)
     }
