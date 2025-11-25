@@ -16,6 +16,20 @@ export function Dashboard() {
   const infoData = useSelector(selectData(id!))
   const [searchQuery, setSearchQuery] = useState("")
 
+  if (!infoData) {
+    return (
+      <div className="flex flex-col h-screen p-4">
+        <AppHeader
+          icon={<LayoutDashboard size={20} />}
+          title="Dashboard"
+        />
+        <div className="flex flex-1 items-center justify-center">
+          <span className="text-gray-500">Loading metrics…</span>
+        </div>
+      </div>
+    )
+  }
+  
   const memoryUsageMetrics = {
     used_memory: infoData.used_memory,
     used_memory_dataset: infoData.used_memory_dataset,
