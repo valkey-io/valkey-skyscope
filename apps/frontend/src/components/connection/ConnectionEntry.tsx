@@ -1,4 +1,4 @@
-import { CONNECTED, ERROR, DISCONNECTED } from "@common/src/constants.ts"
+import { CONNECTED, ERROR, DISCONNECTED, CONNECTING } from "@common/src/constants.ts"
 import {
   AlertCircleIcon,
   CircleChevronRight,
@@ -43,6 +43,7 @@ export const ConnectionEntry = ({
   const handleDelete = () => dispatch(deleteConnection({ connectionId }))
 
   const isConnected = connection.status === CONNECTED
+  const isConnecting = connection.status === CONNECTING
   const isError = connection.status === ERROR
   const isDisconnected = connection.status === DISCONNECTED
   const label = `${connection.connectionDetails.username}@${connection.connectionDetails.host}:${connection.connectionDetails.port}`
@@ -114,7 +115,7 @@ export const ConnectionEntry = ({
                 </Button>
               </>
             )}
-            {(isDisconnected || !isConnected) && (
+            {(isDisconnected || (!isConnected && !isConnecting)) && (
               <Button onClick={handleConnect} size="sm" variant="ghost">
                 <PowerIcon size={16} />
               </Button>
@@ -175,7 +176,7 @@ export const ConnectionEntry = ({
               </Button>
             </>
           )}
-          {(isDisconnected || !isConnected) && (
+          {(isDisconnected || (!isConnected && !isConnecting)) && (
             <Button onClick={handleConnect} size="sm" variant="ghost">
               <PowerIcon size={16} />
             </Button>

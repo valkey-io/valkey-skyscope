@@ -122,12 +122,12 @@ async function main() {
         return res.json(monitorResponse)
       }
       if (Date.now() > checkAt) {
-        const hotkeys = await calculateHotKeys()
+        const hotKeys = await calculateHotKeys()
         if (req.query.mode !== MODE.CONTINUOUS) {
           await monitorHandler(ACTION.STOP) 
         }
         monitorResponse = await monitorHandler(ACTION.STATUS)
-        return res.json({ nodeId: url, hotkeys, ...monitorResponse })
+        return res.json({ nodeId: url, hotKeys, ...monitorResponse })
 
       }
       return res.json({ checkAt })

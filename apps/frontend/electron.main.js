@@ -51,12 +51,25 @@ function startMetrics(serverConnectionId, serverConnectionDetails) {
     metricsProcess.on('message', (message) => {
         if (message && message.type === 'metrics-started') {
             console.log(`Metrics server for ${serverConnectionId} started successfully on host: ${message.payload.metricsHost} port ${message.payload.metricsPort}`);
+            serverProcess.send?.({
+                ...message,
+                payload: {
+                    ...message.payload,
+                    serverConnectionId: serverConnectionId
+                }
+            });
         }
     });
 
     metricsProcess.on('close', (code) => {
         console.log(`Metrics server for connection ${serverConnectionId} exited with code ${code}`);
         metricsProcesses.delete(serverConnectionId);
+        serverProcess.send({
+            type: 'metrics-closed',
+            payload: {
+                serverConnectionId,
+            }
+        })
     });
 
     metricsProcess.on('error', (err) => {

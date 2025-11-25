@@ -1,18 +1,45 @@
 import { WebSocket, WebSocketServer } from "ws"
 import {  GlideClient, GlideClusterClient } from "@valkey/valkey-glide"
 import { VALKEY } from "../../../common/src/constants.ts"
+import { connectPending, resetConnection } from "./actions/connection.ts"
+import { sendRequested } from "./actions/command.ts"
+import { setData } from "./actions/stats.ts"
+import { setClusterData } from "./actions/cluster.ts"
 import {
-  getKeys,
-  getKeyInfoSingle,
-  deleteKey,
-  addKey,
-  updateKey
-} from "./keys-browser.ts"
-import { connectToValkey } from "./connection.ts"
-import { setDashboardData, setClusterDashboardData } from "./setDashboardData.ts"
-import { sendValkeyRunCommand } from "./sendCommand.ts"
+  addKeyRequested,
+  deleteKeyRequested,
+  getKeysRequested,
+  getKeyTypeRequested,
+  updateKeyRequested
+} from "./actions/keys.ts"
+import { hotKeysRequested } from "./actions/hotkeys.ts"
+import { Handler, ReduxAction, unknownHandler, type WsActionMessage } from "./actions/utils.ts"
+
+interface MetricsServerMessage {
+  type: string
+  payload: {
+    metricsHost: string
+    metricsPort: number
+    serverConnectionId: string
+  }
+}
 
 const wss = new WebSocketServer({ port: 8080 })
+const metricsServerURIs: Map<string, string> = new Map()
+
+process.on("message", (message: MetricsServerMessage ) => {
+  if (message?.type === "metrics-started") {
+    const metricsServerURI = `${message.payload.metricsHost}:${message.payload.metricsPort}`
+    metricsServerURIs.set(message.payload.serverConnectionId, metricsServerURI)
+    console.log(`Metrics server for ${message.payload.serverConnectionId} saved with URI ${metricsServerURI}`)
+  }
+
+  if (message?.type === "metrics-closed"){
+    if (metricsServerURIs.delete(message.payload.serverConnectionId)) {
+      console.log(`Metrics server for ${message.payload.serverConnectionId} closed.`)
+    }
+  }
+})
 
 wss.on("listening", () => { // Add a listener for when the server starts listening
   console.log("Websocket server running on localhost:8080")
@@ -27,161 +54,36 @@ wss.on("connection", (ws: WebSocket) => {
 
   ws.on("message", async (message) => {
     console.log("Received message:", message.toString())
-    let action = undefined
-    let connectionId = undefined
+    let action: WsActionMessage | undefined
+    let connectionId: string | undefined
+
     try {
       action = JSON.parse(message.toString())
-      connectionId = action.payload.connectionId
+      connectionId = action!.payload.connectionId
     } catch (e) {
       console.log("Failed to parse the message", message.toString(), e)
     }
-    if (action.type === VALKEY.CONNECTION.connectPending) {
-      await connectToValkey(ws, action.payload, clients)
-    }
-    if (action.type === VALKEY.COMMAND.sendRequested) {
-      const client = clients.get(connectionId)
-      if (client) {
-        await sendValkeyRunCommand(client, ws, action.payload)
-      } else {
-        ws.send(
-          JSON.stringify({
-            type: VALKEY.COMMAND.sendFailed,
-            payload: {
-              error: "Invalid connection Id",
-            },
-          }),
-        )
-      }
-    }
-    if (action.type === VALKEY.STATS.setData) {
-      const client = clients.get(connectionId)
 
-      if (client instanceof GlideClient)
-        await setDashboardData(connectionId, client, ws)
-
-    }
-    if (action.type === VALKEY.CLUSTER.setClusterData) {
-      const client = clients.get(connectionId)
-      if (client instanceof GlideClusterClient) {
-        await setClusterDashboardData(action.payload.clusterId, client, ws)
-      }
-
-    }
-    if (action.type === VALKEY.CONNECTION.resetConnection) {
-      const client = clients.get(connectionId)
-
-      if (client) {
-        client.close()
-        clients.delete(connectionId)
-      }
-    }
-    if (action.type === VALKEY.KEYS.getKeysRequested) {
-      const client = clients.get(connectionId)
-
-      if (client) {
-        await getKeys(client, ws, action.payload)
-      } else {
-        ws.send(
-          JSON.stringify({
-            type: VALKEY.KEYS.getKeysFailed,
-            payload: {
-              connectionId,
-              error: "Invalid connection Id",
-            },
-          }),
-        )
-      }
-    } 
-    if (action.type === VALKEY.KEYS.getKeyTypeRequested) {
-      console.log("Handling getKeyTypeRequested for key:", action.payload?.key)
-      const client = clients.get(connectionId)
-
-      if (client) {
-        await getKeyInfoSingle(client, ws, action.payload)
-      } else {
-        console.log("No client found for connectionId:", connectionId)
-        ws.send(
-          JSON.stringify({
-            type: VALKEY.KEYS.getKeyTypeFailed,
-            payload: {
-              connectionId,
-              key: action.payload?.key,
-              error: "Invalid connection Id",
-            },
-          }),
-        )
-      }
-    } 
-    if (action.type === VALKEY.KEYS.deleteKeyRequested) {
-      console.log("Handling deleteKeyRequested for key:", action.payload?.key)
-      const client = clients.get(connectionId)
-
-      if (client) {
-        await deleteKey(client, ws, action.payload)
-      } else {
-        console.log("No client found for connectionId:", connectionId)
-        ws.send(
-          JSON.stringify({
-            type: VALKEY.KEYS.deleteKeyFailed,
-            payload: {
-              connectionId,
-              key: action.payload?.key,
-              error: "Invalid connection Id",
-            },
-          }),
-        )
-      }
-    } 
-    if (action.type === VALKEY.KEYS.addKeyRequested) {
-      console.log("Handling addKeyRequested for key:", action.payload?.key)
-      const client = clients.get(connectionId)
-      if (client) {
-        await addKey(client, ws, action.payload)
-      } else {
-        console.log("No client found for connectionId:", connectionId)
-        ws.send(
-          JSON.stringify({
-            type: VALKEY.KEYS.addKeyFailed,
-            payload: {
-              connectionId,
-              key: action.payload?.key,
-              error: "Invalid connection Id",
-            },
-          }),
-        )
-      }
-    } 
-    if (action.type === VALKEY.KEYS.updateKeyRequested) {
-      console.log("Handling updateKeyRequested for key:", action.payload?.key)
-      const client = clients.get(connectionId)
-      if (client) {
-        await updateKey(client, ws, action.payload)
-      } else {
-        console.log("No client found for connectionId:", connectionId)
-        ws.send(
-          JSON.stringify({
-            type: VALKEY.KEYS.addKeyFailed,
-            payload: {
-              connectionId,
-              key: action.payload?.key,
-              error: "Invalid connection Id",
-            },
-          }),
-        )
-      }
-    }
-    if (action.type === VALKEY.HOTKEYS.hotKeysRequested) {
-      console.log("Requesting hot keys")
-
+    const handlers: Record<string, Handler> = {
+      [VALKEY.CONNECTION.connectPending]: connectPending,
+      [VALKEY.CONNECTION.resetConnection]: resetConnection,
+      [VALKEY.CLUSTER.setClusterData]: setClusterData,
+      [VALKEY.COMMAND.sendRequested]: sendRequested,
+      [VALKEY.STATS.setData]: setData,
+      [VALKEY.KEYS.getKeysRequested]: getKeysRequested,
+      [VALKEY.KEYS.getKeyTypeRequested]: getKeyTypeRequested,
+      [VALKEY.KEYS.deleteKeyRequested]: deleteKeyRequested,
+      [VALKEY.KEYS.addKeyRequested]: addKeyRequested,
+      [VALKEY.KEYS.updateKeyRequested]: updateKeyRequested,
+      [VALKEY.HOTKEYS.hotKeysRequested]: hotKeysRequested,
     }
 
-    else {
-      console.log("Unknown action type:", action.type)
-    }
+    const handler = handlers[action!.type] ?? unknownHandler
+    await handler({ ws, clients, connectionId: connectionId!, metricsServerURIs })(action as ReduxAction)
   })
-  ws.onerror = (err) => {
+  ws.on("error", (err) => {
     console.error("WebSocket error:", err)
-  }
+  })
   ws.on("close", (code, reason) => {
     // Close all Valkey connections
     clients.forEach((client) => client.close())

@@ -7,11 +7,13 @@ import { loadConfig } from "./config.js"
 const cfg = loadConfig()
 const MONITOR = "monitor"
 const stoppers = {}
+const conn = String(process.env.VALKEY_URL || cfg.valkey.url || "").trim()
+const url = new URL(conn);
 
 const startMonitor = () => {
   const nd = makeNdjsonWriter({
     dataDir: cfg.server.data_dir,
-    filePrefix: MONITOR
+    filePrefix: `${MONITOR}_${url.host}`
   })
   const monitorEpic = cfg.epics.find(e => e.name === MONITOR)
   const sink = {
@@ -47,7 +49,7 @@ const setupCollectors = async client => {
       const fn = fetcher[f.type]
       const nd = makeNdjsonWriter({
         dataDir: cfg.server.data_dir,
-        filePrefix: f.file_prefix || f.name
+        filePrefix: `${f.file_prefix || f.name}_${url.host}`
       })
       const sink = {
         appendRows: async rows => nd.appendRows(rows),

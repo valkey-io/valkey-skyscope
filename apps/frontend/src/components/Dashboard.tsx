@@ -10,11 +10,17 @@ import { AppHeader } from "./ui/app-header"
 import Accordion from "./ui/accordion"
 import DonutChart from "./ui/donut-chart"
 import { selectData } from "@/state/valkey-features/info/infoSelectors.ts"
+import { useAppDispatch } from "@/hooks/hooks"
+import { hotKeysRequested } from "@/state/valkey-features/hotkeys/hotKeysSlice"
 
 export function Dashboard() {
   const { id } = useParams()
   const infoData = useSelector(selectData(id!))
   const [searchQuery, setSearchQuery] = useState("")
+  const dispatch = useAppDispatch()
+  const hotKeys = (id: string) => {
+    dispatch(hotKeysRequested({ connectionId: id }))
+  }
 
   const memoryUsageMetrics = {
     used_memory: infoData.used_memory,
@@ -101,6 +107,16 @@ export function Dashboard() {
               <span className="font-light text-sm">{label}</span>
             </div>
           </div>))}
+      </div>
+      <div className="flex justify-center mt-4">
+        <button
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          onClick={() => {
+            hotKeys(id!)
+          }}
+        >
+          Test HotKeys
+        </button>
       </div>
       <div className="flex flex-1 min-h-0 gap-3">
         {/* Accordion Area */}

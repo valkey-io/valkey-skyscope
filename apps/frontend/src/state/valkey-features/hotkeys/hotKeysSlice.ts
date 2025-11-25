@@ -1,11 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit"
+import { type JSONObject } from "@common/src/json-utils"
 
 interface HotKeysState {
   [connectionId: string]: {
-    hotkeys: [[]],
-    checkAt: string,
+    hotKeys: [string, number][]
+    checkAt: string|null,
     monitorRunning: boolean,
-    status: string 
+    nodeId: string|null,
+    error?: JSONObject | null,
   }
 }
 
@@ -15,20 +17,37 @@ const hotKeysSlice = createSlice({
   name: "hotKeys",
   initialState: initialHotKeysState,
   reducers: {
-    startMonitor: (state, payload) => {
-      const connectionState = state[payload.connectionId]
-      if (!connectionState.monitorRunning) connectionState.status = "pending"
+    hotKeysRequested: (state, action) => {
+      const connectionId = action.payload.connectionId
+      if (!state[connectionId]) {
+        state[connectionId] = {
+          hotKeys: [],
+          checkAt: null, 
+          monitorRunning: false,
+          nodeId: null,
+        }
+      }
     },
-    hotKeysRequested: () => {
-      // call after response from startMonitor and update
-      // checkAt and monitorRunning
+    hotKeysFulfilled: (state, action) => {
+      const { hotKeys, monitorRunning, checkAt, nodeId } = action.payload.parsedResponse
+      const connectionId = action.payload.connectionId
+      state[connectionId] = {
+        hotKeys,
+        checkAt,
+        monitorRunning, 
+        nodeId,
+      }
+      
     },
-    hotKeysFulfilled: () => {
-      //update hotkeys and monitorRunninng
-
-    },
-    hotKeysError: () => {
-
+    hotKeysError: (state, action) => {
+      const { connectionId, error } = action.payload
+      state[connectionId].error = error
     },
   },
 })
+export default hotKeysSlice.reducer
+export const {
+  hotKeysRequested,
+  hotKeysFulfilled,
+  hotKeysError,
+} = hotKeysSlice.actions

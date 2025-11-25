@@ -64,6 +64,7 @@ export const VALKEY = {
   HOTKEYS: makeNamespace( "hotKeys",{
     hotKeysRequested: "hotKeysRequested",
     hotKeysFulfilled: "hotKeysFulfilled",
+    hotKeysError: "hotKeysError",
   }),
 } as const
 
