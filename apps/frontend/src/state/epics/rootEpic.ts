@@ -15,10 +15,11 @@ import type { Store } from "@reduxjs/toolkit"
 export const registerEpics = (store: Store) => {
   merge(
     wsConnectionEpic(store),
-    connectionEpic(),
+    connectionEpic(store),
     autoReconnectEpic(store),
     valkeyRetryEpic(store),
     deleteConnectionEpic(),
+    updateConnectionDetailsEpic(store),
     sendRequestEpic(),
     setDataEpic(),
     getHotKeysEpic(),
