@@ -12,12 +12,22 @@ import {
   getKeyTypeRequested,
   updateKeyRequested
 } from "./actions/keys.ts"
+import { hotKeysRequested } from "./actions/hotkeys.ts"
 import { Handler, ReduxAction, unknownHandler, type WsActionMessage } from "./actions/utils.ts"
+
+interface MetricsServerMessage {
+  type: string
+  payload: {
+    metricsHost: string
+    metricsPort: number
+    serverConnectionId: string
+  }
+}
 
 const wss = new WebSocketServer({ port: 8080 })
 const metricsServerURIs: Map<string, string> = new Map()
 
-process.on("message", (message) => {
+process.on("message", (message: MetricsServerMessage ) => {
   if (message?.type === "metrics-started") {
     const metricsServerURI = `${message.payload.metricsHost}:${message.payload.metricsPort}`
     metricsServerURIs.set(message.payload.serverConnectionId, metricsServerURI)
@@ -65,10 +75,11 @@ wss.on("connection", (ws: WebSocket) => {
       [VALKEY.KEYS.deleteKeyRequested]: deleteKeyRequested,
       [VALKEY.KEYS.addKeyRequested]: addKeyRequested,
       [VALKEY.KEYS.updateKeyRequested]: updateKeyRequested,
+      [VALKEY.HOTKEYS.hotKeysRequested]: hotKeysRequested,
     }
 
     const handler = handlers[action!.type] ?? unknownHandler
-    await handler({ ws, clients, connectionId: connectionId! })(action as ReduxAction)
+    await handler({ ws, clients, connectionId: connectionId!, metricsServerURIs })(action as ReduxAction)
   })
   ws.on("error", (err) => {
     console.error("WebSocket error:", err)
