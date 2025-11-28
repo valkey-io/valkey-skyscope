@@ -14,6 +14,7 @@ import { Cluster } from "./components/Cluster.tsx"
 import { WebSocketReconnect } from "./components/WebSocketReconnect.tsx"
 import { ValkeyReconnect } from "./components/ValkeyReconnect.tsx"
 import { SendCommand } from "@/components/send-command/SendCommand.tsx"
+import { Monitoring } from "@/components/Monitoring.tsx"
 import { Connection } from "@/components/connection/Connection.tsx"
 import "./css/index.css"
 
@@ -45,6 +46,7 @@ const AppWithHistory = () => {
           <Route element={<SendCommand />} path="/:clusterId/:id/sendcommand" />
           <Route element={<KeyBrowser />} path="/:clusterId/:id/browse" />
           <Route element={<Cluster />} path="/:clusterId/:id/cluster-topology" />
+          <Route element={<Monitoring />} path="/:clusterId/:id/monitoring" />
         </Route>
 
         {/* Routes without clusterId */}
@@ -54,6 +56,7 @@ const AppWithHistory = () => {
           <Route element={<Dashboard />} path="/:id/dashboard" />
           <Route element={<SendCommand />} path="/:id/sendcommand" />
           <Route element={<KeyBrowser />} path="/:id/browse" />
+          <Route element={<Monitoring />} path="/:id/monitoring" />
         </Route>
       </Route>
     </Routes>

@@ -9,6 +9,7 @@ import valkeyCommandReducer from "@/state/valkey-features/command/commandSlice.t
 import valkeyInfoReducer from "@/state/valkey-features/info/infoSlice.ts"
 import keyBrowserReducer from "@/state/valkey-features/keys/keyBrowserSlice.ts"
 import hotKeysReducer from "@/state/valkey-features/hotkeys/hotKeysSlice.ts"
+import slowLogsReducer from "@/state/valkey-features/slowlogs/slowLogsSlice.ts"
 
 export const store = configureStore({
   reducer: {
@@ -19,6 +20,7 @@ export const store = configureStore({
     [VALKEY.KEYS.name]: keyBrowserReducer,
     [VALKEY.CLUSTER.name]: clusterReducer,
     [VALKEY.HOTKEYS.name]: hotKeysReducer,
+    [VALKEY.SLOWLOGS.name]: slowLogsReducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware({

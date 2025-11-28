@@ -66,6 +66,11 @@ export const VALKEY = {
     hotKeysFulfilled: "hotKeysFulfilled",
     hotKeysError: "hotKeysError",
   }),
+  SLOWLOGS: makeNamespace( "slowLogs",{
+    slowLogsRequested: "slowLogsRequested",
+    slowLogsFulfilled: "slowLogsFulfilled",
+    slowLogsError: "slowLogsError",
+  }),
 } as const
 
 export const CONNECTED = "Connected"
