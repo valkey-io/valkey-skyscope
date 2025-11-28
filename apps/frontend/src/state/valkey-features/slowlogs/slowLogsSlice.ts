@@ -37,15 +37,12 @@ const slowLogsSlice = createSlice({
   reducers: {
     slowLogsRequested: (state, action) => {
       const connectionId = action.payload.connectionId
-      if (!state[connectionId]) {
-        state[connectionId] = {
-          slowLogs: [],
-          count: 50,
-          loading: true,
-        }
-      } else {
-        state[connectionId].loading = true
+      state[connectionId] ??= {
+        slowLogs: [],
+        count: 50,
+        loading: false,
       }
+      state[connectionId].loading = true
     },
     slowLogsFulfilled: (state, action) => {
       const { rows, count } = action.payload.parsedResponse

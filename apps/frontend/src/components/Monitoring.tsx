@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { Activity, ArrowUp, ArrowDown, RefreshCcw } from "lucide-react"
+import * as R from "ramda"
 import { useParams } from "react-router"
 import { AppHeader } from "./ui/app-header"
 import type { RootState } from "@/store"
@@ -38,14 +39,14 @@ export const Monitoring = () => {
     setSortOrder((prev) => prev === "asc" ? "desc" : "asc")
   }
 
-  const sortedSlowLogs = [...(slowLogsData || [])].flatMap((logGroup) =>
+  const sortedSlowLogs = R.defaultTo([], slowLogsData).flatMap((logGroup) =>
     logGroup.values.map((entry) => ({
       ...entry,
       groupTs: logGroup.ts,
     })),
   ).sort((a, b) => {
-    const timestampA = new Date(a.ts).getTime()
-    const timestampB = new Date(b.ts).getTime()
+    const timestampA = a.ts
+    const timestampB = b.ts
     return sortOrder === "asc" ? timestampA - timestampB : timestampB - timestampA
   })
 
@@ -93,21 +94,21 @@ export const Monitoring = () => {
         {activeTab === "hot-keys" && (
           <div className="h-full flex items-center justify-center">
             <span className="text-lg text-gray-500 dark:text-white mb-2">
-              No Hot Keys Found!
+              No Hot Keys Found
             </span>
           </div>
         )}
         {activeTab === "large-keys" && (
           <div className="h-full flex items-center justify-center">
             <span className="text-lg text-gray-500 dark:text-white mb-2">
-              No Large Keys Found!
+              No Large Keys Found
             </span>
           </div>
         )}
 
         {activeTab === "slow-logs" && (
           <div className="h-full w-full flex flex-col">
-            {sortedSlowLogs?.length > 0 ? (
+            {sortedSlowLogs.length > 0 ? (
               <div className="h-full w-full flex flex-col">
                 {/* Header */}
                 <div className="bg-white dark:bg-neutral-900 border-b dark:border-neutral-700 p-4">
@@ -165,7 +166,7 @@ export const Monitoring = () => {
             ) : (
               <div className="h-full flex items-center justify-center">
                 <span className="text-lg text-gray-500 dark:text-white mb-2">
-                  No Slow Logs Found!
+                  No Slow Logs Found
                 </span>
               </div>
             )}
