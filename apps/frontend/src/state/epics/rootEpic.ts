@@ -23,7 +23,7 @@ export const registerEpics = (store: Store) => {
     updateConnectionDetailsEpic(store),
     sendRequestEpic(),
     setDataEpic(),
-    getHotKeysEpic(),
+    getHotKeysEpic(store),
     keyBrowserEpic(),
   ).subscribe({
     error: (err) => console.error("Epic error:", err),
