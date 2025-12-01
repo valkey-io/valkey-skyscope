@@ -70,8 +70,8 @@ export function KeyBrowser() {
   const handleClearSearch = () => {
     setSearchPattern("")
     if (id) {
-      dispatch(getKeysRequested({ 
-        connectionId: id, 
+      dispatch(getKeysRequested({
+        connectionId: id,
         pattern: "*",
       }))
     }
@@ -164,7 +164,7 @@ export function KeyBrowser() {
         </div>
         <form className="flex items-center justify-between flex-1 h-10 p-2 dark:border-tw-dark-border border rounded" onSubmit={handleSearch}>
           <button className={`mr-1 ${!searchPattern ? "invisible" : "text-tw-primary"}`} onClick={handleClearSearch} type="button">
-            <CircleX size={14}/>
+            <CircleX size={14} />
           </button>
           <input
             className="flex-1 bg-transparent outline-none"
@@ -260,7 +260,7 @@ export function KeyBrowser() {
             )}
           </div>
           {/* Key Details */}
-          <KeyDetails conectionId={id!} selectedKey={selectedKey} selectedKeyInfo={selectedKeyInfo!} setSelectedKey={setSelectedKey} />
+          <KeyDetails connectionId={id!} selectedKey={selectedKey} selectedKeyInfo={selectedKeyInfo!} setSelectedKey={setSelectedKey} />
         </div>
       </TooltipProvider>
     </div>

@@ -1,5 +1,5 @@
 import { WebSocket } from "ws"
-import { GlideClient, GlideClusterClient, Batch, ClusterBatch } from "@valkey/valkey-glide"
+import { GlideClient, GlideClusterClient, Batch, ClusterBatch, RouteOption, SingleNodeRoute } from "@valkey/valkey-glide"
 import * as R from "ramda"
 import { VALKEY } from "../../../common/src/constants.ts"
 
@@ -82,6 +82,106 @@ export async function getKeyInfo(
   }
 }
 
+async function scanNode(
+  client: GlideClient,
+  payload: {
+    connectionId: string;
+    pattern?: string;
+    count?: number;
+  }, 
+): Promise<Set<string>> {
+  const pattern = payload.pattern || "*"
+  const count = payload.count || 50 // this is JUST A HINT. may return larger than count https://valkey.io/commands/scan/
+  const allKeys = new Set<string>()
+    
+  let cursor = "0"
+  do {
+    const scanResult = (await client.customCommand([
+      "SCAN",
+      cursor,
+      "MATCH",
+      pattern,
+      "COUNT",
+      count.toString(),
+    ],
+    )) as [string, string[]]
+
+    console.log("SCAN standalone response:", scanResult)
+
+    cursor = scanResult[0]
+    scanResult[1].forEach((key) => {allKeys.add(key)})
+  } while (cursor !== "0")
+
+  return allKeys
+}
+
+type ClusterScanResult = {
+  key: string
+  value:[string, string[]]
+}
+
+async function scanCluster(
+  client: GlideClusterClient, 
+  payload: {
+    connectionId: string;
+    pattern?: string;
+    count?: number;
+  }, 
+): Promise<Set<string>> {
+  const pattern = payload.pattern || "*"
+  const count = payload.count || 50 // this is JUST A HINT. may return larger than count https://valkey.io/commands/scan/
+  const routeOption: RouteOption = { route: "allPrimaries" } // Sends command to all primary nodes
+  const allKeys = new Set<string>()
+    
+  const scanClusterResult = (await client.customCommand([
+    "SCAN",
+    "0",
+    "MATCH",
+    pattern,
+    "COUNT",
+    count.toString(),
+  ],
+  routeOption,
+  )) as ClusterScanResult[]
+
+  console.log("SCAN Cluster response:", scanClusterResult)
+
+  scanClusterResult.map(async ({ key: nodeAddress, value })=>{
+    value[1].forEach((nodeKey) => {
+      allKeys.add(nodeKey)
+    })
+
+    const routeByAddress: SingleNodeRoute = {
+      type: "routeByAddress",
+      host: nodeAddress.split(":")[0],
+      port: Number(nodeAddress.split(":")[1]),
+    }
+    const nodeRouteOption: RouteOption = { route: routeByAddress }
+
+    let cursor = value[0]
+    
+    while (cursor !== "0"){
+      const scanResult = (await client.customCommand([
+        "SCAN",
+        cursor,
+        "MATCH",
+        pattern,
+        "COUNT",
+        count.toString(),
+      ],
+      nodeRouteOption,
+      )) as [string, string[]]
+
+      console.log("SCAN node response:", scanResult)
+
+      cursor = scanResult[0]
+      scanResult[1].forEach((key) => {allKeys.add(key)})
+    }
+  })
+
+  return allKeys
+}
+
 export async function getKeys(
   client: GlideClient | GlideClusterClient,
   ws: WebSocket,
@@ -92,27 +192,13 @@ export async function getKeys(
   },
 ) {
   try {
-    const pattern = payload.pattern || "*"
-    const count = payload.count || 50
+    const allKeys = client instanceof GlideClusterClient ? await scanCluster(client, payload) : await scanNode(client, payload)
+
     const batchSize = 10 // TO DO: configurable batch size
-
-    // Using SCAN command with pattern and count
-    const rawResponse = (await client.customCommand([
-      "SCAN",
-      "0",
-      "MATCH",
-      pattern,
-      "COUNT",
-      count.toString(),
-    ])) as [string, string[]]
-
-    console.log("SCAN response:", rawResponse)
-
-    const [cursor, keys] = rawResponse
 
     const enrichedKeys = R.flatten(
       await Promise.all(
-        R.splitEvery(batchSize, keys).map(async (batch) => {
+        R.splitEvery(batchSize, [...allKeys]).map(async (batch) => {
           const settled = await Promise.allSettled(
             batch.map((k) => getKeyInfo(client, k)),
           )
@@ -131,7 +217,6 @@ export async function getKeys(
         payload: {
           connectionId: payload.connectionId,
           keys: enrichedKeys,
-          cursor: cursor || "0",
         },
       }),
     )
