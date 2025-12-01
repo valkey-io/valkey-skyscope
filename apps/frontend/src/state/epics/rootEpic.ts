@@ -24,7 +24,7 @@ export const registerEpics = (store: Store) => {
     updateConnectionDetailsEpic(store),
     sendRequestEpic(),
     setDataEpic(),
-    getHotKeysEpic(),
+    getHotKeysEpic(store),
     getSlowLogsEpic(),
     keyBrowserEpic(),
   ).subscribe({
