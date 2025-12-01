@@ -12,9 +12,9 @@ export const selectHotKeys = (id: string) => (state: RootState) =>
 interface HotKeysState {
   [connectionId: string]: {
     hotKeys: [string, number][]
-    checkAt: string|null,
+    checkAt: string | null,
     monitorRunning: boolean,
-    nodeId: string|null,
+    nodeId: string | null,
     error?: JSONObject | null,
     status: HotKeysStatus,
   }
@@ -53,7 +53,7 @@ const hotKeysSlice = createSlice({
     hotKeysError: (state, action) => {
       const { connectionId, error } = action.payload
       state[connectionId].error = error
-      state[connectionId].status= ERROR
+      state[connectionId].status = ERROR
     },
   },
 })

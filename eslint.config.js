@@ -86,6 +86,7 @@ export default tseslint.config([
       ],
       "object-curly-spacing": ["error", "always"],
       "@stylistic/indent": ["error", 2],
+      "@stylistic/space-infix-ops": "error",
       "react/jsx-sort-props": [
         "error",
         {
