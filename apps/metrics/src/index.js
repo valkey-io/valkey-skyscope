@@ -9,7 +9,6 @@ import { MODE, ACTION, MONITOR } from "./utils/constants.js"
 
 async function main() {
   const cfg = loadConfig()
-
   const ensureDir = dir => { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }) }
   ensureDir(cfg.server.data_dir)
 
@@ -26,7 +25,7 @@ async function main() {
   const client = createClient({ url })
   client.on("error", err => console.error("valkey error", err))
   await client.connect()
-  const stoppers = await setupCollectors(client)
+  const stoppers = await setupCollectors(client, cfg)
 
   const app = express()
 
@@ -82,7 +81,7 @@ async function main() {
           if (monitorRunning) {
             return { monitorRunning }
           }
-          await startMonitor()
+          await startMonitor(cfg)
           monitorRunning = true
           checkAt = Date.now() + monitorDuration
           return { monitorRunning, checkAt}
@@ -122,12 +121,12 @@ async function main() {
         return res.json(monitorResponse)
       }
       if (Date.now() > checkAt) {
-        const hotkeys = await calculateHotKeys()
+        const hotKeys = await calculateHotKeys()
         if (req.query.mode !== MODE.CONTINUOUS) {
           await monitorHandler(ACTION.STOP) 
         }
         monitorResponse = await monitorHandler(ACTION.STATUS)
-        return res.json({ nodeId: url, hotkeys, ...monitorResponse })
+        return res.json({ nodeId: url, hotKeys, ...monitorResponse })
 
       }
       return res.json({ checkAt })

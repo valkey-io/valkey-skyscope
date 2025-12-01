@@ -19,7 +19,7 @@ function AppHeader({ title, icon, className }: AppHeaderProps) {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const { id, clusterId } = useParams<{ id: string; clusterId: string }>()
-  const { host, port, username } = useSelector(selectConnectionDetails(id!))
+  const { host, port, username, alias } = useSelector(selectConnectionDetails(id!))
   const clusterData = useSelector(selectCluster(clusterId!))
   const ToggleIcon = isOpen ? CircleChevronUp : CircleChevronDown
 
@@ -32,8 +32,8 @@ function AppHeader({ title, icon, className }: AppHeaderProps) {
     state.valkeyConnection?.connections,
   )
 
-  const handleNavigate = (port: number) => {
-    navigate(`/${clusterId}/localhost-${port}/dashboard`)
+  const handleNavigate = () => {
+    navigate(`/${clusterId}/${id}/dashboard`)
     setIsOpen(false)
   }
 
@@ -63,7 +63,7 @@ function AppHeader({ title, icon, className }: AppHeaderProps) {
 
           <div className="">
             <span className="text-sm font-light border border-tw-primary text-tw-primary px-3 py-1 rounded">
-              {username}@{host}:{port}
+              {alias ? alias : `${username}@${host}:${port}`}
             </span>
           </div>
         </div>
@@ -96,16 +96,15 @@ function AppHeader({ title, icon, className }: AppHeaderProps) {
                 rounded z-10 absolute top-10 right-0" ref={dropdownRef}>
                 <ul className="space-y-2">
                   {Object.entries(clusterData.clusterNodes).map(([primaryKey, primary]) => {
-                    const nodeConnectionId = `localhost-${primary.port}`
-                    const nodeIsConnected = allConnections?.[nodeConnectionId]?.status === CONNECTED
+                    const nodeIsConnected = allConnections?.[primaryKey]?.status === CONNECTED
 
                     return (
                       <li className="flex flex-col gap-1" key={primaryKey}>
                         <button className="font-normal flex items-center cursor-pointer hover:bg-tw-primary/20"
                           disabled={!nodeIsConnected}
-                          onClick={() => handleNavigate(primary.port)}>
+                          onClick={() => handleNavigate()}>
                           <Dot className={nodeIsConnected ? "text-green-500" : "text-gray-400"} size={45} />
-                          {primaryKey}
+                          {`${primary.host}:${primary.port}`}
                         </button>
                         {primary.replicas?.map((replica) => (
                           <div className="flex items-center ml-4" key={replica.id}>

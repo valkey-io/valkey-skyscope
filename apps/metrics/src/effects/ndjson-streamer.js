@@ -1,13 +1,14 @@
 import fs from "node:fs";
 import readline from "node:readline";
 import path from "node:path";
-import { loadConfig } from "../config.js";
+
+const DATA_DIR = process.env.DATA_DIR || path.resolve(process.cwd(), "data")
 
 const dayStr = (date) => date.toISOString().slice(0, 10).replace(/-/g, "");
 
+
 const fileFor = (prefix, date) => {
-  const cfg = loadConfig();
-  const dataDir = cfg.server.data_dir;
+  const dataDir = DATA_DIR
   return path.join(dataDir, `${prefix}_${dayStr(date)}.ndjson`);
 };
 
@@ -17,11 +18,11 @@ export async function streamNdjson(prefix, filterFn = () => true) {
   yesterday.setDate(today.getDate() - 1);
 
   const files = [fileFor(prefix, yesterday), fileFor(prefix, today)];
+
   const results = [];
 
   for (const file of files) {
     if (!fs.existsSync(file)) continue;
-
     const fileStream = fs.createReadStream(file, { encoding: "utf8" });
     const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
 

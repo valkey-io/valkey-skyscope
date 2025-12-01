@@ -7,7 +7,7 @@ import { convertTTL } from "@common/src/ttl-conversion"
 import { formatBytes } from "@common/src/bytes-conversion"
 import { calculateTotalMemoryUsage } from "@common/src/memory-usage-calculation"
 import {
-  Compass,
+  KeyRound,
   Key,
   Hourglass,
   Database,
@@ -119,7 +119,7 @@ export function KeyBrowser() {
 
   return (
     <div className="flex flex-col h-screen p-4">
-      <AppHeader icon={<Compass size={20} />} title="Key Browser" />
+      <AppHeader icon={<KeyRound size={20} />} title="Key Browser" />
 
       {error && <div className="ml-2">Error loading keys: {error}</div>}
 

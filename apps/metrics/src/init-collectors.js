@@ -2,13 +2,11 @@ import { makeFetcher } from "./effects/fetchers.js"
 import { makeMonitorStream } from "./effects/monitor-stream.js"
 import { makeNdjsonWriter } from "./effects/ndjson-writer.js"
 import { startCollector } from "./epics/collector-rx.js"
-import { loadConfig } from "./config.js"
 
-const cfg = loadConfig()
 const MONITOR = "monitor"
 const stoppers = {}
 
-const startMonitor = () => {
+const startMonitor = (cfg) => {
   const nd = makeNdjsonWriter({
     dataDir: cfg.server.data_dir,
     filePrefix: MONITOR
@@ -17,7 +15,7 @@ const startMonitor = () => {
   const sink = {
     appendRows: async rows => {
       await nd.appendRows(rows)
-      console.info(`[${monitorEpic.name}] wrote ${rows.length} logs to ${cfg.server.data_dir}/${monitorEpic.file_prefix || monitorEpic.name}`)
+      console.info(`[${monitorEpic.name}] wrote ${rows.length} logs to ${cfg.server.data_dir}/`)
     },
     close: nd.close
   }
@@ -38,7 +36,7 @@ const startMonitor = () => {
 
 const stopMonitor = async () => await stoppers[MONITOR]()
 
-const setupCollectors = async client => {
+const setupCollectors = async (client, cfg) => {
   const fetcher = makeFetcher(client)
   const stoppers = {}
   await Promise.all(cfg.epics

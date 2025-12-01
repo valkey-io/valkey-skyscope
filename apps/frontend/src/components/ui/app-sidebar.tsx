@@ -7,8 +7,9 @@ import {
   Cog,
   CircleQuestionMark,
   Github,
-  Compass,
-  Network
+  KeyRound,
+  Network,
+  Activity
 } from "lucide-react"
 import { Link, useLocation, useParams } from "react-router"
 import { useState } from "react"
@@ -58,7 +59,12 @@ export function AppSidebar() {
                   {
                     to: (clusterId ? `/${clusterId}/${id}/browse` : `/${id}/browse`),
                     title: "Key Browser",
-                    icon: Compass,
+                    icon: KeyRound,
+                  },
+                  {
+                    to: (clusterId ? `/${clusterId}/${id}/monitoring` : `/${id}/monitoring`),
+                    title: "Monitoring",
+                    icon: Activity,
                   },
                   { to: (clusterId ? `/${clusterId}/${id}/sendcommand` : `/${id}/sendcommand`), 
                     title: "Send Command", 

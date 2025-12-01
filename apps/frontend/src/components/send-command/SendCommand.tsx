@@ -1,4 +1,4 @@
-import { CopyIcon, GitCompareIcon, RotateCwIcon, Send } from "lucide-react"
+import { CopyIcon, GitCompareIcon, RotateCwIcon, SquareTerminal } from "lucide-react"
 import React, { useRef, useState } from "react"
 import { useSelector } from "react-redux"
 import { useParams } from "react-router"
@@ -56,7 +56,7 @@ export function SendCommand() {
     <RouteContainer title="Send Command">
       <AppHeader
         className="mb-0"
-        icon={<Send size={20} />}
+        icon={<SquareTerminal size={20} />}
         title="Send Command"
       />
       <div className="flex-1 overflow-auto w-full flex flex-row gap-4">

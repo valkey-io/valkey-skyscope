@@ -61,6 +61,16 @@ export const VALKEY = {
     deleteCluster: "deleteCluster",
     setClusterData: "setClusterData",
   } as const),
+  HOTKEYS: makeNamespace( "hotKeys",{
+    hotKeysRequested: "hotKeysRequested",
+    hotKeysFulfilled: "hotKeysFulfilled",
+    hotKeysError: "hotKeysError",
+  }),
+  SLOWLOGS: makeNamespace( "slowLogs",{
+    slowLogsRequested: "slowLogsRequested",
+    slowLogsFulfilled: "slowLogsFulfilled",
+    slowLogsError: "slowLogsError",
+  }),
 } as const
 
 export const CONNECTED = "Connected"
@@ -69,6 +79,9 @@ export const ERROR = "Error"
 export const NOT_CONNECTED = "Not Connected"
 export const DISCONNECTED = "Disconnected"
 export const RECONNECTING = "Reconnecting"
+
+export const PENDING = "Pending"
+export const FULFILLED = "Fulfilled"
 
 export const LOCAL_STORAGE = {
   VALKEY_CONNECTIONS: "VALKEY_CONNECTIONS",
