@@ -1,4 +1,5 @@
 export const MONITOR = "monitor"
+export const SLOWLOG = "slowlog"
 
 export const MODE = {
   CONTINUOUS: "continuous",

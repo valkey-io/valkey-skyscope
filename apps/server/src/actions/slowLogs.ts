@@ -15,7 +15,8 @@ type SlowLogsResponse = {
       addr: string
       client: string
     }>
-  }>
+  }>,
+  checkAt: number
 }
 
 const sendSlowLogsFulfilled = (
@@ -60,15 +61,25 @@ export const slowLogsRequested = withDeps<Deps, void>(
       const url = `${metricsServerURI}/slowlog?count=${count}`
       console.log("[slowLogsRequested] Fetching from:", url)
 
-      const response = await fetch(url)
-      const parsedResponse: SlowLogsResponse = await response.json() as SlowLogsResponse
+      const initialResponse = await fetch(url)
+      const initialParsedResponse: SlowLogsResponse = await initialResponse.json() as SlowLogsResponse
+      if (initialParsedResponse.checkAt) {
+        const delay = Math.max(initialParsedResponse.checkAt - Date.now(), 0)
+        // Schedule the follow-up request for when the monitor cycle finishes
+        setTimeout(async () => {
+          try {
+            const dataResponse = await fetch(`${metricsServerURI}/slowlog?count=${count}`)
+            const dataParsedResponse = await dataResponse.json() as SlowLogsResponse
+            sendSlowLogsFulfilled(ws, connectionId, dataParsedResponse)
+          } catch (error) {
+            sendSlowLogsError(ws, connectionId, error)
+          }
+        }, delay)
+      }
+      else {
+        sendSlowLogsFulfilled(ws, connectionId, initialParsedResponse)
+      }
 
-      console.log("[slowLogsRequested] Response received:", {
-        count: parsedResponse.count,
-        rowsLength: parsedResponse.rows?.length,
-      })
-
-      sendSlowLogsFulfilled(ws, connectionId, parsedResponse)
     } catch (error) {
       sendSlowLogsError(ws, connectionId, error)
     }
