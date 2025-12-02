@@ -3,6 +3,26 @@ import { makeMonitorStream } from "./effects/monitor-stream.js"
 import { makeNdjsonWriter } from "./effects/ndjson-writer.js"
 import { startCollector } from "./epics/collector-rx.js"
 
+/*
+  State per collector with shape:
+  {
+    isRunning: boolean,
+    lastUpdatedAt: timestamp,
+    nextCycleAt: timestamp, // Calculated only for collectors, not the monitor as the monitor is controlled manually
+  }
+*/
+const collectorsState = {}
+
+const updateCollectorMeta = (name, patch) => {
+  const prev = collectorsState[name] || {}
+  const next = { ...prev, ...patch }
+  collectorsState[name] = next
+  return next
+}
+
+// Use it in endpoints to return metadata to server then to UI to show when the data was collected and will be refreshed
+export const getCollectorMeta = (name) => collectorsState[name]
+
 const MONITOR = "monitor"
 const stoppers = {}
 
@@ -11,7 +31,9 @@ const startMonitor = (cfg) => {
     dataDir: cfg.server.data_dir,
     filePrefix: MONITOR
   })
+
   const monitorEpic = cfg.epics.find(e => e.name === MONITOR)
+
   const sink = {
     appendRows: async rows => {
       await nd.appendRows(rows)
@@ -19,16 +41,48 @@ const startMonitor = (cfg) => {
     },
     close: nd.close
   }
+
+  const now = Date.now()
+
+  updateCollectorMeta(monitorEpic.name, {
+    isRunning: true,
+    startedAt: Date.now(),
+  })
+
   const stream$ = makeMonitorStream(async logs => {
     await sink.appendRows(logs)
   }, monitorEpic)
+
   const subscription = stream$.subscribe({
-    next: logs => console.info(`[${monitorEpic.name}] monitor cycle complete (${logs.length} logs)`),
-    error: err => console.error(`[${monitorEpic.name}] monitor error:`, err),
-    complete: () => console.info(`[${monitorEpic.name}] monitor completed`),
+    next: logs => {
+      updateCollectorMeta(monitorEpic.name, {
+        lastUpdatedAt: Date.now(),
+      })
+      console.info(`[${monitorEpic.name}] monitor cycle complete (${logs.length} logs)`)
+    },
+    error: err => {
+      updateCollectorMeta(monitorEpic.name, {
+        isRunning: false,
+        lastErrorAt: Date.now(),
+        lastError: String(err),
+      })
+      console.error(`[${monitorEpic.name}] monitor error:`, err)
+    },
+    complete: () => {
+      updateCollectorMeta(monitorEpic.name, {
+        completedAt: Date.now(),
+        isRunning: false,
+      })
+      console.info(`[${monitorEpic.name}] monitor completed`)
+    },
   })
+
   stoppers[monitorEpic.name] = async () => {
     console.info(`[${monitorEpic.name}] stopping monitor...`)
+    updateCollectorMeta(monitorEpic.name, {
+      stoppedAt: Date.now(),
+      isRunning: false,
+    })
     subscription.unsubscribe()
     await sink.close()
   }
@@ -47,11 +101,34 @@ const setupCollectors = async (client, cfg) => {
         dataDir: cfg.server.data_dir,
         filePrefix: f.file_prefix || f.name
       })
+
+      updateCollectorMeta(f.name, {
+        isRunning: true,
+        lastUpdatedAt: null,
+        nextCycleAt: Date.now() + f.poll_ms,
+        startedAt: Date.now(),
+      })
+
       const sink = {
-        appendRows: async rows => nd.appendRows(rows),
-        close: nd.close
+        appendRows: async rows => {
+          nd.appendRows(rows)
+          updateCollectorMeta(f.name, {
+            nextCycleAt: Date.now() + f.poll_ms,
+            lastUpdatedAt: Date.now(),
+          })
+        },
+        close: () => {
+          updateCollectorMeta(f.name, {
+            isRunning: false,
+            nextCycleAt: null,
+            stoppedAt: Date.now(),
+          })
+          nd.close
+        }
       }
+
       const rows = await fn()
+
       await sink.appendRows(rows)
       stoppers[f.name] = startCollector({
         name: f.name,

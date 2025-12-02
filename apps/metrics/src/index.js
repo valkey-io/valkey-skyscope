@@ -32,7 +32,7 @@ async function main() {
   // public API goes here:
   app.get("/health", (_req, res) => res.json({ ok: true }))
 
-  app.get('/memory', async (_req, res) => {
+  app.get("/memory", async (_req, res) => {
     try {
       const rows = await Streamer.memory_stats()
       res.json({ rows })
@@ -41,16 +41,18 @@ async function main() {
     }
   })
 
-  app.get('/cpu', async (_req, res) => {
+  app.get("/cpu", async (_req, res) => {
     try {
       const rows = await Streamer.info_cpu()
+      // todo use meta for checkAt or lastUpdated
+      // console.log("meta: ", getCollectorMeta("cpu"))
       res.json({ rows })
     } catch (e) {
       res.status(500).json({ error: e.message })
     }
   })
 
-  app.get('/slowlog', async (req, res) => {
+  app.get("/slowlog", async (req, res) => {
     try {
       const count = Number(req.query.count) || 50
       const rows = await Streamer.slowlog_get(count)
@@ -60,7 +62,7 @@ async function main() {
     }
   })
 
-  app.get('/slowlog_len', async (_req, res) => {
+  app.get("/slowlog_len", async (_req, res) => {
     try {
       const rows = await Streamer.slowlog_len()
       res.json({ rows })
@@ -100,20 +102,20 @@ async function main() {
           return { monitorRunning }
 
         default:
-          return { error: 'Invalid action. Use ?action=start|stop|status' }
+          return { error: "Invalid action. Use ?action=start|stop|status" }
       }
     } catch (e) {
       console.error(`[monitor] ${action} error:`, e)
       return { error: e.message }
     }
   }
-  app.get('/monitor', async (req, res) => {
+  app.get("/monitor", async (req, res) => {
     const result = await monitorHandler(req.query.action)
     checkAt = result.checkAt
     return res.json(result)
   })
 
-  app.get('/hot-keys', async (req, res) => {
+  app.get("/hot-keys", async (req, res) => {
     let monitorResponse = {}
     try {
       if (!monitorRunning) {
@@ -140,7 +142,7 @@ async function main() {
   const server = app.listen(port, () => {
     const assignedPort = server.address().port
     console.log(`listening on http://0.0.0.0:${assignedPort}`)
-    process.send?.({ type: 'metrics-started', payload: { valkeyUrl: url, metricsHost: 'http://0.0.0.0', metricsPort: assignedPort } });
+    process.send?.({ type: "metrics-started", payload: { valkeyUrl: url, metricsHost: "http://0.0.0.0", metricsPort: assignedPort } })
   })
 
   const shutdown = async () => {
