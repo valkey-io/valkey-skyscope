@@ -29,16 +29,14 @@ export function SlowLogs({ data }: SlowLogsProps) {
     setSortOrder((prev) => prev === "asc" ? "desc" : "asc")
   }
 
-  const sortedSlowLogs = R.defaultTo([], data).flatMap((logGroup) =>
-    logGroup.values.map((entry) => ({
-      ...entry,
-      groupTs: logGroup.ts,
-    })),
-  ).sort((a, b) => {
-    const timestampA = a.ts
-    const timestampB = b.ts
-    return sortOrder === "asc" ? timestampA - timestampB : timestampB - timestampA
-  })
+  const sortedSlowLogs = R.defaultTo([], data)
+    .flatMap((logGroup) =>
+      logGroup.values.map((entry) => ({
+        ...entry,
+        groupTs: logGroup.ts,
+      })),
+    )
+    .sort((sortOrder === "asc" ? R.ascend : R.descend)(R.prop("ts")))
 
   return (
     <div className="h-full w-full flex flex-col">

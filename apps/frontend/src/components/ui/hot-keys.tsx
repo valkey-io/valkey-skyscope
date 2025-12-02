@@ -17,11 +17,7 @@ export function HotKeys({ data, status }: HotKeysProps) {
   }
 
   const sortedHotKeys = R.sort<[string, number]>(
-    (a, b) => {
-      const countA = a[1]
-      const countB = b[1]
-      return sortOrder === "asc" ? countA - countB : countB - countA
-    },
+    (sortOrder === "asc" ? R.ascend : R.descend)(R.nth(1) as (tuple: [string, number]) => number),
     R.defaultTo([], data),
   )
 
