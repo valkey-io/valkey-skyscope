@@ -275,13 +275,26 @@ export const getHotKeysEpic = (store: Store) =>
     }),
   )
 
-export const getSlowLogsEpic = () =>
+export const getSlowLogsEpic = (store: Store) =>
   action$.pipe(
     select(slowLogsRequested),
     tap((action) => {
       try {
+        const { clusterId, connectionId } = action.payload
         const socket = getSocket()
-        socket.next(action)
+
+        const state = store.getState()
+        const clusters = state.valkeyCluster.clusters
+
+        const connectionIds =
+          clusterId !== undefined
+            ? Object.keys(clusters[clusterId].clusterNodes)
+            : [connectionId]
+
+        socket.next({
+          type: action.type,
+          payload: { connectionIds },
+        })
       } catch (error) {
         console.error("[getSlowLogsEpic] Error sending action:", error)
       }

@@ -52,7 +52,7 @@ export const hotKeysRequested = withDeps<Deps, void>(
         const initialParsedResponse: HotKeysResponse = await initialResponse.json() as HotKeysResponse
         // Initial request starts monitoring and returns when to fetch results (`checkAt`).
         if (initialParsedResponse.checkAt) {
-          const delay = Math.max(initialParsedResponse.checkAt - Date.now(), 0)
+          const delay = initialParsedResponse.checkAt - Date.now()
           // Schedule the follow-up request for when the monitor cycle finishes
           setTimeout(async () => {
             try {

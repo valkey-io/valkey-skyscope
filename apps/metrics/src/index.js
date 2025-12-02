@@ -3,9 +3,9 @@ import express from "express"
 import { createClient } from "@valkey/client"
 import { loadConfig } from "./config.js"
 import * as Streamer from "./effects/ndjson-streamer.js"
-import { setupCollectors, startMonitor, stopMonitor } from "./init-collectors.js"
+import { getCollectorMeta, setupCollectors, startMonitor, stopMonitor } from "./init-collectors.js"
 import { calculateHotKeys } from "./analyzers/calculateHotKeys.js"
-import { MODE, ACTION, MONITOR } from "./utils/constants.js"
+import { MODE, ACTION, MONITOR, SLOWLOG } from "./utils/constants.js"
 
 async function main() {
   const cfg = loadConfig()
@@ -54,9 +54,14 @@ async function main() {
 
   app.get("/slowlog", async (req, res) => {
     try {
-      const count = Number(req.query.count) || 50
-      const rows = await Streamer.slowlog_get(count)
-      res.json({ count: Math.max(1, Math.min(500, count)), rows })
+      const {lastUpdatedAt, nextCycleAt} = getCollectorMeta(SLOWLOG)
+      if (lastUpdatedAt !== null) {
+        const count = Number(req.query.count) || 50
+        const rows = await Streamer.slowlog_get(count)
+        // Add minimum (1) and maximum (500) boundaries for rows requested
+        return res.json({ count: Math.max(1, Math.min(500, count)), rows, lastUpdatedAt })
+      }
+      else return res.json({checkAt: nextCycleAt, lastUpdatedAt})
     } catch (e) {
       res.status(500).json({ error: e.message })
     }
@@ -128,7 +133,7 @@ async function main() {
           await monitorHandler(ACTION.STOP) 
         }
         monitorResponse = await monitorHandler(ACTION.STATUS)
-        return res.json({ nodeId: url, hotKeys, ...monitorResponse })
+        return res.json({ hotKeys, ...monitorResponse })
 
       }
       return res.json({ checkAt })
