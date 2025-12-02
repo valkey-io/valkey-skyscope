@@ -41,5 +41,5 @@ export async function streamNdjson(prefix, filterFn = () => true) {
   return results; // JSON array of all objects
 }
 
-export const [memory_stats, info_cpu, slowlog_len, slowlog_get, monitor] =
-  ['memory', 'cpu', 'slowlog_len', 'slowlog', 'monitor'].map(filePrefix => () => streamNdjson(filePrefix))
+export const [memory_stats, info_cpu, slowlog_len, slowlog_get, commandlog_get_slow, monitor] =
+  ['memory', 'cpu', 'slowlog_len', 'slowlog', 'commandlog_slow', 'monitor'].map(filePrefix => () => streamNdjson(filePrefix))

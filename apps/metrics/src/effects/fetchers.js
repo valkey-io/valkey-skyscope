@@ -62,6 +62,22 @@ export const makeFetcher = client => ({
     return [{ ts: Date.now(), metric: "slowlog_get", values }]
   },
 
+  commandlog_get_slow: async (count = 50) => {
+    const entries = await client.sendCommand(["COMMANDLOG", "GET", String(count), "SLOW"])
+    const values = entries.map((e = []) => {
+      const [id, tsSec, durationUs, argv = [], addr = "unknown", name = "unknown"] = e
+      return {
+        id: String(id),
+        ts: Number(tsSec) * 1000,
+        duration_us: Number(durationUs),
+        argv: Array.isArray(argv) ? argv.map(String) : [],
+        addr: String(addr),
+        client: String(name)
+      }
+    })
+    return [{ ts: Date.now(), metric: "commandlog_get_slow", values }]
+  },
+
   // just a numeric count for the dashboard tile which displays a single number of slowlog
   slowlog_len: async () => {
     const n = await client.sendCommand(["SLOWLOG", "LEN"])

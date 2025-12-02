@@ -1,5 +1,5 @@
 export const MONITOR = "monitor"
-export const SLOWLOG = "slowlog"
+export const COMMANDLOG_SLOW = "commandlog_slow"
 
 export const MODE = {
   CONTINUOUS: "continuous",
