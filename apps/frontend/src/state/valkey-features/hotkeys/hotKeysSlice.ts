@@ -9,6 +9,9 @@ type HotKeysStatus = typeof PENDING | typeof FULFILLED | typeof ERROR
 export const selectHotKeys = (id: string) => (state: RootState) =>
   R.path([VALKEY.HOTKEYS.name, id, "hotKeys"], state)
 
+export const selectHotKeysStatus = (id: string) => (state: RootState) =>
+  R.path([VALKEY.HOTKEYS.name, id, "status"], state)
+
 interface HotKeysState {
   [connectionId: string]: {
     hotKeys: [string, number][]
