@@ -14,7 +14,7 @@ export const selectHotKeysStatus = (id: string) => (state: RootState) =>
 
 interface HotKeysState {
   [connectionId: string]: {
-    hotKeys: [string, number][]
+    hotKeys: [string, number, number | null, number][]
     checkAt: string | null,
     monitorRunning: boolean,
     nodeId: string | null,

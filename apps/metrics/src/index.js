@@ -128,9 +128,9 @@ async function main() {
         return res.json(monitorResponse)
       }
       if (Date.now() > checkAt) {
-        const hotKeys = await calculateHotKeys()
+        const hotKeys = await calculateHotKeys(client)
         if (req.query.mode !== MODE.CONTINUOUS) {
-          await monitorHandler(ACTION.STOP) 
+          await monitorHandler(ACTION.STOP)
         }
         monitorResponse = await monitorHandler(ACTION.STATUS)
         return res.json({ hotKeys, ...monitorResponse })
