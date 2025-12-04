@@ -1,4 +1,4 @@
-import { Key, Trash } from "lucide-react"
+import { Key, Trash, X } from "lucide-react"
 import { useState } from "react"
 import { convertTTL } from "@common/src/ttl-conversion"
 import { formatBytes } from "@common/src/bytes-conversion"
@@ -47,9 +47,10 @@ interface keyDetailsProps {
   setSelectedKey: (key: string | null) => void;
   selectedKeyInfo: KeyInfo | null;
   connectionId: string;
+  readOnly: boolean;
 }
 
-export default function KeyDetails({ selectedKey, selectedKeyInfo, connectionId, setSelectedKey }: keyDetailsProps) {
+export default function KeyDetails({ selectedKey, selectedKeyInfo, connectionId, setSelectedKey, readOnly = false }: keyDetailsProps) {
   const dispatch = useAppDispatch()
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
@@ -64,7 +65,7 @@ export default function KeyDetails({ selectedKey, selectedKeyInfo, connectionId,
   }
 
   return (
-    <div className="w-1/2 pl-2">
+    <div className= "w-1/2 pl-2">
       <div className="h-full dark:border-tw-dark-border border rounded overflow-hidden">
         {selectedKey && selectedKeyInfo ? (
           <div className="h-full p-4 text-sm font-light overflow-y-auto">
@@ -75,37 +76,52 @@ export default function KeyDetails({ selectedKey, selectedKeyInfo, connectionId,
                 {selectedKey}
               </span>
               <div className="space-x-2 flex items-center relative">
-                <CustomTooltip content="TTL">
-                  <span className="text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
-                    {convertTTL(selectedKeyInfo.ttl)}
-                  </span>
-                </CustomTooltip>
+                
+                {!readOnly && (
+                  <CustomTooltip content="TTL">
+                    <span className="text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
+                      {convertTTL(selectedKeyInfo.ttl)}
+                    </span>
+                  </CustomTooltip>
+                )}
                 <CustomTooltip content="Type">
-                  <span className="text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
+                  <span className={`text-xs px-2 py-1 rounded-full ${readOnly ? "" : "border-2 border-tw-primary"} text-tw-primary dark:text-white`}>
                     {selectedKeyInfo.type}
                   </span>
                 </CustomTooltip>
-                <CustomTooltip content="Size">
-                  <span className="text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
+                {!readOnly && (<CustomTooltip content="Size">
+                  <span className={"text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white"}>
                     {formatBytes(selectedKeyInfo.size)}
                   </span>
-                </CustomTooltip>
+                </CustomTooltip>)}
+                
                 {selectedKeyInfo.collectionSize !== undefined && (
                   <CustomTooltip content="Collection size">
-                    <span className="text-xs px-2 py-1 rounded-full border-2 border-tw-primary text-tw-primary dark:text-white">
+                    <span className={`text-xs px-2 py-1 rounded-full ${readOnly ? "" : "border-2 border-tw-primary"} text-tw-primary dark:text-white`}>
                       {selectedKeyInfo.collectionSize.toLocaleString()}
                     </span>
                   </CustomTooltip>
                 )}
-                <CustomTooltip content="Delete">
-                  <Button
-                    className="mr-0.5"
-                    onClick={handleDeleteModal}
-                    variant={"destructiveGhost"}
+                {readOnly && (
+                  <button
+                    className="text-tw-primary hover:text-tw-primary/60 border-2 border-tw-primary rounded-full transition-colors"
+                    onClick={() => setSelectedKey(null)}
                   >
-                    <Trash />
-                  </Button>
-                </CustomTooltip>
+                    <X size={18} />
+                  </button>
+                )}
+                
+                {!readOnly && (
+                  <CustomTooltip content="Delete">
+                    <Button
+                      className="mr-0.5"
+                      onClick={handleDeleteModal}
+                      variant={"destructiveGhost"}
+                    >
+                      <Trash />
+                    </Button>
+                  </CustomTooltip>
+                )}
               </div>
             </div>
 
@@ -122,6 +138,7 @@ export default function KeyDetails({ selectedKey, selectedKeyInfo, connectionId,
             {selectedKeyInfo.type === "string" && (
               <KeyDetailsString
                 connectionId={connectionId}
+                readOnly={readOnly}
                 selectedKey={selectedKey}
                 selectedKeyInfo={selectedKeyInfo}
               />
@@ -130,6 +147,7 @@ export default function KeyDetails({ selectedKey, selectedKeyInfo, connectionId,
             {selectedKeyInfo.type === "hash" && (
               <KeyDetailsHash
                 connectionId={connectionId}
+                readOnly={readOnly}
                 selectedKey={selectedKey}
                 selectedKeyInfo={selectedKeyInfo}
               />
@@ -138,6 +156,7 @@ export default function KeyDetails({ selectedKey, selectedKeyInfo, connectionId,
             {selectedKeyInfo.type === "list" && (
               <KeyDetailsList
                 connectionId={connectionId}
+                readOnly={readOnly}
                 selectedKey={selectedKey}
                 selectedKeyInfo={selectedKeyInfo}
               />
@@ -146,6 +165,7 @@ export default function KeyDetails({ selectedKey, selectedKeyInfo, connectionId,
             {selectedKeyInfo.type === "set" && (
               <KeyDetailsSet
                 connectionId={connectionId}
+                readOnly={readOnly}
                 selectedKey={selectedKey}
                 selectedKeyInfo={selectedKeyInfo}
               />

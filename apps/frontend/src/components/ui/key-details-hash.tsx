@@ -21,10 +21,11 @@ interface KeyDetailsHashProps {
     elements: ElementInfo[];
   };
   connectionId: string;
+  readOnly:boolean;
 }
 
 export default function KeyDetailsHash(
-  { selectedKey, selectedKeyInfo, connectionId }: KeyDetailsHashProps,
+  { selectedKey, selectedKeyInfo, connectionId, readOnly = false }: KeyDetailsHashProps,
 ) {
   const dispatch = useAppDispatch()
   const [isEditable, setIsEditable] = useState(false)
@@ -79,7 +80,7 @@ export default function KeyDetailsHash(
               Value
             </th>
             <th className="">
-              {isEditable ? (
+              {!readOnly && (isEditable ? (
                 <div className="flex gap-1">
                   <CustomTooltip content="Save">
                     <Button
@@ -109,7 +110,8 @@ export default function KeyDetailsHash(
                     <Pencil />
                   </Button>
                 </CustomTooltip>
-              )}
+              ))}
+              
             </th>
           </tr>
         </thead>

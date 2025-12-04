@@ -6,7 +6,7 @@ import * as R from "ramda"
 import { AppHeader } from "./ui/app-header"
 import { HotKeys } from "./ui/hot-keys"
 import { SlowLogs } from "./ui/slow-logs"
-import { HotKeyContents } from "./ui/hot-key-contents"
+import KeyDetails from "./ui/key-details"
 import type { RootState } from "@/store"
 import { slowLogsRequested, selectSlowLogs } from "@/state/valkey-features/slowlogs/slowLogsSlice"
 import { useAppDispatch } from "@/hooks/hooks"
@@ -124,8 +124,9 @@ export const Monitoring = () => {
           </div>
           {/* Key Details Panel */}
           {selectedKey && (
-            <HotKeyContents
+            <KeyDetails
               connectionId={id!}
+              readOnly={true}
               selectedKey={selectedKey}
               selectedKeyInfo={selectedKeyInfo}
               setSelectedKey={setSelectedKey}

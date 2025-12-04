@@ -16,10 +16,11 @@ interface KeyDetailsListProps {
     elements: string[];
   };
   connectionId: string;
+  readOnly: boolean;
 }
 
 export default function KeyDetailsList(
-  { selectedKey, selectedKeyInfo, connectionId }: KeyDetailsListProps,
+  { selectedKey, selectedKeyInfo, connectionId, readOnly = false }: KeyDetailsListProps,
 ) {
   const dispatch = useAppDispatch()
   const [isEditable, setIsEditable] = useState(false)
@@ -76,7 +77,7 @@ export default function KeyDetailsList(
               Elements
             </th>
             <th className="">
-              {isEditable ? (
+              {!readOnly && (isEditable ? (
                 <div className="flex gap-1">
                   <CustomTooltip content="Save">
                     <Button
@@ -106,7 +107,8 @@ export default function KeyDetailsList(
                     <Pencil />
                   </Button>
                 </CustomTooltip>
-              )}
+              ))}
+              
             </th>
           </tr>
         </thead>
