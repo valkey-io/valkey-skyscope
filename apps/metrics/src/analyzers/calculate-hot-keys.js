@@ -1,4 +1,5 @@
 import * as R from "ramda"
+import { getHotSlots } from "./calculate-hot-slots"
 
 export const calculateHotKeysFromMonitor = (rows) => {
   const ACCESS_COMMANDS = ["get", "set", "mget", "hget", "hgetall", "hmget", "json.get", "json.mget"]
@@ -20,6 +21,6 @@ export const calculateHotKeysFromMonitor = (rows) => {
   )(rows)
 }
 
-export const calculateHotKeysFromHotSlots = () => {
-  //
+export const calculateHotKeysFromHotSlots = (client) => {
+  const hotSlots = getHotSlots(client)
 } 
