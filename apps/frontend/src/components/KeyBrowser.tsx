@@ -24,7 +24,8 @@ import { useAppDispatch } from "@/hooks/hooks"
 import {
   selectKeys,
   selectLoading,
-  selectError
+  selectError,
+  selectTotalKeys
 } from "@/state/valkey-features/keys/keyBrowserSelectors"
 import {
   getKeysRequested,
@@ -55,6 +56,8 @@ export function KeyBrowser() {
     { value: "hash", label: "Hash" },
     { value: "list", label: "List" },
     { value: "set", label: "Set" },
+    { value: "zset", label: "Zset" },
+    { value: "stream", label: "Stream" },
   ]
 
   const handleSearch = (e: React.FormEvent) => {
@@ -84,6 +87,7 @@ export function KeyBrowser() {
   const keys: KeyInfo[] = useSelector(selectKeys(id!))
   const loading = useSelector(selectLoading(id!))
   const error = useSelector(selectError(id!))
+  const totalKeys = useSelector(selectTotalKeys(id!))
 
   useEffect(() => {
     if (id) {
@@ -126,7 +130,7 @@ export function KeyBrowser() {
       {/* Total Keys and Key Stats */}
       <div className="flex justify-between mb-8">
         <div className="h-20 w-1/4 p-4 dark:border-tw-dark-border border rounded flex flex-col justify-center items-center">
-          <span className="text-2xl font-semibold">{keys.length}</span>
+          <span className="text-2xl font-semibold">{totalKeys}</span>
           <span className="font-light text-sm">Total Keys</span>
         </div>
         <div className="h-20 w-1/4 p-4 dark:border-tw-dark-border border rounded flex flex-col justify-center items-center">

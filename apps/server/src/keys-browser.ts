@@ -1,6 +1,6 @@
 import { WebSocket } from "ws"
-import { GlideClient, GlideClusterClient, Batch, ClusterBatch, RouteOption, SingleNodeRoute } from "@valkey/valkey-glide"
-import * as R from "ramda"
+import { GlideClient, GlideClusterClient, Batch, ClusterBatch, RouteOption } from "@valkey/valkey-glide"
+import pLimit from "p-limit"
 import { VALKEY } from "../../../common/src/constants.ts"
 import { buildScanCommandArgs } from "./valkey-client-commands.ts"
 
@@ -99,13 +99,11 @@ async function scanStandalone(
       buildScanCommandArgs({ cursor, pattern: payload.pattern, count: payload.count }),
     )) as [string, string[]]
 
-    console.log("SCAN standalone response:", scanResult)
-
     const [newCursor, keys] = scanResult
 
     cursor = newCursor
     keys.forEach((key) => {allKeys.add(key)})
-  } while (cursor !== "0")
+  } while (allKeys.size < 1000 && cursor !== "0")
 
   return allKeys
 }
@@ -116,52 +114,67 @@ type ClusterScanResult = {
 }
 
 async function scanCluster(
-  client: GlideClusterClient, 
+  client: GlideClusterClient,
   payload: {
     connectionId: string;
     pattern?: string;
     count?: number;
-  }, 
+    limit?: number; 
+  },
 ): Promise<Set<string>> {
-  const routeOption: RouteOption = { route: "allPrimaries" } // Sends command to all primary nodes
+
+  const routeOption: RouteOption = { route: "allPrimaries" }
   const allKeys = new Set<string>()
-    
-  const scanClusterResult = (await client.customCommand(
-    buildScanCommandArgs({ cursor: "0", pattern: payload.pattern, count: payload.count }),
+  const limit = payload.limit ?? 1000
+
+  // Run initial SCAN 0 on all primaries
+  const scanClusterResult = await client.customCommand(
+    buildScanCommandArgs({
+      cursor: "0",
+      pattern: payload.pattern,
+      count: payload.count,
+    }),
     routeOption,
-  )) as ClusterScanResult[]
+  ) as ClusterScanResult[]
 
-  console.log("SCAN Cluster response:", scanClusterResult)
+  await Promise.all(
+    scanClusterResult.map(async ({ key: nodeAddress, value }) => {
+      let cursor = value[0]
+      const keys = value[1]
 
-  await Promise.all(scanClusterResult.map(async ({ key: nodeAddress, value: [cursor, keys] })=>{
-    keys.forEach((nodeKey) => {
-      allKeys.add(nodeKey)
-    })
+      keys.forEach((k) => {
+        allKeys.add(k)
+        if (allKeys.size >= limit) return 
+      })
 
-    const routeByAddress: SingleNodeRoute = R.pipe(
-      R.split(":"),
-      ([host, port]) => ({
-        type: "routeByAddress" as const,
-        host,
-        port: Number(port),
-      }),
-    )(nodeAddress)
-    const nodeRouteOption: RouteOption = { route: routeByAddress }
-    
-    while (cursor !== "0"){
-      const scanResult = (await client.customCommand(
-        buildScanCommandArgs({ cursor, pattern: payload.pattern, count: payload.count }),
-        nodeRouteOption,
-      )) as [string, string[]]
+      const [host, portStr] = nodeAddress.split(/:(?=[^:]+$)/) // split on last ":"
+      const nodeRouteOption: RouteOption = {
+        route: {
+          type: "routeByAddress",
+          host,
+          port: Number(portStr),
+        },
+      }
+      while (cursor !== "0" && allKeys.size < limit) {
+        const [nextCursor, newKeys] = await client.customCommand(
+          buildScanCommandArgs({
+            cursor,
+            pattern: payload.pattern,
+            count: payload.count,
+          }),
+          nodeRouteOption,
+        ) as [string, string[]]
 
-      cursor = scanResult[0]
-      scanResult[1].forEach((key) => {allKeys.add(key)})
-    }
-  }))
+        cursor = nextCursor
+        newKeys.forEach((k) => allKeys.add(k))
+      }
+    }),
+  )
 
   return allKeys
 }
 
+const limit = pLimit(10) 
 export async function getKeys(
   client: GlideClient | GlideClusterClient,
   ws: WebSocket,
@@ -172,22 +185,18 @@ export async function getKeys(
   },
 ) {
   try {
+    const totalKeys = await client.customCommand(["DBSIZE"])
     const allKeys = client instanceof GlideClusterClient ? await scanCluster(client, payload) : await scanStandalone(client, payload)
-
-    const batchSize = 10 // TO DO: configurable batch size
-
-    const enrichedKeys = R.flatten(
-      await Promise.all(
-        R.splitEvery(batchSize, [...allKeys]).map(async (batch) => {
-          const settled = await Promise.allSettled(
-            batch.map((k) => getKeyInfo(client, k)),
-          )
-          return settled.map((res, idx) =>
-            res.status === "fulfilled"
-              ? res.value
-              : { name: batch[idx], type: "unknown", ttl: -1, size: 0 },
-          )
-        }),
+    const enrichedKeys = await Promise.all(
+      [...allKeys].map((k) =>
+        limit(() =>
+          getKeyInfo(client, k).catch(() => ({
+            name: k,
+            type: "unknown",
+            ttl: -1,
+            size: 0,
+          })),
+        ),
       ),
     )
 
@@ -197,6 +206,7 @@ export async function getKeys(
         payload: {
           connectionId: payload.connectionId,
           keys: enrichedKeys,
+          totalKeys,
         },
       }),
     )

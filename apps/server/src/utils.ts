@@ -10,7 +10,7 @@ type ParsedClusterInfo = {
   }
 }
 
-export const parseInfo = (infoStr: string): Record<string, string> =>
+export const parseInfo = (infoStr: string ): Record<string, string> =>
   infoStr.split("\n").reduce((acc, line) => {
     if (!line || line.startsWith("#") || !line.includes(":")) return acc
     const [key, value] = line.split(":").map((part) => part.trim())

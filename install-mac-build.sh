@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "Closing existing Skyscope app if running…"
-osascript -e 'tell application "Skyscope" to quit' || true
+echo "Closing existing Valkey Admin app if running…"
+osascript -e 'tell application "Valkey Admin" to quit' || true
 
 set -e
 
@@ -27,11 +27,13 @@ fi
 
 echo "Installing app to /Applications…"
 APP_NAME=$(basename "$APP_PATH")
+APP_NAME_NO_EXT="${APP_NAME%.app}"
+
 rm -rf "/Applications/$APP_NAME"
 cp -R "$APP_PATH" /Applications/
 
 hdiutil detach "$MOUNT_POINT"
 
-/Applications/Skyscope.app/Contents/MacOS/Skyscope &
+"/Applications/$APP_NAME/Contents/MacOS/$APP_NAME_NO_EXT" &
 
 echo "Installed and launched!"

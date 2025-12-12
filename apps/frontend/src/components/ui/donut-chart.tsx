@@ -111,7 +111,7 @@ export default function DonutChart() {
             ))}
           </Pie>
           <Label fill="#666" position="center"
-            value={`Total Keys : ${totalKeys}`}>
+            value={`Sampled Keys : ${totalKeys}`}>
           </Label>
           <Tooltip content={<CustomTooltip />} />
           <Legend

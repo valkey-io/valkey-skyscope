@@ -9,6 +9,8 @@ import KeyDetailsString from "./key-details-string"
 import KeyDetailsHash from "./key-details-hash"
 import KeyDetailsList from "./key-details-list"
 import KeyDetailsSet from "./key-details-set"
+import KeyDetailsZSet from "./key-details-zset"
+import KeyDetailsStream from "./key-details-stream"
 import { useAppDispatch } from "@/hooks/hooks"
 import { deleteKeyRequested } from "@/state/valkey-features/keys/keyBrowserSlice"
 
@@ -22,6 +24,11 @@ interface BaseKeyInfo {
 interface ElementInfo {
   key: string;
   value: string;
+}
+
+interface ZSetElement {
+  key: string;
+  value: number;
 }
 
 type KeyInfo =
@@ -40,6 +47,17 @@ type KeyInfo =
   | (BaseKeyInfo & {
     type: "set";
     elements: string[];
+  })
+  | (BaseKeyInfo & {
+    type: "zset";
+    elements: ZSetElement[];
+  })
+  | (BaseKeyInfo & {
+    type: "stream";
+    elements: Array<{
+      key: string;
+      value: [string, string][];
+    }>;
   });
 
 interface keyDetailsProps {
@@ -164,6 +182,24 @@ export default function KeyDetails({ selectedKey, selectedKeyInfo, connectionId,
 
             {selectedKeyInfo.type === "set" && (
               <KeyDetailsSet
+                connectionId={connectionId}
+                readOnly={readOnly}
+                selectedKey={selectedKey}
+                selectedKeyInfo={selectedKeyInfo}
+              />
+            )}
+
+            {selectedKeyInfo.type === "zset" && (
+              <KeyDetailsZSet
+                connectionId={connectionId}
+                readOnly={readOnly}
+                selectedKey={selectedKey}
+                selectedKeyInfo={selectedKeyInfo}
+              />
+            )}
+
+            {selectedKeyInfo.type === "stream" && (
+              <KeyDetailsStream
                 connectionId={connectionId}
                 readOnly={readOnly}
                 selectedKey={selectedKey}

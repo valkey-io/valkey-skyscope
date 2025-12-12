@@ -17,11 +17,11 @@ import {
 import { sendRequested } from "../valkey-features/command/commandSlice"
 import { setData } from "../valkey-features/info/infoSlice"
 import { action$, select } from "../middleware/rxjsMiddleware/rxjsMiddlware"
-import { setClusterData } from "../valkey-features/cluster/clusterSlice"
 import { connectFulfilled as wsConnectFulfilled } from "../wsconnection/wsConnectionSlice"
 import { hotKeysRequested } from "../valkey-features/hotkeys/hotKeysSlice.ts"
 import { commandLogsRequested } from "../valkey-features/commandlogs/commandLogsSlice.ts"
 import history from "../../history.ts"
+import { setClusterData } from "../valkey-features/cluster/clusterSlice.ts"
 import type { Store } from "@reduxjs/toolkit"
 
 export const connectionEpic = (store: Store) =>
@@ -243,7 +243,7 @@ export const setDataEpic = () =>
         socket.next({ type: setClusterData.type, payload: { clusterId, connectionId } })
       }
       
-      socket.next({ type: setData.type, payload: { connectionId } })
+      socket.next({ type: setData.type, payload: action.payload })
       const dashboardPath = clusterId
         ? `/${clusterId}/${connectionId}/dashboard`
         : `/${connectionId}/dashboard`

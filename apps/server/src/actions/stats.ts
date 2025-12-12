@@ -1,12 +1,11 @@
-import { GlideClient } from "@valkey/valkey-glide"
+import { GlideClient, GlideClusterClient } from "@valkey/valkey-glide"
 import { type Deps, withDeps } from "./utils.ts"
 import { setDashboardData } from "../setDashboardData.ts"
 
 export const setData = withDeps<Deps, void>(
-  async ({ ws, clients, connectionId }) => {
+  async ({ ws, clients, connectionId, action }) => {
     const client = clients.get(connectionId)
-
-    if (client instanceof GlideClient)
-      await setDashboardData(connectionId, client, ws)
+    const { address } = action.payload
+    await setDashboardData(connectionId, client as GlideClient | GlideClusterClient, ws, address as {host: string, port: number} )
   },
 )

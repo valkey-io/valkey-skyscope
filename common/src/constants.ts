@@ -107,11 +107,21 @@ export const retryDelay = (retryCount: number): number => {
 export const VALKEY_CLIENT = {
   SCAN: {
     defaultPayloadPattern: "*",
-    defaultCount: 50,
+    defaultCount: 300,
   } ,
 }
 export const COMMANDLOG_TYPE = {
   SLOW: "slow",
   LARGE_REQUEST: "large-request",
   LARGE_REPLY: "large-reply",
+} as const
+
+export const SORT_ORDER = {
+  ASC: "asc",
+  DESC: "desc",
+} as const
+
+export const SORT_FIELD = {
+  TIMESTAMP: "timestamp",
+  METRIC: "metric",
 } as const
