@@ -107,7 +107,7 @@ export const retryDelay = (retryCount: number): number => {
 export const VALKEY_CLIENT = {
   SCAN: {
     defaultPayloadPattern: "*",
-    defaultCount: 50,
+    defaultCount: 300,
   } ,
 }
 export const COMMANDLOG_TYPE = {

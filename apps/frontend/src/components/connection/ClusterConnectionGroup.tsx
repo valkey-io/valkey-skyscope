@@ -43,7 +43,7 @@ export const ClusterConnectionGroup = ({ clusterId, connections }: ClusterConnec
 
   const handleOpenCluster = () => {
     if (firstConnectedConnection) {
-      history.navigate(`/${clusterId}/${firstConnectedConnection.connectionId}/cluster-topology`)
+      history.navigate(`/${clusterId}/${firstConnectedConnection.connectionId}/dashboard`)
     }
   }
 

@@ -1,16 +1,28 @@
-import { GlideClient, GlideClusterClient, Decoder } from "@valkey/valkey-glide"
+import { GlideClient, GlideClusterClient, Decoder, RouteByAddress } from "@valkey/valkey-glide"
 import WebSocket from "ws"
 import { VALKEY } from "../../../common/src/constants"
 import { parseClusterInfo, parseInfo } from "./utils"
 
 export async function setDashboardData(
   connectionId: string,
-  client: GlideClient,
+  client: GlideClient | GlideClusterClient,
   ws: WebSocket,
+  address?: {host: string, port: number},
 ) {
   try {
-    const rawInfo = await client.info()
-    const info = parseInfo(rawInfo)
+    let rawInfo
+    if (client instanceof GlideClusterClient){
+      const routeByAddressWithPortInHost: RouteByAddress = {
+        type: "routeByAddress",
+        host: `${address?.host}:${address?.port}`,
+      }
+
+      rawInfo = await client.info({ route: routeByAddressWithPortInHost })
+    }
+    else {
+      rawInfo = await client.info()
+    }
+    const info = parseInfo(rawInfo as string)
     const rawMemoryStats = (await client.customCommand(["MEMORY", "STATS"], {
       decoder: Decoder.String,
     })) as Array<{
@@ -22,7 +34,6 @@ export async function setDashboardData(
       acc[key] = value
       return acc
     }, {} as Record<string, string>)
-
     ws.send(
       JSON.stringify({
         type: VALKEY.STATS.setData,
@@ -52,15 +63,15 @@ export async function setClusterDashboardData(
   client: GlideClusterClient,
   ws: WebSocket,
 ) {
-  const rawInfo = await client.info({ route:"allNodes" })
-  const info = parseClusterInfo(rawInfo)
+  const rawInfo = await client.info()
+  const clusterInfo = parseClusterInfo(rawInfo)
   
   ws.send(
     JSON.stringify({
       type: VALKEY.CLUSTER.setClusterData,
       payload: {
         clusterId,
-        info: info,
+        info: clusterInfo,
       },
     }),
   )

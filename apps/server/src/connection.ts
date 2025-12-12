@@ -27,10 +27,11 @@ export async function connectToValkey(
       requestTimeout: 5000,
       clientName: "test_client",
     })
-
-    console.log("Connected to standalone")
     clients.set(payload.connectionId, standaloneClient)
 
+    if (await belongsToCluster(standaloneClient)) {
+      return connectToCluster(standaloneClient, ws, clients, payload, addresses)
+    }
     const connectionInfo = {
       type: VALKEY.CONNECTION.standaloneConnectFulfilled,
       payload: {
@@ -41,15 +42,13 @@ export async function connectToValkey(
         },
       },
     }
+    // Send standalone details if node isn't part of a cluster
+    process.send?.(connectionInfo)
+    console.log("Connected to standalone")
+
     ws.send(
       JSON.stringify(connectionInfo),
     )
-
-    if (await belongsToCluster(standaloneClient)) {
-      return connectToCluster(standaloneClient, ws, clients, payload, addresses)
-    }
-    // Send standalone details if node isn't part of a cluster
-    process.send?.(connectionInfo)
     return standaloneClient
 
   } catch (err) {
@@ -156,6 +155,7 @@ async function connectToCluster(
       connectionId: payload.connectionId,
       clusterNodes,
       clusterId,
+      address: addresses[0],
     },
   }
 

@@ -27,11 +27,13 @@ fi
 
 echo "Installing app to /Applications…"
 APP_NAME=$(basename "$APP_PATH")
+APP_NAME_NO_EXT="${APP_NAME%.app}"
+
 rm -rf "/Applications/$APP_NAME"
 cp -R "$APP_PATH" /Applications/
 
 hdiutil detach "$MOUNT_POINT"
 
-"/Applications/Valkey\ Admin.app/Contents/MacOS/Valkey\ Admin" &
+"/Applications/$APP_NAME/Contents/MacOS/$APP_NAME_NO_EXT" &
 
 echo "Installed and launched!"

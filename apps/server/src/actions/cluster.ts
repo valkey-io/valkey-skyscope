@@ -7,8 +7,8 @@ export const setClusterData = withDeps<Deps, void>(
     const client = clients.get(connectionId)
 
     if (client instanceof GlideClusterClient) {
-      const { clusterId } = action.payload as unknown as { clusterId: string }
-      await setClusterDashboardData(clusterId, client, ws)
+      const { clusterId } = action.payload 
+      await setClusterDashboardData(clusterId as string, client, ws)
     }
   },
 )

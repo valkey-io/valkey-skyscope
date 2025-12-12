@@ -15,6 +15,7 @@ interface KeyBrowserState {
     loading: boolean;
     error: string | null;
     keyTypeLoading: { [key: string]: boolean };
+    totalKeys: number;
   };
 }
 
@@ -24,6 +25,7 @@ export const defaultConnectionState = {
   loading: false,
   error: null,
   keyTypeLoading: {},
+  totalKeys: 0,
 }
 
 const initialState: KeyBrowserState = {}
@@ -53,13 +55,15 @@ const keyBrowserSlice = createSlice({
         connectionId: string;
         keys: KeyInfo[];
         cursor: string;
+        totalKeys: number;
       }>,
     ) => {
-      const { connectionId, keys, cursor } = action.payload
+      const { connectionId, keys, cursor, totalKeys } = action.payload
       if (state[connectionId]) {
         state[connectionId].loading = false
         state[connectionId].keys = keys
         state[connectionId].cursor = cursor
+        state[connectionId].totalKeys = totalKeys
       }
     },
     getKeysFailed: (

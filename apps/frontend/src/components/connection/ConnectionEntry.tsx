@@ -211,7 +211,7 @@ export const ConnectionEntry = ({
                 <button
                   className="flex items-center gap-1 p-2 rounded-md text-tw-primary border border-tw-primary/70
                    hover:bg-tw-primary hover:text-white"
-                  onClick={() => history.navigate(clusterId ? `/${clusterId}/${connectionId}/cluster-topology` : `/${connectionId}/dashboard`)}
+                  onClick={() => history.navigate(clusterId ? `/${clusterId}/${connectionId}/dashboard` : `/${connectionId}/dashboard`)}
                 >
                   <CircleChevronRight size={16} />
                   Open
