@@ -1,6 +1,5 @@
 import { WebSocket } from "ws"
-import { GlideClient, GlideClusterClient, Batch, ClusterBatch, RouteOption, SingleNodeRoute } from "@valkey/valkey-glide"
-import * as R from "ramda"
+import { GlideClient, GlideClusterClient, Batch, ClusterBatch, RouteOption } from "@valkey/valkey-glide"
 import pLimit from "p-limit"
 import { VALKEY } from "../../../common/src/constants.ts"
 import { buildScanCommandArgs } from "./valkey-client-commands.ts"
@@ -140,7 +139,8 @@ async function scanCluster(
 
   await Promise.all(
     scanClusterResult.map(async ({ key: nodeAddress, value }) => {
-      let [cursor, keys] = value
+      let cursor = value[0]
+      const keys = value[1]
 
       keys.forEach((k) => {
         allKeys.add(k)
