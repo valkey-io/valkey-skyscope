@@ -11,6 +11,7 @@ import KeyDetailsList from "./key-details-list"
 import KeyDetailsSet from "./key-details-set"
 import KeyDetailsZSet from "./key-details-zset"
 import KeyDetailsStream from "./key-details-stream"
+import KeyDetailsJson from "./key-details-json"
 import { useAppDispatch } from "@/hooks/hooks"
 import { deleteKeyRequested } from "@/state/valkey-features/keys/keyBrowserSlice"
 
@@ -58,6 +59,10 @@ type KeyInfo =
       key: string;
       value: [string, string][];
     }>;
+  })
+  | (BaseKeyInfo & {
+    type: "ReJSON-RL";
+    elements: string;
   });
 
 interface keyDetailsProps {
@@ -104,7 +109,7 @@ export default function KeyDetails({ selectedKey, selectedKeyInfo, connectionId,
                 )}
                 <CustomTooltip content="Type">
                   <span className={`text-xs px-2 py-1 rounded-full ${readOnly ? "" : "border-2 border-tw-primary"} text-tw-primary dark:text-white`}>
-                    {selectedKeyInfo.type}
+                    {selectedKeyInfo.type === "ReJSON-RL" ? "json" : selectedKeyInfo.type}
                   </span>
                 </CustomTooltip>
                 {!readOnly && (<CustomTooltip content="Size">
@@ -200,6 +205,15 @@ export default function KeyDetails({ selectedKey, selectedKeyInfo, connectionId,
 
             {selectedKeyInfo.type === "stream" && (
               <KeyDetailsStream
+                connectionId={connectionId}
+                readOnly={readOnly}
+                selectedKey={selectedKey}
+                selectedKeyInfo={selectedKeyInfo}
+              />
+            )}
+
+            {selectedKeyInfo.type === "ReJSON-RL" && (
+              <KeyDetailsJson
                 connectionId={connectionId}
                 readOnly={readOnly}
                 selectedKey={selectedKey}

@@ -15,7 +15,7 @@ export default function AddNewKey({ onClose }: AddNewKeyProps) {
   const { id } = useParams()
   const dispatch = useAppDispatch()
 
-  const [keyType, setKeyType] = useState("Select key type")
+  const [keyType, setKeyType] = useState("Key type")
   const [keyName, setKeyName] = useState("")
   const [ttl, setTtl] = useState("")
   const [value, setValue] = useState("")
@@ -232,14 +232,14 @@ export default function AddNewKey({ onClose }: AddNewKeyProps) {
             <div className="flex w-full justify-between gap-4">
               <div className="mt-4 text-sm font-light w-1/2">
                 <div className="flex flex-col gap-2">
-                  <label>Select the type of key you want to add.</label>
+                  <label>Select key type</label>
                   <select
                     className="border border-tw-dark-border rounded p-2"
                     id="key-type"
                     onChange={(e) => setKeyType(e.target.value)}
                     value={keyType}
                   >
-                    <option disabled>Select key type</option>
+                    <option disabled>Key type</option>
                     <option>String</option>
                     <option>Hash</option>
                     <option>List</option>

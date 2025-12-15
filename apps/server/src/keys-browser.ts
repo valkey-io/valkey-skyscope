@@ -47,6 +47,7 @@ export async function getKeyInfo(
         hash: { sizeCmd: "HLEN", elementsCmd: ["HGETALL", key] },
         stream: { sizeCmd: "XLEN", elementsCmd: ["XRANGE", key, "-", "+"] },
         string: { sizeCmd: "", elementsCmd: ["GET", key] },
+        "rejson-rl": { sizeCmd: "", elementsCmd: ["JSON.GET", key] },
       }
 
       const commands = elementCommands[keyType.toLowerCase()]
