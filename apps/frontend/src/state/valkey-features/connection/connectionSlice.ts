@@ -13,6 +13,8 @@ interface ConnectionDetails {
   alias?: string;
   role?: Role;
   clusterId?: string;
+  // Eviction policy required for getting hot keys using hot slots
+  lfuEnabled?: boolean;
 }
 
 interface ReconnectState {
@@ -26,7 +28,6 @@ export interface ConnectionState {
   status: ConnectionStatus;
   errorMessage: string | null;
   connectionDetails: ConnectionDetails;
-  clusterNodes?: Record<string, ConnectionDetails>;
   reconnect?: ReconnectState;
 }
 
@@ -63,8 +64,7 @@ const connectionSlice = createSlice({
       state.connections[connectionId] = {
         status: CONNECTING,
         errorMessage: isRetry && existingConnection?.errorMessage ? existingConnection.errorMessage : null,
-        connectionDetails: { host, port, username, password, ...(alias && { alias }) },
-        ...(existingConnection?.clusterNodes && { clusterNodes: existingConnection.clusterNodes }),
+        connectionDetails: { host, port, username, password, ...(alias && { alias }), lfuEnabled: false },
         ...(isRetry && existingConnection?.reconnect && {
           reconnect: existingConnection.reconnect,
         }),
@@ -74,14 +74,15 @@ const connectionSlice = createSlice({
       state, 
       action: PayloadAction<{
         connectionId: string;
-        connectionDetails: { host: string; port: number};
+        connectionDetails: ConnectionDetails;
       }>,
     ) => {
-      const { connectionId } = action.payload
+      const { connectionId, connectionDetails } = action.payload
       const connectionState = state.connections[connectionId]
       if (connectionState) {
         connectionState.status = CONNECTED
         connectionState.errorMessage = null
+        connectionState.connectionDetails.lfuEnabled = connectionDetails.lfuEnabled
       }
     },
     clusterConnectFulfilled: (
@@ -90,15 +91,16 @@ const connectionSlice = createSlice({
         connectionId: string;
         clusterNodes: Record<string, ConnectionDetails>;
         clusterId: string;
+        lfuEnabled: boolean;
       }>,
     ) => {
-      const { connectionId, clusterNodes, clusterId } = action.payload
+      const { connectionId, clusterId, lfuEnabled } = action.payload
       const connectionState = state.connections[connectionId]
       if (connectionState) {
         connectionState.status = CONNECTED
         connectionState.errorMessage = null
-        connectionState.clusterNodes = clusterNodes
         connectionState.connectionDetails.clusterId = clusterId
+        connectionState.connectionDetails.lfuEnabled = lfuEnabled
         // Clear retry state on successful connection
         delete connectionState.reconnect
       }
