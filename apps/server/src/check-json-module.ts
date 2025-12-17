@@ -13,8 +13,8 @@ export async function checkJsonModuleAvailability(
   try {
     const modules = await client.customCommand(["MODULE", "LIST"]) as Module[]
 
-    return modules.some(module => {
-      const nameAttr = module.find(attr => attr.key === "name")
+    return modules.some((module) => {
+      const nameAttr = module.find((attr) => attr.key === "name")
       const moduleName = nameAttr?.value
 
       return typeof moduleName === "string" &&
