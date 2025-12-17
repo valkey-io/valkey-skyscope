@@ -1,4 +1,4 @@
-import { Trash } from "lucide-react"
+import { Trash, Check, TriangleAlert } from "lucide-react"
 import { Button } from "./button"
 
 interface StringFieldsProps {
@@ -299,13 +299,29 @@ export function StreamFields({ streamEntryId, onEntryIdChange, streamFields, onU
 interface JsonFieldsProps {
   value: string
   setValue: (value: string) => void
+  jsonModuleAvailable?: boolean
 }
 
-export function JsonFields({ value, setValue }: JsonFieldsProps) {
+export function JsonFields({ value, setValue, jsonModuleAvailable = false }: JsonFieldsProps) {
   return (
     <div className="mt-4 text-sm font-light w-full">
       <div className="flex flex-col gap-2">
         <label htmlFor="json-value">JSON Value *</label>
+
+        {/* JSON Module Indicator */}
+        <div className={`flex items-center gap-2 px-3 py-2 rounded text-sm ${
+          jsonModuleAvailable
+            ? "bg-tw-primary/20 text-teal-500"
+            : "bg-tw-primary/20 text-red-400"
+        }`}>
+          <span className="font-semibold">{jsonModuleAvailable ? <Check size={14} /> : <TriangleAlert size={14} />}</span>
+          <span>
+            {jsonModuleAvailable
+              ? "JSON module is available"
+              : "JSON module is not loaded on this Valkey instance"}
+          </span>
+        </div>
+
         <textarea
           className="border border-tw-dark-border rounded p-2 dark:bg-tw-dark-primary min-h-[150px] font-mono text-sm"
           id="json-value"

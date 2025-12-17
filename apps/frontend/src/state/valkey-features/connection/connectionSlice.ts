@@ -15,6 +15,8 @@ interface ConnectionDetails {
   clusterId?: string;
   // Eviction policy required for getting hot keys using hot slots
   lfuEnabled?: boolean;
+  // JSON module availability check
+  jsonModuleAvailable?: boolean;
 }
 
 interface ReconnectState {
@@ -64,14 +66,14 @@ const connectionSlice = createSlice({
       state.connections[connectionId] = {
         status: CONNECTING,
         errorMessage: isRetry && existingConnection?.errorMessage ? existingConnection.errorMessage : null,
-        connectionDetails: { host, port, username, password, ...(alias && { alias }), lfuEnabled: false },
+        connectionDetails: { host, port, username, password, ...(alias && { alias }), lfuEnabled: false, jsonModuleAvailable: false },
         ...(isRetry && existingConnection?.reconnect && {
           reconnect: existingConnection.reconnect,
         }),
       }
     },
     standaloneConnectFulfilled: (
-      state, 
+      state,
       action: PayloadAction<{
         connectionId: string;
         connectionDetails: ConnectionDetails;
@@ -83,24 +85,27 @@ const connectionSlice = createSlice({
         connectionState.status = CONNECTED
         connectionState.errorMessage = null
         connectionState.connectionDetails.lfuEnabled = connectionDetails.lfuEnabled
+        connectionState.connectionDetails.jsonModuleAvailable = connectionDetails.jsonModuleAvailable
       }
     },
     clusterConnectFulfilled: (
-      state, 
+      state,
       action: PayloadAction<{
         connectionId: string;
         clusterNodes: Record<string, ConnectionDetails>;
         clusterId: string;
         lfuEnabled: boolean;
+        jsonModuleAvailable: boolean;
       }>,
     ) => {
-      const { connectionId, clusterId, lfuEnabled } = action.payload
+      const { connectionId, clusterId, lfuEnabled, jsonModuleAvailable } = action.payload
       const connectionState = state.connections[connectionId]
       if (connectionState) {
         connectionState.status = CONNECTED
         connectionState.errorMessage = null
         connectionState.connectionDetails.clusterId = clusterId
         connectionState.connectionDetails.lfuEnabled = lfuEnabled
+        connectionState.connectionDetails.jsonModuleAvailable = jsonModuleAvailable
         // Clear retry state on successful connection
         delete connectionState.reconnect
       }

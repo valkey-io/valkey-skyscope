@@ -4,6 +4,7 @@ import WebSocket from "ws"
 import { VALKEY } from "../../../common/src/constants"
 import { parseInfo } from "./utils"
 import { sanitizeUrl } from "../../../common/src/url-utils.ts"
+import { checkJsonModuleAvailability } from "./check-json-module.ts"
 
 export async function connectToValkey(
   ws: WebSocket,
@@ -31,9 +32,10 @@ export async function connectToValkey(
     
     const evictionPolicyResponse = await standaloneClient.customCommand(["CONFIG", "GET", "maxmemory-policy"]) as [{key: string, value: string}]
     const lfuEnabled = evictionPolicyResponse[0].value.toLowerCase().includes("lfu") ?? false
+    const jsonModuleAvailable = await checkJsonModuleAvailability(standaloneClient)
 
     if (await belongsToCluster(standaloneClient)) {
-      return connectToCluster(standaloneClient, ws, clients, payload, addresses, lfuEnabled)
+      return connectToCluster(standaloneClient, ws, clients, payload, addresses, lfuEnabled, jsonModuleAvailable)
     }
     const connectionInfo = {
       type: VALKEY.CONNECTION.standaloneConnectFulfilled,
@@ -43,6 +45,7 @@ export async function connectToValkey(
           host: payload.host,
           port: payload.port,
           lfuEnabled,
+          jsonModuleAvailable,
         },
       },
     }
@@ -126,12 +129,13 @@ async function discoverCluster(client: GlideClient) {
 }
 
 async function connectToCluster(
-  standaloneClient: GlideClient, 
-  ws: WebSocket, 
-  clients: Map<string, GlideClient | GlideClusterClient>, 
+  standaloneClient: GlideClient,
+  ws: WebSocket,
+  clients: Map<string, GlideClient | GlideClusterClient>,
   payload: { host: string; port: number; connectionId: string;},
   addresses: { host: string, port: number | undefined }[],
   lfuEnabled: boolean,
+  jsonModuleAvailable: boolean,
 ) {
   const { clusterNodes, clusterId } = await discoverCluster(standaloneClient)
   if (R.isEmpty(clusterNodes)) {
@@ -162,6 +166,7 @@ async function connectToCluster(
       clusterId,
       address: addresses[0],
       lfuEnabled,
+      jsonModuleAvailable,
     },
   }
 

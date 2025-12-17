@@ -1,12 +1,14 @@
 import React, { useState } from "react"
 import { X } from "lucide-react"
 import { useParams } from "react-router"
+import { useSelector } from "react-redux"
 import { validators } from "@common/src/key-validators"
 import * as R from "ramda"
 import { KEY_TYPES } from "@common/src/constants"
 import { HashFields, ListFields, StringFields, SetFields, ZSetFields, StreamFields, JsonFields } from "./key-types"
 import { useAppDispatch } from "@/hooks/hooks"
 import { addKeyRequested } from "@/state/valkey-features/keys/keyBrowserSlice"
+import { selectJsonModuleAvailable } from "@/state/valkey-features/connection/connectionSelectors"
 
 interface AddNewKeyProps {
   onClose: () => void;
@@ -15,6 +17,7 @@ interface AddNewKeyProps {
 export default function AddNewKey({ onClose }: AddNewKeyProps) {
   const { id } = useParams()
   const dispatch = useAppDispatch()
+  const jsonModuleAvailable = useSelector(selectJsonModuleAvailable(id!))
 
   const [keyType, setKeyType] = useState("Key type")
   const [keyName, setKeyName] = useState("")
@@ -340,7 +343,7 @@ export default function AddNewKey({ onClose }: AddNewKeyProps) {
                 streamFields={streamFields}
               />
             ) : keyType === KEY_TYPES.JSON ? (
-              <JsonFields setValue={setValue} value={value} />
+              <JsonFields jsonModuleAvailable={jsonModuleAvailable} setValue={setValue} value={value} />
             ) : (
               <div className="mt-2 text-sm font-light">Select a key type</div>
             )}
@@ -355,7 +358,7 @@ export default function AddNewKey({ onClose }: AddNewKeyProps) {
           <div className="pt-2 text-sm flex gap-4">
             <button
               className="px-4 py-2 w-full bg-tw-primary text-white rounded hover:bg-tw-primary/90"
-              disabled={keyType === "Select key type" || !keyName}
+              disabled={keyType === "Select key type" || !keyName || jsonModuleAvailable === false}
               type="submit"
             >
               Submit

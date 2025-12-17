@@ -1,10 +1,12 @@
 import { useState } from "react"
-import { Check, Pencil, X } from "lucide-react"
+import { Check, Pencil, X, TriangleAlert } from "lucide-react"
 import { KEY_TYPES } from "@common/src/constants"
+import { useSelector } from "react-redux"
 import { CustomTooltip } from "./custom-tooltip"
 import { Button } from "./button"
 import { useAppDispatch } from "@/hooks/hooks"
 import { updateKeyRequested } from "@/state/valkey-features/keys/keyBrowserSlice"
+import { selectJsonModuleAvailable } from "@/state/valkey-features/connection/connectionSelectors"
 
 interface KeyDetailsJsonProps {
   selectedKey: string;
@@ -26,6 +28,8 @@ export default function KeyDetailsJson(
   const [isEditable, setIsEditable] = useState(false)
   const [editedValue, setEditedValue] = useState("")
   const [error, setError] = useState("")
+
+  const jsonModuleAvailable = useSelector(selectJsonModuleAvailable(connectionId))
 
   let formattedJson = selectedKeyInfo.elements
 
@@ -98,9 +102,10 @@ export default function KeyDetailsJson(
                   </CustomTooltip>
                 </div>
               ) : (
-                <CustomTooltip content="Edit">
+                <CustomTooltip content={jsonModuleAvailable ? "Edit" : "JSON module not available"}>
                   <Button
                     className="mr-1"
+                    disabled={!jsonModuleAvailable}
                     onClick={handleEdit}
                     variant={"ghost"}
                   >
@@ -112,6 +117,18 @@ export default function KeyDetailsJson(
           </tr>
         </thead>
         <tbody>
+          {!jsonModuleAvailable && (
+            <tr>
+              <td className="px-4 pt-3" colSpan={2}>
+                <div className="flex items-center gap-2 px-3 py-2 rounded text-sm bg-tw-primary/20 text-red-400">
+                  <TriangleAlert size={14} />
+                  <span>
+                    JSON module is not loaded on this Valkey instance. Editing is disabled.
+                  </span>
+                </div>
+              </td>
+            </tr>
+          )}
           <tr>
             <td className="py-3 px-4 font-light dark:text-white" colSpan={2}>
               {isEditable ? (
