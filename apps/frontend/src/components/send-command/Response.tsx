@@ -18,6 +18,7 @@ const Response = ({ filter, response }: { filter: string, response: JSONObject }
           valueString: JSON.stringify(value),
         }
       }),
+      // eslint-disable-next-line max-len
       R.isEmpty(filter) ? R.identity : R.filter(({ keyPathString, valueString }) => keyPathString.includes(filter) || valueString.includes(filter)),
     )(response)
 
