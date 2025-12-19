@@ -37,7 +37,11 @@ export const connectionEpic = (store: Store) =>
     ),
 
     action$.pipe(
-      select(standaloneConnectFulfilled),
+      filter(
+        ({ type }) =>
+          type === standaloneConnectFulfilled.type ||
+          type === clusterConnectFulfilled.type,
+      ),
       tap(({ payload }) => {
         try {
           const currentConnections = R.pipe(

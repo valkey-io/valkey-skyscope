@@ -84,8 +84,9 @@ const connectionSlice = createSlice({
       if (connectionState) {
         connectionState.status = CONNECTED
         connectionState.errorMessage = null
-        connectionState.connectionDetails.lfuEnabled = connectionDetails.lfuEnabled
-        connectionState.connectionDetails.jsonModuleAvailable = connectionDetails.jsonModuleAvailable
+        connectionState.connectionDetails.lfuEnabled = connectionDetails.lfuEnabled ?? connectionState.connectionDetails.lfuEnabled
+        // eslint-disable-next-line max-len
+        connectionState.connectionDetails.jsonModuleAvailable = connectionDetails.jsonModuleAvailable ?? connectionState.connectionDetails.lfuEnabled
       }
     },
     clusterConnectFulfilled: (

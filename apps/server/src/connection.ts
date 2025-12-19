@@ -1,6 +1,7 @@
 import { GlideClient, GlideClusterClient, InfoOptions } from "@valkey/valkey-glide"
 import * as R from "ramda"
 import WebSocket from "ws"
+import { lookup, reverse } from "node:dns/promises"
 import { VALKEY } from "../../../common/src/constants"
 import { parseInfo } from "./utils"
 import { sanitizeUrl } from "../../../common/src/url-utils.ts"
@@ -23,6 +24,24 @@ export async function connectToValkey(
     },
   ]
   try {
+    // If we've connected to the same host using IP addr or vice versa, return
+    const resolvedAddresses = (await resolveHostname(payload.host)).addresses
+    console.log("Resolved addresses: ", resolvedAddresses)
+    for (const address of resolvedAddresses) {
+      const resolvedConnectionId = sanitizeUrl(`${address}:${payload.port}`)
+      console.log("Resolved connectionID=", resolvedConnectionId)
+      if (clients.has(resolvedConnectionId)) {
+        return ws.send(
+          JSON.stringify({
+            type: VALKEY.CONNECTION.standaloneConnectFulfilled,
+            payload: {
+              connectionId: payload.connectionId,
+            },
+          }),
+        )
+      }
+    }
+
     const standaloneClient = await GlideClient.createClient({
       addresses,
       requestTimeout: 5000,
@@ -137,6 +156,7 @@ async function connectToCluster(
   lfuEnabled: boolean,
   jsonModuleAvailable: boolean,
 ) {
+  standaloneClient.customCommand(["CONFIG", "SET", "cluster-announce-hostname", addresses[0].host])
   const { clusterNodes, clusterId } = await discoverCluster(standaloneClient)
   if (R.isEmpty(clusterNodes)) {
     throw new Error("No cluster nodes discovered")
@@ -176,4 +196,26 @@ async function connectToCluster(
     JSON.stringify(clusterConnectionInfo),
   )
   return clusterClient
+}
+
+async function resolveHostname(hostname: string) {
+  const isIP = /^[0-9:.]+$/.test(hostname)
+  if (isIP) {
+    try {
+      const hostnames =  await reverse(hostname)
+      return { input: hostname, type: "ip", addresses: hostnames }
+    }
+    catch {
+      return  { input: hostname, type: "ip", addresses: [hostname] }
+    }
+  }
+  else {
+    try {
+      const { address } =  await lookup(hostname, { family: 4 })
+      return { input: hostname, type: "hostname", addresses: [address] }
+    } catch (err) {
+      console.log("Error is: ", err )
+      return { input: hostname, type: "hostname", addresses: [] }
+    }
+  }
 }
