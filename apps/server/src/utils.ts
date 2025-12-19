@@ -1,6 +1,12 @@
 import { ClusterResponse } from "@valkey/valkey-glide"
 import * as R from "ramda"
+import { lookup, reverse } from "node:dns/promises"
 import { sanitizeUrl } from "../../../common/src/url-utils"
+
+export const dns = {
+  lookup,
+  reverse,
+}
 
 type ParsedClusterInfo = {
   [host: string]: {
@@ -68,4 +74,22 @@ export const parseClusterInfo = (rawInfo: ClusterResponse<string>): ParsedCluste
     ),
     R.fromPairs,
   )(rawInfo) as ParsedClusterInfo
+}
+
+// Helps avoid duplicate connections
+// If user connects with IP address and then connects with hostname, we want a single connection
+export async function resolveHostnameOrIpAddress(hostnameOrIP: string) {
+  const isIP = /^[0-9:.]+$/.test(hostnameOrIP)
+
+  const hostnameType = isIP ? "ip" : "hostname"
+  try {
+    const addresses = isIP
+      ? await dns.reverse(hostnameOrIP)
+      : (await dns.lookup(hostnameOrIP, { family: 4, all: true })).map((result) => result.address)
+
+    return { input: hostnameOrIP, hostnameType, addresses }
+  } catch (err) {
+    console.log("Unable to resolve hostname or IP:", err)
+    return { input: hostnameOrIP, hostnameType, addresses: [hostnameOrIP] }
+  }
 }

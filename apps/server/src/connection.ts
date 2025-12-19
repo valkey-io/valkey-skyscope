@@ -1,9 +1,8 @@
 import { GlideClient, GlideClusterClient, InfoOptions } from "@valkey/valkey-glide"
 import * as R from "ramda"
 import WebSocket from "ws"
-import { lookup, reverse } from "node:dns/promises"
 import { VALKEY } from "../../../common/src/constants"
-import { parseInfo } from "./utils"
+import { parseInfo, resolveHostnameOrIpAddress } from "./utils"
 import { sanitizeUrl } from "../../../common/src/url-utils.ts"
 import { checkJsonModuleAvailability } from "./check-json-module.ts"
 
@@ -25,23 +24,7 @@ export async function connectToValkey(
   ]
   try {
     // If we've connected to the same host using IP addr or vice versa, return
-    const resolvedAddresses = (await resolveHostname(payload.host)).addresses
-    console.log("Resolved addresses: ", resolvedAddresses)
-    for (const address of resolvedAddresses) {
-      const resolvedConnectionId = sanitizeUrl(`${address}:${payload.port}`)
-      console.log("Resolved connectionID=", resolvedConnectionId)
-      if (clients.has(resolvedConnectionId)) {
-        return ws.send(
-          JSON.stringify({
-            type: VALKEY.CONNECTION.standaloneConnectFulfilled,
-            payload: {
-              connectionId: payload.connectionId,
-            },
-          }),
-        )
-      }
-    }
-
+    returnIfDuplicateConnection(payload, clients, ws)
     const standaloneClient = await GlideClient.createClient({
       addresses,
       requestTimeout: 5000,
@@ -198,19 +181,19 @@ async function connectToCluster(
   return clusterClient
 }
 
-async function resolveHostname(hostname: string) {
-  const isIP = /^[0-9:.]+$/.test(hostname)
-
-  const hostnameType = isIP ? "ip" : "hostname"
-
-  try {
-    const addresses = isIP
-      ? await reverse(hostname)
-      : [(await lookup(hostname, { family: 4 })).address]
-
-    return { input: hostname, hostnameType, addresses }
-  } catch (err) {
-    console.log("Error is:", err)
-    return { input: hostname, hostnameType, addresses: isIP ? [hostname] : [] }
+export async function returnIfDuplicateConnection(
+  payload:{connectionId: string, host: string, port: number}, 
+  clients: Map<string, GlideClient | GlideClusterClient>,
+  ws: WebSocket) 
+{
+  const resolvedAddresses = (await resolveHostnameOrIpAddress(payload.host)).addresses
+  console.log("Resolved addresses: ", resolvedAddresses)
+  if (resolvedAddresses.some((address) => clients.has(sanitizeUrl(`${address}:${payload.port}`)))) {
+    return ws.send(
+      JSON.stringify({
+        type: VALKEY.CONNECTION.standaloneConnectFulfilled,
+        payload: { connectionId: payload.connectionId },
+      }),
+    )
   }
 }
