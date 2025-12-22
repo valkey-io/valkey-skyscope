@@ -103,8 +103,7 @@ export const connectionEpic = (store: Store) =>
 
         return null
       }),
-      filter((action) => action !== null),
-      delay(1000)
+      filter((action) => action !== null)
     ),
   )
 
