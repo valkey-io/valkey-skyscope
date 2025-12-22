@@ -1,5 +1,5 @@
 import { merge, timer, EMPTY } from "rxjs"
-import { ignoreElements, tap, delay, switchMap, catchError, filter, map, take } from "rxjs/operators"
+import { ignoreElements, tap, delay, switchMap, catchError, filter, take } from "rxjs/operators"
 import * as R from "ramda"
 import { DISCONNECTED, LOCAL_STORAGE, NOT_CONNECTED, RETRY_CONFIG, retryDelay } from "@common/src/constants.ts"
 import { toast } from "sonner"
@@ -83,7 +83,7 @@ export const connectionEpic = (store: Store) =>
     action$.pipe(
       select(wsConnectFulfilled),
       take(1),
-      map(() => {
+      tap(() => {
         const host = import.meta.env.VITE_LOCAL_VALKEY_HOST
         const port = import.meta.env.VITE_LOCAL_VALKEY_PORT
         const alias = import.meta.env.VITE_LOCAL_VALKEY_NAME
@@ -91,19 +91,17 @@ export const connectionEpic = (store: Store) =>
         if (host && port) {
           const connectionId = sanitizeUrl(`${host}-${port}`)
 
-          return connectPending({
+          store.dispatch(connectPending({
             host,
             port: String(port),
             username: "",
             password: "",
             alias: alias || "Local Valkey Cluster",
             connectionId,
-          })
+          }))
         }
-
-        return null
       }),
-      filter((action) => action !== null)
+      ignoreElements()
     ),
   )
 

@@ -5,98 +5,11 @@ echo "🚀 Valkey Admin Quickstart"
 echo "=========================="
 echo ""
 
-# Detect platform
-PLATFORM="unknown"
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    PLATFORM="mac"
-    echo "🍎 macOS detected"
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    if grep -qi microsoft /proc/version 2>/dev/null; then
-        PLATFORM="wsl"
-        echo "🐧 WSL (Windows Subsystem for Linux) detected"
-        echo "Make sure Docker Desktop is running with WSL integration enabled"
-    else
-        PLATFORM="linux"
-        echo "🐧 Linux detected"
-    fi
-else
-    echo "❓ Unknown platform: $OSTYPE"
-    echo "Proceeding with Linux defaults..."
-    PLATFORM="linux"
-fi
-echo ""
+# Source common setup functions
+source "$(dirname "$0")/scripts/common-setup.sh"
 
-# Step 1: Install dependencies
-echo "📦 Installing dependencies..."
-npm install
-
-# Step 2: Fix line endings for WSL/Windows if needed
-if [ "$PLATFORM" = "wsl" ]; then
-    echo "🔧 Fixing line endings for WSL..."
-    sed -i 's/\r$//' tools/valkey-cluster/scripts/build_run_cluster.sh 2>/dev/null || true
-    sed -i 's/\r$//' tools/valkey-cluster/scripts/cluster_init.sh 2>/dev/null || true
-    chmod +x tools/valkey-cluster/scripts/build_run_cluster.sh
-    chmod +x tools/valkey-cluster/scripts/cluster_init.sh
-fi
-
-# Step 3: Start Valkey cluster in detached mode
-echo "🗄️  Starting Valkey cluster..."
-
-# Get IP address using the same logic as build_run_cluster.sh
-if command -v ipconfig >/dev/null 2>&1; then
-    # macOS
-    ANNOUNCE_IP=$(ipconfig getifaddr en0 2>/dev/null || echo "localhost")
-else
-    # Linux/WSL - get the default route interface IP
-    ANNOUNCE_IP=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+' 2>/dev/null || echo "localhost")
-fi
-
-if [ -z "$ANNOUNCE_IP" ] || [ "$ANNOUNCE_IP" = "localhost" ]; then
-    echo "⚠️  Could not detect IP address, using localhost"
-    ANNOUNCE_IP="localhost"
-else
-    echo "📡 Detected IP: $ANNOUNCE_IP"
-fi
-
-# Set up cluster environment
-TOOLS_DIR="tools/valkey-cluster"
-ENV_FILE="$TOOLS_DIR/.env"
-ENV_EXAMPLE_FILE="$TOOLS_DIR/.env.example"
-
-if [ ! -f "$ENV_FILE" ]; then
-    cp "$ENV_EXAMPLE_FILE" "$ENV_FILE"
-fi
-
-# Update .env file with detected IP and platform
-DOCKER_PLATFORM="linux/arm64"
-if [ "$(uname)" = "Darwin" ]; then
-    sed -i '' "s/^ANNOUNCE_HOST = .*/ANNOUNCE_HOST = $ANNOUNCE_IP/" "$ENV_FILE"
-    sed -i '' "s|^DOCKER_PLATFORM = .*|DOCKER_PLATFORM = $DOCKER_PLATFORM|" "$ENV_FILE"
-else
-    sed -i "s/^ANNOUNCE_HOST = .*/ANNOUNCE_HOST = $ANNOUNCE_IP/" "$ENV_FILE"
-    sed -i "s|^DOCKER_PLATFORM = .*|DOCKER_PLATFORM = $DOCKER_PLATFORM|" "$ENV_FILE"
-fi
-
-echo "🐳 Starting Docker containers in background..."
-cd "$TOOLS_DIR"
-DOCKER_PLATFORM="$DOCKER_PLATFORM" docker compose --profile populate up --build -d
-
-# Wait for cluster to be ready
-echo "⏳ Waiting for cluster to be ready..."
-cd ../..
-
-for i in {1..30}; do
-    if docker exec valkey-cluster-valkey-7001-1 valkey-cli -p 7001 cluster info 2>/dev/null | grep -q "cluster_state:ok"; then
-        echo "✅ Cluster is ready!"
-        break
-    fi
-    if [ $i -eq 30 ]; then
-        echo "⚠️  Cluster health check timed out, but continuing..."
-        break
-    fi
-    echo "   Checking cluster health... ($i/30)"
-    sleep 2
-done
+# Run common setup steps
+run_common_setup
 
 # Step 4: Create frontend environment file for auto-connection
 echo "⚙️  Configuring auto-connection..."
