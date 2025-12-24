@@ -28,7 +28,7 @@ interface ReconnectState {
 
 interface ConnectionHistoryEntry {
   timestamp: number;
-  event: "connected";
+  event: "Connected";
 }
 
 export interface ConnectionState {
@@ -99,12 +99,10 @@ const connectionSlice = createSlice({
         connectionState.connectionDetails.jsonModuleAvailable = connectionDetails.jsonModuleAvailable ?? connectionState.connectionDetails.lfuEnabled
 
         // keep track of connection history
-        if (!connectionState.connectionHistory) {
-          connectionState.connectionHistory = []
-        }
+        connectionState.connectionHistory ??= []
         connectionState.connectionHistory.push({
           timestamp: Date.now(),
-          event: "connected",
+          event: CONNECTED,
         })
       }
     },
@@ -130,12 +128,10 @@ const connectionSlice = createSlice({
         delete connectionState.reconnect
 
         // keep track of connection history
-        if (!connectionState.connectionHistory) {
-          connectionState.connectionHistory = []
-        }
+        connectionState.connectionHistory ??= []
         connectionState.connectionHistory.push({
           timestamp: Date.now(),
-          event: "connected",
+          event: CONNECTED,
         })
       }
     },
@@ -199,11 +195,11 @@ const connectionSlice = createSlice({
 })
 
 export default connectionSlice.reducer
-export const { 
-  connectPending, 
-  standaloneConnectFulfilled, 
+export const {
+  connectPending,
+  standaloneConnectFulfilled,
   clusterConnectFulfilled,
-  connectRejected, 
+  connectRejected,
   connectionBroken,
   closeConnection,
   updateConnectionDetails,

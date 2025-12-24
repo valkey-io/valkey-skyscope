@@ -76,9 +76,7 @@ export const ConnectionEntry = ({
     : `${connection.connectionDetails.host}:${connection.connectionDetails.port}`
   const aliasLabel = connection.connectionDetails.alias || label
 
-  const lastConnectionTime = connection.connectionHistory?.length
-    ? connection.connectionHistory[connection.connectionHistory.length - 1]
-    : null
+  const lastConnectionTime = connection.connectionHistory?.at(-1) ?? null
 
   const StatusBadge = () => {
     if (isConnected) {
@@ -134,7 +132,7 @@ export const ConnectionEntry = ({
                   {label}
                 </Link>
               </Button>
-            </div>{lastConnectionTime && lastConnectionTime.event === "connected" && (
+            </div>{lastConnectionTime && lastConnectionTime.event === CONNECTED && (
               <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
                 Last connected: {new Date(lastConnectionTime.timestamp).toLocaleString()}
               </span>
@@ -208,7 +206,7 @@ export const ConnectionEntry = ({
               </span>)}
             <div className="flex items-center gap-3">
               <StatusBadge />
-              {lastConnectionTime && lastConnectionTime.event === "connected" && (
+              {lastConnectionTime && lastConnectionTime.event === CONNECTED && (
                 <span className="text-xs text-gray-500 dark:text-gray-400">
                   Last connected: {new Date(lastConnectionTime.timestamp).toLocaleString()}
                 </span>
