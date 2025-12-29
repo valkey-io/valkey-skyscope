@@ -66,9 +66,20 @@ const connectionSlice = createSlice({
         alias?: string;
         isRetry?: boolean;
         isEdit?: boolean;
+        preservedHistory?: ConnectionHistoryEntry[];
       }>,
     ) => {
-      const { connectionId, host, port, username = "", password = "", alias = "", isRetry = false, isEdit = false } = action.payload
+      const {
+        connectionId,
+        host,
+        port,
+        username = "",
+        password = "",
+        alias = "",
+        isRetry = false,
+        isEdit = false,
+        preservedHistory,
+      } = action.payload
       const existingConnection = state.connections[connectionId]
 
       state.connections[connectionId] = {
@@ -79,10 +90,8 @@ const connectionSlice = createSlice({
         ...(isRetry && existingConnection?.reconnect && {
           reconnect: existingConnection.reconnect,
         }),
-        // for preserving connection history
-        ...(existingConnection?.connectionHistory && {
-          connectionHistory: existingConnection.connectionHistory,
-        }),
+        // for preserving connection history - use preserved history if provided, otherwise existing
+        connectionHistory: preservedHistory || existingConnection?.connectionHistory,
       }
     },
     standaloneConnectFulfilled: (
@@ -97,17 +106,18 @@ const connectionSlice = createSlice({
       if (connectionState) {
         connectionState.status = CONNECTED
         connectionState.errorMessage = null
-        connectionState.connectionDetails.lfuEnabled = connectionDetails.lfuEnabled ?? connectionState.connectionDetails.lfuEnabled
-        // eslint-disable-next-line max-len
-        connectionState.connectionDetails.jsonModuleAvailable = connectionDetails.jsonModuleAvailable ?? connectionState.connectionDetails.lfuEnabled
 
-        // keep track of connection history
+        if (connectionDetails) {
+          connectionState.connectionDetails.lfuEnabled = connectionDetails.lfuEnabled ?? connectionState.connectionDetails.lfuEnabled
+          connectionState.connectionDetails.jsonModuleAvailable = connectionDetails.jsonModuleAvailable ??
+          connectionState.connectionDetails.jsonModuleAvailable
+        }
+
         connectionState.connectionHistory ??= []
         connectionState.connectionHistory.push({
           timestamp: Date.now(),
           event: CONNECTED,
         })
-        // Clear the wasEdit flag after successful connection
         delete connectionState.wasEdit
       }
     },

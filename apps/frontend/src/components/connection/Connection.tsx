@@ -14,7 +14,7 @@ export function Connection() {
   const [editingConnectionId, setEditingConnectionId] = useState<string | undefined>(undefined)
   const connections = useSelector(selectConnections)
 
-   const handleEditConnection = (connectionId: string) => {
+  const handleEditConnection = (connectionId: string) => {
     setEditingConnectionId(connectionId)
     setShowEditForm(true)
   }
