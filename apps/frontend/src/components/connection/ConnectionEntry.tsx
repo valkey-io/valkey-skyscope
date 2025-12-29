@@ -42,7 +42,11 @@ export const ConnectionEntry = ({
   const dispatch = useAppDispatch()
 
   const handleDisconnect = () => dispatch(closeConnection({ connectionId }))
-  const handleConnect = () => dispatch(connectPending({ ...connection.connectionDetails, connectionId }))
+  const handleConnect = () => dispatch(connectPending({
+    ...connection.connectionDetails,
+    connectionId,
+    preservedHistory: connection.connectionHistory,
+  }))
   const handleDelete = () => dispatch(deleteConnection({ connectionId }))
 
   const handleEdit = () => {

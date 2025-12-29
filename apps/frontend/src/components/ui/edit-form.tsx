@@ -8,7 +8,7 @@ import {
   deleteConnection,
   stopRetry
 } from "@/state/valkey-features/connection/connectionSlice.ts"
-import { selectConnectionDetails } from "@/state/valkey-features/connection/connectionSelectors"
+import { selectConnectionDetails, selectConnections } from "@/state/valkey-features/connection/connectionSelectors"
 import { useAppDispatch } from "@/hooks/hooks"
 
 type EditFormProps = {
@@ -19,6 +19,8 @@ type EditFormProps = {
 function EditForm({ onClose, connectionId }: EditFormProps) {
   const dispatch = useAppDispatch()
   const currentConnection = useSelector(selectConnectionDetails(connectionId || ""))
+  const allConnections = useSelector(selectConnections)
+  const fullConnection = connectionId ? allConnections[connectionId] : null
 
   const [host, setHost] = useState("localhost")
   const [port, setPort] = useState("6379")
@@ -57,6 +59,9 @@ function EditForm({ onClose, connectionId }: EditFormProps) {
       // Stop any ongoing retries for the current connection
       dispatch(stopRetry({ connectionId }))
 
+      // Preserve connection history before deleting
+      const connectionHistory = fullConnection?.connectionHistory || []
+
       // Always delete the old connection when making core changes
       dispatch(deleteConnection({ connectionId, silent: true }))
 
@@ -68,6 +73,7 @@ function EditForm({ onClose, connectionId }: EditFormProps) {
         password,
         alias,
         isEdit: true,
+        preservedHistory: connectionHistory,
       }))
     } else {
       dispatch(updateConnectionDetails({
