@@ -63,7 +63,7 @@ export function Connection() {
       </div>
 
       {showConnectionForm && <ConnectionForm onClose={() => setShowConnectionForm(false)} />}
-      {showEditForm && <EditForm onClose={handleCloseEditForm} connectionId={editingConnectionId} />}
+      {showEditForm && <EditForm connectionId={editingConnectionId} onClose={handleCloseEditForm} />}
 
       {R.isEmpty(connections) ? (
         <div className="flex-1 flex items-center justify-center flex-col gap-4">

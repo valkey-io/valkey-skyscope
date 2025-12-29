@@ -4,7 +4,6 @@ import * as R from "ramda"
 import { DISCONNECTED, LOCAL_STORAGE, NOT_CONNECTED, RETRY_CONFIG, retryDelay } from "@common/src/constants.ts"
 import { toast } from "sonner"
 import { sanitizeUrl } from "@common/src/url-utils"
-import type { Store } from "@reduxjs/toolkit"
 import { getSocket } from "./wsEpics"
 import {
   standaloneConnectFulfilled,
@@ -24,6 +23,7 @@ import { hotKeysRequested } from "../valkey-features/hotkeys/hotKeysSlice.ts"
 import { commandLogsRequested } from "../valkey-features/commandlogs/commandLogsSlice.ts"
 import history from "../../history.ts"
 import { setClusterData } from "../valkey-features/cluster/clusterSlice.ts"
+import type { Store } from "@reduxjs/toolkit"
 
 const getCurrentConnections = () => R.pipe(
   (v: string) => localStorage.getItem(v),

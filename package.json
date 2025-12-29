@@ -4,6 +4,7 @@
   "description": "A modern admin interface for Valkey databases",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "author": {
     "name": "Valkey Admin Team",
     "email": "admin@valkey.io"
