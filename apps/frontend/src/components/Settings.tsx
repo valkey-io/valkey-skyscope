@@ -48,8 +48,13 @@ export default function Settings() {
       {config && (
         <div className="mt-10 pl-1">
           <TooltipProvider>
-            <h2 className="border-b-1 pb-1 dark:border-tw-dark-border font-medium text-tw-primary">Monitoring</h2>
-
+            <div className="flex items-center gap-2 border-b-1 pb-1 dark:border-tw-dark-border font-medium text-tw-primary">
+              <h2>Hot Keys</h2>
+              <CustomTooltip description="Enabling monitoring will use it to collect hotkeys if key eviction policy is not
+             set to LFU* and if cluster slot stats is not enabled.">
+                <CircleQuestionMark className="bg-tw-primary/10 rounded-full text-tw-primary" size={16} />
+              </CustomTooltip>
+            </div>
             <div className="flex items-center justify-between mt-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm">Enable Monitoring</span>
@@ -85,7 +90,7 @@ export default function Settings() {
               <div className="mt-3 flex items-center gap-2 p-2 bg-tw-primary/20 border border-tw-primary/50 rounded">
                 <AlertTriangle className="text-amber-600 flex-shrink-0" size={18} />
                 <span className="text-tw-primary text-sm">
-                  Enabling Monitoring will reduce throughput by more than 50%.
+                  Running  <span className="font-mono">MONITOR</span>  can reduce the throughput by more than 50%.
                 </span>
               </div>
             )}
