@@ -50,8 +50,8 @@ export default function Settings() {
           <TooltipProvider>
             <div className="flex items-center gap-2 border-b-1 pb-1 dark:border-tw-dark-border font-medium text-tw-primary">
               <h2>Hot Keys</h2>
-              <CustomTooltip description="Enabling monitoring will use it to collect hotkeys if key eviction policy is not
-             set to LFU* and if cluster slot stats is not enabled.">
+              <CustomTooltip description="Enables monitoring to collect hotkeys. Requires key eviction policy not
+               set to LFU* and cluster slot stats to be enabled.">
                 <CircleQuestionMark className="bg-tw-primary/10 rounded-full text-tw-primary" size={16} />
               </CustomTooltip>
             </div>

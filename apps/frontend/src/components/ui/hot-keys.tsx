@@ -160,6 +160,15 @@ export function HotKeys({ data, status, onKeyClick, selectedKey }: HotKeysProps)
           <Flame className="mb-3 opacity-30" size={48} />
           <span className="text-lg font-medium">No Hot Keys Found</span>
           <span className="text-sm mt-1">Keys with frequent access will appear here</span>
+          <span className="text-sm mt-1">
+            <span className="font-semibold">Note:</span>
+            {" "}To collect hotkeys, you must either have
+            <span className="font-semibold"> monitoring enabled</span>
+            {" "}in Settings or use an
+            <span className="font-semibold"> LFU eviction policy</span>
+            {" "}with
+            <span className="font-semibold"> cluster slot stats enabled</span>.
+          </span>
         </div>
       )}
     </div>
