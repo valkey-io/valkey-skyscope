@@ -45,6 +45,7 @@ export const updateConfig = withDeps<Deps, void>(
   },  
 )
 
+// TODO: Add frontend component to dispatch this
 export const enableClusterSlotStats = withDeps<Deps, void>(
   async ({ clients, action }) => {
     const { connectionIds } = action.payload

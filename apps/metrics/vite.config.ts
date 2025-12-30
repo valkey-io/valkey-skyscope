@@ -17,11 +17,10 @@ export default defineConfig({
       fileName: "index", // Vite will add the correct extension, e.g., .cjs
       formats: ["cjs"],
     },
-
-    rollupOptions: {
-      // No longer externalizing the client, it will be bundled
-      external: ["express"],
-    },
+    // rollupOptions: {
+    //   // No longer externalizing the client, it will be bundled
+    //   external: ["express"],
+    // },
 
     emptyOutDir: false,
   },

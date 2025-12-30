@@ -319,12 +319,13 @@ export const getHotKeysEpic = (store: Store) =>
 
       const state = store.getState()
       const connection = state.valkeyConnection.connections[connectionId]
+      const monitorEnabled = state.config[connectionId].monitoring.monitorEnabled
       const lfuEnabled = connection.connectionDetails.keyEvictionPolicy.includes("lfu") ?? false
-      const clusterSlotStatsEnabled = connection.connectionDetails.clusterSlotStatsEnabled
+      const clusterSlotStatsEnabled = connection.connectionDetails.clusterSlotStatsEnabled ?? false
 
       socket.next({
         type: action.type,
-        payload: { connectionIds, clusterId, lfuEnabled, clusterSlotStatsEnabled },
+        payload: { connectionIds, lfuEnabled, clusterSlotStatsEnabled, monitorEnabled },
       })
 
     }),
@@ -361,6 +362,7 @@ export const updateConfigEpic = (store: Store) =>
     }),
   )
 
+// TODO: Add frontend component to dispatch this
 export const enableClusterSlotStatsEpic = (store: Store) =>
   action$.pipe(
     select(updateConfigFulfilled),

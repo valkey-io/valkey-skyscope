@@ -20,7 +20,7 @@ interface MonitorConfig {
 interface ConfigState {
   [connectionId: string]: {
     darkMode: boolean,
-    // Valkey related. 
+    // Valkey related. Won't expose yet.
     keyEvictionPolicy?: KeyEvictionPolicy
     clusterSlotStatsEnabled?: boolean,
     pollingInterval: number, 

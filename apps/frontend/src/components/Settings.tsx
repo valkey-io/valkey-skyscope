@@ -38,7 +38,7 @@ export default function Settings() {
       {/* monitoring */}
       <div className="mt-10 pl-1">
         <h2 className="border-b pb-1 font-medium text-tw-primary">
-          Monitoring
+          Hot Keys
         </h2>
 
         <div className="flex items-center justify-between mt-4">
