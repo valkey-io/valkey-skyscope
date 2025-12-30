@@ -59,6 +59,7 @@ const AppWithHistory = () => {
           <Route element={<KeyBrowser />} path="/:id/browse" />
           <Route element={<Monitoring />} path="/:id/monitoring" />
           <Route element={<Settings />} path="/:id/settings" />
+          <Route element={<LearnMore />} path="/:id/learnmore" />
         </Route>
       </Route>
     </Routes>

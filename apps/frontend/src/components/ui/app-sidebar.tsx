@@ -113,49 +113,80 @@ export function AppSidebar() {
       <div className="flex flex-col items-stretch w-full">
         <ul className="space-y-2">
           {[
-            {
-              href: "https://github.com/",
-              title: "GitHub",
-              icon: Github,
-              isExternal: true,
-            },
-            { to: (clusterId ? `/${clusterId}/${id}/settings` : `/${id}/settings`), title: "Settings", icon: Cog },
-            { to: "/learnmore", title: "Learn More", icon: CircleQuestionMark },
-          ].map((item) => (
-            <li key={item.to || item.href}>
-              {item.isExternal ? (
-                <a
-                  className="flex p-2 text-nowrap items-center text-gray-600 dark:text-white hover:text-tw-primary h-10"
-                  href={item.href}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                  title={item.title}
-                >
-                  <div className="flex items-center">
-                    <item.icon size={22} />
-                    {isExpanded && <span className="ml-3 whitespace-nowrap">{item.title}</span>}
-                  </div>
-                </a>
-              ) : (
-                <Link
-                  className={`flex p-2 items-center dark:text-white ${getNavItemClasses(
-                    item.to || "",
-                  )} h-10`}
-                  title={item.title}
-                  to={item.to || ""}
-                >
-                  <div className="flex items-center">
-                    <item.icon size={22} />
-                    {isExpanded && (
-                      <span className="ml-3 whitespace-nowrap">
-                        {item.title}
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              )}
-            </li>
-          ))}
+            ...(isConnected
+              ? [
+                {
+                  to: clusterId ? `/${clusterId}/${id}/settings` : `${id}/settings`,
+                  title: "Settings",
+                  icon: Cog,
+                },
+                {
+                  href: "https://github.com/valkey-io/valkey-admin",
+                  title: "GitHub",
+                  icon: Github,
+                  isExternal: true,
+                },
+                {
+                  to: `${id}/learnmore`,
+                  title: "Learn More",
+                  icon: CircleQuestionMark,
+                },
+              ]
+              : [
+                {
+                  to: "/settings",
+                  title: "Settings",
+                  icon: Cog,
+                },
+                {
+                  href: "https://github.com/valkey-io/valkey-admin",
+                  title: "GitHub",
+                  icon: Github,
+                  isExternal: true,
+                },
+                {
+                  to: "/learnmore",
+                  title: "Learn More",
+                  icon: CircleQuestionMark,
+                },
+
+              ]),
+          ]
+            .map((item) => (
+              <li key={item.to || item.href}>
+                {item.isExternal ? (
+                  <a
+                    className="flex p-2 text-nowrap items-center text-gray-600 dark:text-white hover:text-tw-primary h-10"
+                    href={item.href}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    title={item.title}
+                  >
+                    <div className="flex items-center">
+                      <item.icon size={22} />
+                      {isExpanded && <span className="ml-3 whitespace-nowrap">{item.title}</span>}
+                    </div>
+                  </a>
+                ) : (
+                  <Link
+                    className={`flex p-2 items-center dark:text-white ${getNavItemClasses(
+                      item.to || "",
+                    )} h-10`}
+                    title={item.title}
+                    to={item.to || ""}
+                  >
+                    <div className="flex items-center">
+                      <item.icon size={22} />
+                      {isExpanded && (
+                        <span className="ml-3 whitespace-nowrap">
+                          {item.title}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                )}
+              </li>
+            ))}
         </ul>
       </div>
     </nav>

@@ -37,7 +37,9 @@ export function SendCommand() {
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter") {
       e.preventDefault()
-      onSubmit()
+      if (text.trim().length > 0) {
+        onSubmit()
+      }
     } else if (e.key === "Escape") {
       e.preventDefault()
       setText("")
@@ -66,7 +68,7 @@ export function SendCommand() {
           <input
             className="mb-2 px-2 py-1 text-primary text-sm dark:border-tw-dark-border border rounded"
             onChange={({ target: { value } }) => setKeysFilter(value)}
-            placeholder="Search keys"
+            placeholder="Search Response"
             value={keysFilter}
           />
           <pre
@@ -102,7 +104,7 @@ export function SendCommand() {
           />
           <div
             className="flex-1 shrink whitespace-pre-wrap break-words bg-muted rounded p-2 font-mono gap-1 relative border
-            dark:border-tw-dark-border">
+            dark:border-tw-dark-border overflow-y-auto">
             {
               allCommands
                 .map((c, i) => ({ ...c, i })) // moving index inside objects because filter will ruin the sequence
@@ -205,6 +207,7 @@ export function SendCommand() {
         />
         <button
           className="h-10 ml-2 px-4 py-2 bg-tw-primary cursor-pointer text-white rounded hover:bg-tw-primary/70"
+          disabled={text.trim().length === 0}
           onClick={() => onSubmit()}
         >
           Send

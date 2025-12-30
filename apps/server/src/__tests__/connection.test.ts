@@ -2,7 +2,10 @@
 import { describe, it, mock, beforeEach } from "node:test"
 import assert from "node:assert"
 import { GlideClient, GlideClusterClient } from "@valkey/valkey-glide"
-import { connectToValkey } from "../connection.ts"
+import { sanitizeUrl } from "common/src/url-utils.ts"
+import { connectToValkey, returnIfDuplicateConnection } from "../connection.ts"
+import { resolveHostnameOrIpAddress, dns } from "../utils.ts"
+import { checkJsonModuleAvailability } from "../check-json-module.ts"
 import { VALKEY } from "../../../../common/src/constants.ts"
 
 describe("connectToValkey", () => {
@@ -62,6 +65,7 @@ describe("connectToValkey", () => {
         host: "127.0.0.1",
         port: 6379,
         lfuEnabled: true,
+        jsonModuleAvailable: false,
       })
     } finally {
       GlideClient.createClient = originalCreateClient
@@ -222,5 +226,128 @@ describe("connectToValkey", () => {
     } finally {
       GlideClient.createClient = originalCreateClient
     }
+  })
+
+  it("should detect JSON module availability", async () => {
+    const mockClient = {
+      customCommand: mock.fn(async () => [
+        [{ key: "name", value: "json" }, { key: "ver", value: 10002 }],
+      ]),
+    }
+
+    const result = await checkJsonModuleAvailability(mockClient as any)
+    assert.strictEqual(result, true)
+  })
+
+  it("should return false when JSON module is not present", async () => {
+    const mockClient = {
+      customCommand: mock.fn(async () => [
+        [{ key: "name", value: "search" }],
+      ]),
+    }
+
+    const result = await checkJsonModuleAvailability(mockClient as any)
+    assert.strictEqual(result, false)
+  })
+})
+
+describe("resolveHostnameOrIpAddress", () => {
+  beforeEach(() => {
+    mock.restoreAll()
+  })
+
+  it("resolves an IP address using reverse lookup", async () => {
+    mock.method(dns, "reverse", async () => ["example.com"])
+
+    const result = await resolveHostnameOrIpAddress("127.0.0.1")
+
+    assert.deepStrictEqual(result, {
+      input: "127.0.0.1",
+      hostnameType: "ip",
+      addresses: ["example.com"],
+    })
+  })
+
+  it("resolves a hostname using lookup", async () => {
+    mock.method(dns,"lookup", async () => [
+      { address: "192.168.1.10", family: 4 },
+      { address: "192.168.1.11", family: 4 },
+    ])
+
+    const result = await resolveHostnameOrIpAddress("my-host")
+
+    assert.strictEqual(result.input, "my-host")
+    assert.strictEqual(result.hostnameType, "hostname")
+    assert.deepStrictEqual(result.addresses, [
+      "192.168.1.10",
+      "192.168.1.11",
+    ])
+  })
+
+  it("returns the original input as address if resolution fails", async () => {
+    mock.method(dns, "lookup", async () => {
+      throw new Error("DNS failure")
+    })
+
+    const result = await resolveHostnameOrIpAddress("bad-host")
+
+    assert.deepStrictEqual(result, {
+      input: "bad-host",
+      hostnameType: "hostname",
+      addresses: ["bad-host"],
+    })
+  })
+})
+
+describe("returnIfDuplicateConnection", () => {
+  beforeEach(() => {
+    mock.restoreAll()
+  })
+
+  it("sends a fulfilled message if a duplicate connection exists", async () => {
+    mock.method(dns, "lookup", async () => [
+      { address: "10.0.0.1", family: 4 },
+    ])
+
+    const clients = new Map()
+    clients.set(sanitizeUrl("10.0.0.1:6379"), {} as any)
+
+    const ws = {
+      send: mock.fn(),
+    } as any
+
+    await returnIfDuplicateConnection(
+      { connectionId: "abc123", host: "my-host", port: 6379 },
+      clients,
+      ws,
+    )
+
+    assert.strictEqual(ws.send.mock.calls.length, 1)
+
+    const sent = JSON.parse(ws.send.mock.calls[0].arguments[0])
+    assert.deepStrictEqual(sent, {
+      type: VALKEY.CONNECTION.standaloneConnectFulfilled,
+      payload: { connectionId: "abc123" },
+    })
+  })
+
+  it("does nothing if no duplicate connection exists", async () => {
+    mock.method(dns, "lookup", async () => [
+      { address: "10.0.0.2", family: 4 },
+    ])
+
+    const clients = new Map()
+
+    const ws = {
+      send: mock.fn(),
+    } as any
+
+    await returnIfDuplicateConnection(
+      { connectionId: "abc123", host: "my-host", port: 6379 },
+      clients,
+      ws,
+    )
+
+    assert.strictEqual(ws.send.mock.calls.length, 0)
   })
 })

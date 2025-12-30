@@ -2,11 +2,58 @@ import * as R from "ramda"
 import { Heap } from "heap-js"
 import { getHotSlots } from "./get-hot-slots.js"
 
-export const calculateHotKeysFromMonitor = (rows) => {
-  const ACCESS_COMMANDS = ["get", "set", "mget", "hget", "hgetall", "hmget", "json.get", "json.mget"]
-  const CUT_OFF_FREQUENCY = 1
+const ACCESS_COMMANDS = [
+  // READ COMMANDS
+  // String commands
+  "get", "mget", "getrange", "getex", "substr",
 
-  return R.pipe(
+  // Hash commands
+  "hget", "hgetall", "hmget", "hkeys", "hvals", "hscan",
+
+  // List commands
+  "lrange", "lindex", "llen", "lpos",
+
+  // Set commands
+  "smembers", "sismember", "scard", "sscan", "srandmember",
+
+  // ZSet (Sorted Set) commands
+  "zrange", "zrangebyscore", "zrevrange", "zcard", "zscore",
+  "zscan", "zrank", "zrevrank",
+
+  // Stream commands
+  "xrange", "xrevrange", "xread", "xlen",
+
+  // JSON commands
+  "json.get", "json.mget",
+
+  // WRITE COMMANDS
+  // String commands
+  "set", "setex", "psetex", "setnx", "mset",
+  "incr", "incrby", "decr", "decrby", "append",
+
+  // Hash commands
+  "hset", "hmset", "hdel", "hincrby",
+
+  // List commands
+  "lpush", "rpush", "lpop", "rpop", "ltrim", "lset",
+
+  // Set commands
+  "sadd", "srem", "spop",
+
+  // ZSet (Sorted Set) commands
+  "zadd", "zrem", "zincrby",
+
+  // Stream commands
+  "xadd", "xdel", "xtrim", "xack",
+
+  // JSON commands
+  "json.set", "json.del", "json.numincrby",
+]
+
+const CUT_OFF_FREQUENCY = 1
+
+export const calculateHotKeysFromMonitor = (rows) =>
+  R.pipe(
     R.reduce((acc, { command }) => {
       const [cmd, ...args] = command.split(" ").filter(Boolean)
       if (ACCESS_COMMANDS.includes(cmd.trim().toLowerCase())) {
@@ -20,7 +67,6 @@ export const calculateHotKeysFromMonitor = (rows) => {
     R.sort(R.descend(R.last)),
     R.reject(([, count]) => count <= CUT_OFF_FREQUENCY),
   )(rows)
-}
 
 // Must have maxmemory-policy set to lfu*
 export const calculateHotKeysFromHotSlots = async (client, count = 50) => {

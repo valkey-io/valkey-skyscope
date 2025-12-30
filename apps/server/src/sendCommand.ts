@@ -12,7 +12,6 @@ export async function sendValkeyRunCommand(
     let response = (await client.customCommand(
       payload.command.split(" "),
     ))
-
     if (typeof response === "string") {
       if (response.includes("ResponseError")) {
         ws.send(

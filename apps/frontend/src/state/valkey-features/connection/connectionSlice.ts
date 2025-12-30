@@ -25,6 +25,8 @@ interface ConnectionDetails {
   // Eviction policy required for getting hot keys using hot slots
   keyEvictionPolicy?: KeyEvictionPolicy;
   clusterSlotStatsEnabled?: boolean
+  // JSON module availability check
+  jsonModuleAvailable?: boolean;
 }
 
 interface ReconnectState {
@@ -34,11 +36,17 @@ interface ReconnectState {
   nextRetryDelay?: number;
 }
 
+interface ConnectionHistoryEntry {
+  timestamp: number;
+  event: "Connected";
+}
+
 export interface ConnectionState {
   status: ConnectionStatus;
   errorMessage: string | null;
   connectionDetails: ConnectionDetails;
   reconnect?: ReconnectState;
+  connectionHistory?: ConnectionHistoryEntry[];
 }
 
 interface ValkeyConnectionsState {
@@ -74,14 +82,18 @@ const connectionSlice = createSlice({
       state.connections[connectionId] = {
         status: CONNECTING,
         errorMessage: isRetry && existingConnection?.errorMessage ? existingConnection.errorMessage : null,
-        connectionDetails: { host, port, username, password, ...(alias && { alias }), clusterSlotStatsEnabled: false },
+        connectionDetails: { host, port, username, password, ...(alias && { alias }), clusterSlotStatsEnabled: false, jsonModuleAvailable: false },
         ...(isRetry && existingConnection?.reconnect && {
           reconnect: existingConnection.reconnect,
+        }),
+        // for preserving connection history
+        ...(existingConnection?.connectionHistory && {
+          connectionHistory: existingConnection.connectionHistory,
         }),
       }
     },
     standaloneConnectFulfilled: (
-      state, 
+      state,
       action: PayloadAction<{
         connectionId: string;
         connectionDetails: ConnectionDetails;
@@ -93,19 +105,29 @@ const connectionSlice = createSlice({
         connectionState.status = CONNECTED
         connectionState.errorMessage = null
         connectionState.connectionDetails.keyEvictionPolicy = connectionDetails.keyEvictionPolicy
+        // eslint-disable-next-line max-len
+        connectionState.connectionDetails.jsonModuleAvailable = connectionDetails.jsonModuleAvailable ?? connectionState.connectionDetails.lfuEnabled
+
+        // keep track of connection history
+        connectionState.connectionHistory ??= []
+        connectionState.connectionHistory.push({
+          timestamp: Date.now(),
+          event: CONNECTED,
+        })
       }
     },
     clusterConnectFulfilled: (
-      state, 
+      state,
       action: PayloadAction<{
         connectionId: string;
         clusterNodes: Record<string, ConnectionDetails>;
         clusterId: string;
         keyEvictionPolicy: KeyEvictionPolicy;
         clusterSlotStatsEnabled: boolean;
+        jsonModuleAvailable: boolean;
       }>,
     ) => {
-      const { connectionId, clusterId, keyEvictionPolicy, clusterSlotStatsEnabled } = action.payload
+      const { connectionId, clusterId, keyEvictionPolicy, clusterSlotStatsEnabled, jsonModuleAvailable } = action.payload
       const connectionState = state.connections[connectionId]
       if (connectionState) {
         connectionState.status = CONNECTED
@@ -113,9 +135,17 @@ const connectionSlice = createSlice({
         connectionState.connectionDetails.clusterId = clusterId
         connectionState.connectionDetails.keyEvictionPolicy = keyEvictionPolicy
         connectionState.connectionDetails.clusterSlotStatsEnabled = clusterSlotStatsEnabled
+        connectionState.connectionDetails.jsonModuleAvailable = jsonModuleAvailable
         
         // Clear retry state on successful connection
         delete connectionState.reconnect
+
+        // keep track of connection history
+        connectionState.connectionHistory ??= []
+        connectionState.connectionHistory.push({
+          timestamp: Date.now(),
+          event: CONNECTED,
+        })
       }
     },
     connectRejected: (state, action) => {
@@ -129,7 +159,7 @@ const connectionSlice = createSlice({
         if (isRetrying && existingConnection.errorMessage) {
           state.connections[connectionId].errorMessage = existingConnection.errorMessage
         } else {
-          state.connections[connectionId].errorMessage = errorMessage || "Valkey error"
+          state.connections[connectionId].errorMessage = errorMessage || "Valkey error: Unable to connect."
         }
       }
     },
@@ -178,11 +208,11 @@ const connectionSlice = createSlice({
 })
 
 export default connectionSlice.reducer
-export const { 
-  connectPending, 
-  standaloneConnectFulfilled, 
+export const {
+  connectPending,
+  standaloneConnectFulfilled,
   clusterConnectFulfilled,
-  connectRejected, 
+  connectRejected,
   connectionBroken,
   closeConnection,
   updateConnectionDetails,

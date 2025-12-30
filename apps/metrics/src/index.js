@@ -8,6 +8,7 @@ import { getCommandLogs } from "./handlers/commandlog-handler.js"
 import { monitorHandler, useMonitor } from "./handlers/monitor-handler.js"
 import { calculateHotKeysFromHotSlots } from "./analyzers/calculate-hot-keys.js"
 import { enrichHotKeys } from "./analyzers/enrich-hot-keys.js"
+import { cpuFilter, cpuFinalize, cpuReducer, cpuSeed } from "./analyzers/calculate-cpu-usage.js"
 
 async function main() {
   const cfg = getConfig()
@@ -21,9 +22,6 @@ async function main() {
     process.exit(1)
   }
 
-  // todo: this will collect metrics only from one node (from URL), so once connected, we need to
-  //  run command `cluster nodes` and create clients for each node and run setupCollectors for each of them;
-  //  and correspondingly, do something about it in the endpoints (group by probably?)
   const client = createClient({ url })
   client.on("error", (err) => console.error("valkey error", err))
   await client.connect()
@@ -45,10 +43,13 @@ async function main() {
 
   app.get("/cpu", async (_req, res) => {
     try {
-      const rows = await Streamer.info_cpu()
-      // todo use meta for checkAt or lastUpdated
-      // console.log("meta: ", getCollectorMeta("cpu"))
-      res.json({ rows })
+      const series = await Streamer.info_cpu({
+        filterFn: cpuFilter,
+        reducer: cpuReducer,
+        seed: cpuSeed,
+        finalize: cpuFinalize,
+      })
+      res.json(series)
     } catch (e) {
       res.status(500).json({ error: e.message })
     }

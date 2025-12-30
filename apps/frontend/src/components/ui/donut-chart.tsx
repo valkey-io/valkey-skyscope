@@ -94,16 +94,16 @@ export default function DonutChart() {
       <div className="text-center text-sm text-gray-600 dark:text-gray-400 mb-4">
         Total Memory: {formatBytes(totalMemory)}
       </div>
-      <ResponsiveContainer height={600} width="100%">
+      <ResponsiveContainer className="text-sm" height={500} width="100%">
         <PieChart>
           <Pie
             cx="50%"
             cy="50%"
             data={chartData}
             dataKey="count"
-            innerRadius={160}
+            innerRadius={140}
             label={({ name, percentage }) => `${name}: ${percentage}%`}
-            outerRadius={200}
+            outerRadius={170}
             paddingAngle={5}
           >
             {chartData.map((entry, index) => (

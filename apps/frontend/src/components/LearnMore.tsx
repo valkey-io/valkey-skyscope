@@ -10,7 +10,14 @@ export default function LearnMore() {
         </h1>
       </div>
       <div className="flex flex-col flex-1 items-center justify-center gap-2 font-light text-sm">
-        <span className="text-tw-primary underline">Valkey Admin Version 0.0.1</span>
+        <a
+          className="text-tw-primary underline"
+          href="https://github.com/valkey-io/valkey-admin"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          Valkey Admin Version 0.0.1
+        </a>
         <p className="text-gray-600 dark:text-white">A dedicated UI for Valkey</p>
       </div>
     </div>

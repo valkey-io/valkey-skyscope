@@ -1,8 +1,9 @@
 import { merge, timer, EMPTY } from "rxjs"
-import { ignoreElements, tap, delay, switchMap, catchError, filter } from "rxjs/operators"
+import { ignoreElements, tap, delay, switchMap, catchError, filter, take } from "rxjs/operators"
 import * as R from "ramda"
 import { DISCONNECTED, LOCAL_STORAGE, NOT_CONNECTED, RETRY_CONFIG, retryDelay } from "@common/src/constants.ts"
 import { toast } from "sonner"
+import { sanitizeUrl } from "@common/src/url-utils"
 import { getSocket } from "./wsEpics"
 import {
   standaloneConnectFulfilled,
@@ -50,7 +51,11 @@ export const connectionEpic = (store: Store) =>
     ),
 
     action$.pipe(
-      select(standaloneConnectFulfilled),
+      filter(
+        ({ type }) =>
+          type === standaloneConnectFulfilled.type ||
+          type === clusterConnectFulfilled.type,
+      ),
       tap(({ payload }) => {
         try {
           const currentConnections = R.pipe(
@@ -66,6 +71,7 @@ export const connectionEpic = (store: Store) =>
             (p) => ({
               connectionDetails: connection?.connectionDetails || p.connectionDetails,
               status: NOT_CONNECTED,
+              connectionHistory: connection?.connectionHistory || [],
             }),
             (connectionToSave) => ({ ...currentConnections, [payload.connectionId]: connectionToSave }),
             JSON.stringify,
@@ -87,6 +93,30 @@ export const connectionEpic = (store: Store) =>
       }),
       ignoreElements(),
     ),
+
+    action$.pipe(
+      select(wsConnectFulfilled),
+      take(1),
+      tap(() => {
+        const host = import.meta.env.VITE_LOCAL_VALKEY_HOST
+        const port = import.meta.env.VITE_LOCAL_VALKEY_PORT
+        const alias = import.meta.env.VITE_LOCAL_VALKEY_NAME
+
+        if (host && port) {
+          const connectionId = sanitizeUrl(`${host}-${port}`)
+
+          store.dispatch(connectPending({
+            host,
+            port: String(port),
+            username: "",
+            password: "",
+            alias: alias || "Local Valkey Cluster",
+            connectionId,
+          }))
+        }
+      }),
+      ignoreElements(),
+    ),
   )
 
 // Valkey connection retry epic
@@ -99,6 +129,19 @@ export const valkeyRetryEpic = (store: Store) =>
 
       if (!connection) {
         console.log(`No connection found for ${connectionId}, skipping retry`)
+        return EMPTY
+      }
+
+      // Check if this was a previously successful connection (exists in localStorage)
+      const savedConnections = R.pipe(
+        (v: string) => localStorage.getItem(v),
+        (s) => (s === null ? {} : JSON.parse(s)),
+      )(LOCAL_STORAGE.VALKEY_CONNECTIONS)
+
+      const wasPreviouslyConnected = savedConnections[connectionId] !== undefined
+
+      if (!wasPreviouslyConnected) {
+        console.log(`First-time connection failed for ${connectionId}, not retrying`)
         return EMPTY
       }
 
@@ -222,6 +265,7 @@ export const updateConnectionDetailsEpic = (store: Store) =>
 
         if (connection && currentConnections[connectionId]) {
           currentConnections[connectionId].connectionDetails = connection.connectionDetails
+          currentConnections[connectionId].connectionHistory = connection.connectionHistory || []
           localStorage.setItem(LOCAL_STORAGE.VALKEY_CONNECTIONS, JSON.stringify(currentConnections))
         }
       } catch (e) {
@@ -255,7 +299,7 @@ export const setDataEpic = (store: Store) =>
       if (action.type === clusterConnectFulfilled.type) {
         socket.next({ type: setClusterData.type, payload: { clusterId, connectionId } })
       }
-      
+
       socket.next({ type: setData.type, payload: action.payload })
       const dashboardPath = clusterId
         ? `/${clusterId}/${connectionId}/dashboard`
@@ -265,7 +309,7 @@ export const setDataEpic = (store: Store) =>
     }),
   )
 
-export const getHotKeysEpic = (store: Store) => 
+export const getHotKeysEpic = (store: Store) =>
   action$.pipe(
     select(hotKeysRequested),
     tap((action) => {
@@ -282,7 +326,7 @@ export const getHotKeysEpic = (store: Store) =>
         type: action.type,
         payload: { connectionIds, clusterId, lfuEnabled, clusterSlotStatsEnabled },
       })
-      
+
     }),
   )
 

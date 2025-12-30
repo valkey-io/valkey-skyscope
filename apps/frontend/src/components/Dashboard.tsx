@@ -182,8 +182,9 @@ export function Dashboard() {
             valueType="number" />
         </div>
         {/* Chart Area */}
-        <div className="w-1/2 overflow-y-auto border dark:border-tw-dark-border rounded p-2 text-tw-primary flex 
-        items-center justify-center"><DonutChart /></div>
+        <div className="flex-1 min-w-0 border dark:border-tw-dark-border rounded p-4">
+          <DonutChart />
+        </div>
       </div>
     </div>
   )

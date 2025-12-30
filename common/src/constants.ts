@@ -146,3 +146,12 @@ export const KEY_EVICTION_POLICY = {
 
 export type KeyEvictionPolicy =
   typeof KEY_EVICTION_POLICY[keyof typeof KEY_EVICTION_POLICY]
+export const KEY_TYPES = {
+  STRING: "String",
+  LIST: "List",
+  SET: "Set",
+  ZSET: "ZSet",
+  HASH: "Hash",
+  STREAM: "Stream",
+  JSON: "JSON",
+}

@@ -1,3 +1,4 @@
+import { KEY_TYPES } from "./constants"
 interface ValidationData {
   keyName: string
   keyType: string
@@ -36,7 +37,7 @@ const BaseSpec: ValidationRule[] = [
 export const StringSpec: ValidationRule[] = [
   ...BaseSpec,
   {
-    validatorFn: (key) => key.keyType === "String" && isBlank(key.value),
+    validatorFn: (key) => key.keyType === KEY_TYPES.STRING && isBlank(key.value),
     error: "Value is required for string type",
   },
 ]
@@ -44,7 +45,7 @@ export const StringSpec: ValidationRule[] = [
 export const HashSpec: ValidationRule[] = [
   ...BaseSpec,
   {
-    validatorFn: (key) => key.keyType === "Hash" &&
+    validatorFn: (key) => key.keyType === KEY_TYPES.HASH &&
       (!key.hashFields || key.hashFields.filter((field) =>
         isNotBlank(field.field) && isNotBlank(field.value),
       ).length === 0),
@@ -55,7 +56,7 @@ export const HashSpec: ValidationRule[] = [
 export const ListSpec: ValidationRule[] = [
   ...BaseSpec,
   {
-    validatorFn: (key) => key.keyType === "List" &&
+    validatorFn: (key) => key.keyType === KEY_TYPES.LIST &&
       (!key.listFields || key.listFields.filter((field) =>
         isNotBlank(field),
       ).length === 0),
@@ -66,7 +67,7 @@ export const ListSpec: ValidationRule[] = [
 export const SetSpec: ValidationRule[] = [
   ...BaseSpec,
   {
-    validatorFn: (key) => key.keyType === "Set" &&
+    validatorFn: (key) => key.keyType === KEY_TYPES.SET &&
       (!key.setFields || key.setFields.filter((field) =>
         isNotBlank(field),
       ).length === 0),
@@ -77,14 +78,14 @@ export const SetSpec: ValidationRule[] = [
 export const ZSetSpec: ValidationRule[] = [
   ...BaseSpec,
   {
-    validatorFn: (key) => key.keyType === "ZSet" &&
+    validatorFn: (key) => key.keyType === KEY_TYPES.ZSET &&
       (!key.zsetFields || key.zsetFields.filter((field) =>
         isNotBlank(field.key) && isNotBlank(field.value),
       ).length === 0),
     error: "At least one key-value (member-score) pair is required for zset type",
   },
   {
-    validatorFn: (key) => key.keyType === "ZSet" && key.zsetFields ?
+    validatorFn: (key) => key.keyType === KEY_TYPES.ZSET && key.zsetFields ?
       key.zsetFields.some((field) =>
         isNotBlank(field.key) && isNotBlank(field.value) && isNaN(parseFloat(field.value)),
       ) : false,
@@ -95,11 +96,34 @@ export const ZSetSpec: ValidationRule[] = [
 export const StreamSpec: ValidationRule[] = [
   ...BaseSpec,
   {
-    validatorFn: (key) => key.keyType === "Stream" &&
+    validatorFn: (key) => key.keyType === KEY_TYPES.STREAM &&
       (!key.streamFields || key.streamFields.filter((field) =>
         isNotBlank(field.field) && isNotBlank(field.value),
       ).length === 0),
     error: "At least one field-value pair is required for stream type",
+  },
+]
+
+export const JsonSpec: ValidationRule[] = [
+  ...BaseSpec,
+  {
+    validatorFn: (key) => key.keyType === KEY_TYPES.JSON && isBlank(key.value),
+    error: "JSON value is required",
+  },
+  {
+    // Returns true if validation fails (i.e., JSON is invalid or can not be parsed)
+    validatorFn: (key) => {
+      if (key.keyType === KEY_TYPES.JSON && isNotBlank(key.value)) {
+        try {
+          JSON.parse(key.value!)
+          return false // JSON is valid, no error
+        } catch {
+          return true // JSON is invalid, has error
+        }
+      }
+      return false
+    },
+    error: "Invalid JSON format. Please enter valid JSON data",
   },
 ]
 
@@ -117,6 +141,7 @@ export const validators = {
   "Set": validate(SetSpec),
   "ZSet": validate(ZSetSpec),
   "Stream": validate(StreamSpec),
+  "JSON": validate(JsonSpec),
   "undefined": () => "Key type is required",
   "Select key type": () => "Please select a key type",
 }
