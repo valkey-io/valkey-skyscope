@@ -76,6 +76,7 @@ export const VALKEY = {
     updateConfig: "updateConfig",
     updateConfigFulfilled: "updateConfigFulfilled",
     updateConfigFailed: "updateConfigFailed",
+    enableClusterSlotStats: "enableClusterSlotStats",
   }),
 } as const
 

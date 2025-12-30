@@ -1,7 +1,7 @@
 import fs from "node:fs"
 import express from "express"
 import { createClient } from "@valkey/client"
-import { getConfig } from "./config.js"
+import { getConfig, updateConfig } from "./config.js"
 import * as Streamer from "./effects/ndjson-streamer.js"
 import { setupCollectors } from "./init-collectors.js"
 import { getCommandLogs } from "./handlers/commandlog-handler.js"
@@ -30,7 +30,7 @@ async function main() {
   const stoppers = await setupCollectors(client, cfg)
 
   const app = express()
-
+  app.use(express.json())
   // public API goes here:
   app.get("/health", (_req, res) => res.json({ ok: true }))
 
@@ -81,10 +81,10 @@ async function main() {
   app.post("/update-config", async(req, res) => {
     try {
       const result = updateConfig(req.body)
-      return res.json(result)
+      return res.status(result.statusCode).json(result)
     }
     catch (error) {
-      return res.json( {
+      return res.status(500).json( {
         success: false,
         message: error instanceof Error ? error.message : String(error),
         data: error }) 

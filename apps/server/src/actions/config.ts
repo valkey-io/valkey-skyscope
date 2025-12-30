@@ -1,6 +1,13 @@
-import { VALKEY } from "common/src/constants"
 import { type WebSocket } from "ws"
+import { VALKEY } from "../../../../common/src/constants"
 import { Deps, withDeps } from "./utils"
+
+interface ParsedResponse  {
+  success: boolean, 
+  statusCode?: number,
+  message: string, 
+  data: object
+}
 
 export const updateConfig = withDeps<Deps, void>(
   async ({ ws, metricsServerURIs, action }) => {
@@ -17,7 +24,7 @@ export const updateConfig = withDeps<Deps, void>(
           body: JSON.stringify(config),
         })
 
-        const parsedResponse = await response.json() 
+        const parsedResponse = await response.json() as ParsedResponse
         if (response.ok) {
           sendUpdateFulfilled(ws, connectionId, parsedResponse)
         } else {
@@ -28,21 +35,31 @@ export const updateConfig = withDeps<Deps, void>(
         const normalizedError = {
           success: false,
           message: error instanceof Error ? error.message : String(error),
-          data: error,
+          data: error as object,
         }
         sendUpdateError(ws, connectionId, normalizedError)
       }
     })
     await Promise.all(promises)
 
+  },  
+)
+
+export const enableClusterSlotStats = withDeps<Deps, void>(
+  async ({ clients, action }) => {
+    const { connectionIds } = action.payload
+    const promises = connectionIds.map(async (connectionId: string) => {
+      const client = clients.get(connectionId)
+      await client?.customCommand(["CONFIG", "SET", "cluster-slot-stats-enabled", "yes"])
+    })
+    await Promise.all(promises)
   },
-     
 )
 
 const sendUpdateFulfilled = (
   ws: WebSocket,
   connectionId: string,
-  parsedResponse,
+  parsedResponse: ParsedResponse,
 ) => {
   ws.send(
     JSON.stringify({
@@ -58,7 +75,7 @@ const sendUpdateFulfilled = (
 const sendUpdateError = (
   ws: WebSocket,
   connectionId: string,
-  parsedResponse,
+  parsedResponse: ParsedResponse,
 ) => {
   ws.send(
     JSON.stringify({

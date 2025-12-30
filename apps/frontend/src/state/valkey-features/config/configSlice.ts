@@ -20,6 +20,7 @@ interface MonitorConfig {
 interface ConfigState {
   [connectionId: string]: {
     darkMode: boolean,
+    // Valkey related. 
     keyEvictionPolicy?: KeyEvictionPolicy
     clusterSlotStatsEnabled?: boolean,
     pollingInterval: number, 
@@ -35,27 +36,31 @@ const configSlice = createSlice({
   reducers: {
     setConfig: (state, action) => {
       const { connectionId, keyEvictionPolicy, clusterSlotStatsEnabled } = action.payload
-      state[connectionId] = {
-        darkMode: false, 
-        keyEvictionPolicy, 
-        clusterSlotStatsEnabled: clusterSlotStatsEnabled ?? false, 
-        pollingInterval: 5000,
-        monitoring: {
-          monitorEnabled: false, 
-          monitorDuration: 6000,
+      // Only set initial config if it does not already exist
+      if (!state[connectionId]) {
+        state[connectionId] = {
+          darkMode: false, 
+          keyEvictionPolicy, 
+          clusterSlotStatsEnabled: clusterSlotStatsEnabled ?? false, 
+          pollingInterval: 5000,
+          monitoring: {
+            monitorEnabled: false, 
+            monitorDuration: 6000,
           //monitorInterval: 20000, 
           //continuousMonitoring: false,
-        },
-        status: "updated",
+          },
+          status: "updated",
+        }
       }
+
     },
     updateConfig: (state, action) => {
       const { connectionId } = action.payload
       state[connectionId].status = "updating"
     },
     updateConfigFulfilled: (state, action) => {
-      const { connectionId } = action.payload
-      state[connectionId] = { ...state[connectionId], ...action.payload.data }
+      const { connectionId, response } = action.payload
+      state[connectionId] = { ...state[connectionId], ...response.data }
       state[connectionId].status = "updated"
     },
     updateConfigFailed: (state, action) => {
@@ -67,4 +72,4 @@ const configSlice = createSlice({
 })
 
 export default configSlice.reducer
-export const { setConfig, updateConfig } = configSlice.actions
+export const { setConfig, updateConfig, updateConfigFulfilled, updateConfigFailed } = configSlice.actions

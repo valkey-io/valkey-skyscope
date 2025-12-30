@@ -45,39 +45,42 @@ const loadConfig = () => {
 const getConfig = () => config ? config : loadConfig() 
 
 const updateConfig = (partialConfig) => {
-  try {
-    validatePartialConfig(partialConfig)
-    mergeDeepLeft(partialConfig, getConfig())
-    return {
-      success: true,
-      message: "",
-      data: partialConfig, 
-    }
-  } catch (error) {
-    console.error("Failed to update config:", error.message)
+  const validationError = validatePartialConfig(partialConfig)
+
+  if (validationError) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : String(error),
-      data: error,
+      statusCode: 400,
+      message: validationError.message,
+      data: validationError,
     }
+  }
+
+  mergeDeepLeft(partialConfig, getConfig())
+
+  return {
+    success: true,
+    statusCode: 200,
+    message: "",
+    data: partialConfig,
   }
 }
 
 const validatePartialConfig = (partialConfig) => {
   if (partialConfig == null || typeof partialConfig !== "object") {
-    throw new Error("Config update must be an object")
+    return new Error("Config update must be an object")
   }
 
   if (
     partialConfig.pollingInterval !== undefined &&
     !isPositiveNumber(partialConfig.pollingInterval)
   ) {
-    throw new Error("pollingInterval must be a positive non-zero number")
+    return new Error("pollingInterval must be a positive non-zero number")
   }
 
   if (partialConfig.monitoring !== undefined) {
     if (typeof partialConfig.monitoring !== "object") {
-      throw new Error("monitoring must be an object")
+      return new Error("monitoring must be an object")
     }
 
     const { monitorEnabled, monitorDuration } = partialConfig.monitoring
@@ -86,16 +89,18 @@ const validatePartialConfig = (partialConfig) => {
       monitorEnabled !== undefined &&
       typeof monitorEnabled !== "boolean"
     ) {
-      throw new Error("monitorEnabled must be a boolean")
+      return new Error("monitorEnabled must be a boolean")
     }
 
     if (
       monitorDuration !== undefined &&
       !isPositiveNumber(monitorDuration)
     ) {
-      throw new Error("monitorDuration must be a positive non-zero number")
+      return new Error("monitorDuration must be a positive non-zero number")
     }
   }
+
+  return null
 }
 
 const isPositiveNumber = (value) =>

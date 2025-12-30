@@ -27,7 +27,7 @@ export const registerEpics = (store: Store) => {
     setDataEpic(store),
     getHotKeysEpic(store),
     getCommandLogsEpic(store),
-    updateConfigEpic(),
+    updateConfigEpic(store),
     keyBrowserEpic(),
   ).subscribe({
     error: (err) => console.error("Epic error:", err),
