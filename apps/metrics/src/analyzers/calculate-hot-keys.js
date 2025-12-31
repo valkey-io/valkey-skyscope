@@ -68,6 +68,7 @@ export const calculateHotKeysFromMonitor = (rows) =>
     R.reject(([, count]) => count <= CUT_OFF_FREQUENCY),
   )(rows)
 
+// Must have maxmemory-policy set to lfu*
 export const calculateHotKeysFromHotSlots = async (client, count = 50) => {
   const hotSlots = await getHotSlots(client)
 

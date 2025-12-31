@@ -1,11 +1,12 @@
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { mergeDeepLeft } from "ramda"
 import YAML from "yaml"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-
+const config = null
 const loadConfig = () => {
   const cfgPath = process.env.CONFIG_PATH || path.join(__dirname, "..", "config.yml")
   const text = fs.readFileSync(cfgPath, "utf8")
@@ -41,5 +42,71 @@ const loadConfig = () => {
 
   return cfg
 }
+const getConfig = () => config ? config : loadConfig() 
 
-export { loadConfig }
+const updateConfig = (partialConfig) => {
+  const validationError = validatePartialConfig(partialConfig)
+
+  if (validationError) {
+    return {
+      success: false,
+      statusCode: 400,
+      message: validationError.message,
+      data: validationError,
+    }
+  }
+
+  mergeDeepLeft(partialConfig, getConfig())
+
+  return {
+    success: true,
+    statusCode: 200,
+    message: "",
+    data: partialConfig,
+  }
+}
+
+const validatePartialConfig = (partialConfig) => {
+  if (partialConfig == null || typeof partialConfig !== "object") {
+    return new Error("Config update must be an object")
+  }
+
+  if (
+    partialConfig.pollingInterval !== undefined &&
+    !isPositiveNumber(partialConfig.pollingInterval)
+  ) {
+    return new Error("pollingInterval must be a positive non-zero number")
+  }
+
+  if (partialConfig.monitoring !== undefined) {
+    if (typeof partialConfig.monitoring !== "object") {
+      return new Error("monitoring must be an object")
+    }
+
+    const { monitorEnabled, monitorDuration } = partialConfig.monitoring
+
+    if (
+      monitorEnabled !== undefined &&
+      typeof monitorEnabled !== "boolean"
+    ) {
+      return new Error("monitorEnabled must be a boolean")
+    }
+
+    if (
+      monitorDuration !== undefined &&
+      !isPositiveNumber(monitorDuration)
+    ) {
+      return new Error("monitorDuration must be a positive non-zero number")
+    }
+  }
+
+  return null
+}
+
+const isPositiveNumber = (value) =>
+  typeof value === "number" &&
+  Number.isFinite(value) &&
+  value > 0
+
+export { getConfig, updateConfig }
+

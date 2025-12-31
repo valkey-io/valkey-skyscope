@@ -44,11 +44,21 @@ const sendHotKeysError = (
 
 export const hotKeysRequested = withDeps<Deps, void>(
   async ({ ws, metricsServerURIs, action }) => {
-    const { connectionIds, lfuEnabled, clusterId } = action.payload
+    const { connectionIds, lfuEnabled, clusterSlotStatsEnabled, monitorEnabled } = action.payload
     const promises = connectionIds.map(async (connectionId: string) => {
       const metricsServerURI = metricsServerURIs.get(connectionId)
       const url = new URL("/hot-keys", metricsServerURI)
-      if (clusterId && lfuEnabled) url.searchParams.set("useHotSlots", "true")
+      if (clusterSlotStatsEnabled && lfuEnabled) url.searchParams.set("useHotSlots", "true")
+      else if (!monitorEnabled) {
+        sendHotKeysError(
+          ws,
+          connectionId,
+          "To collect hotkeys, you must either have monitoring enabled in Settings " +
+          "or use an LFU eviction policy with cluster-slot-stats enabled",
+
+        )
+        return 
+      }
       try {
         const initialResponse = await fetch(url)
         const initialParsedResponse: HotKeysResponse = await initialResponse.json() as HotKeysResponse

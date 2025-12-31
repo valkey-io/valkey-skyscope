@@ -12,6 +12,9 @@ export const selectHotKeys = (id: string) => (state: RootState) =>
 export const selectHotKeysStatus = (id: string) => (state: RootState) =>
   R.path([VALKEY.HOTKEYS.name, id, "status"], state)
 
+export const selectHotKeysError = (id: string) => (state: RootState) =>
+  R.path([VALKEY.HOTKEYS.name, id, "error"], state)
+
 interface HotKeysState {
   [connectionId: string]: {
     hotKeys: [string, number, number | null, number][]
@@ -55,6 +58,15 @@ const hotKeysSlice = createSlice({
     },
     hotKeysError: (state, action) => {
       const { connectionId, error } = action.payload
+      if (!state[connectionId]) {
+        state[connectionId] = {
+          hotKeys: [],
+          checkAt: null, 
+          monitorRunning: false,
+          nodeId: null,
+          status: ERROR,
+        }
+      }
       state[connectionId].error = error
       state[connectionId].status = ERROR
     },

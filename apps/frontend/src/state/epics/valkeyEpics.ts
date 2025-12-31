@@ -23,8 +23,21 @@ import { hotKeysRequested } from "../valkey-features/hotkeys/hotKeysSlice.ts"
 import { commandLogsRequested } from "../valkey-features/commandlogs/commandLogsSlice.ts"
 import history from "../../history.ts"
 import { setClusterData } from "../valkey-features/cluster/clusterSlice.ts"
-import type { Store } from "@reduxjs/toolkit"
+import { setConfig, updateConfig, updateConfigFulfilled } from "../valkey-features/config/configSlice.ts"
+import type { PayloadAction, Store } from "@reduxjs/toolkit"
 
+const getConnectionIds = (store: Store, action) => {
+  // If we're connected to a cluster, pass connectionId of each node
+  // Else pass connectionId of current node only
+  const { clusterId, connectionId } = action.payload
+  const state = store.getState()
+  const clusters = state.valkeyCluster.clusters
+      
+  return clusterId !== undefined
+    ? Object.keys(clusters[clusterId].clusterNodes)
+    : [connectionId]
+
+}
 export const connectionEpic = (store: Store) =>
   merge(
     action$.pipe(
@@ -271,18 +284,18 @@ export const sendRequestEpic = () =>
     }),
   )
 
-export const setDataEpic = () =>
+export const setDataEpic = (store: Store) =>
   action$.pipe(
     filter(
       ({ type }) =>
         type === standaloneConnectFulfilled.type ||
           type === clusterConnectFulfilled.type,
     ),
-    tap((action) => {
+    tap((action: PayloadAction) => {
       const socket = getSocket()
 
-      const { clusterId, connectionId } = action.payload
-
+      const { clusterId, connectionId } = action.payload 
+      store.dispatch(setConfig( action.payload))
       if (action.type === clusterConnectFulfilled.type) {
         socket.next({ type: setClusterData.type, payload: { clusterId, connectionId } })
       }
@@ -300,22 +313,19 @@ export const getHotKeysEpic = (store: Store) =>
   action$.pipe(
     select(hotKeysRequested),
     tap((action) => {
-      const { clusterId, connectionId } = action.payload
+      const { connectionId } = action.payload
       const socket = getSocket()
+      const connectionIds = getConnectionIds(store, action)
 
       const state = store.getState()
-      const clusters = state.valkeyCluster.clusters
       const connection = state.valkeyConnection.connections[connectionId]
-      const lfuEnabled = connection.connectionDetails.lfuEnabled
-
-      const connectionIds =
-        clusterId !== undefined
-          ? Object.keys(clusters[clusterId].clusterNodes)
-          : [connectionId]
+      const monitorEnabled = state.config[connectionId].monitoring.monitorEnabled
+      const lfuEnabled = connection.connectionDetails.keyEvictionPolicy.includes("lfu") ?? false
+      const clusterSlotStatsEnabled = connection.connectionDetails.clusterSlotStatsEnabled ?? false
 
       socket.next({
         type: action.type,
-        payload: { connectionIds, clusterId, lfuEnabled },
+        payload: { connectionIds, lfuEnabled, clusterSlotStatsEnabled, monitorEnabled },
       })
 
     }),
@@ -326,16 +336,9 @@ export const getCommandLogsEpic = (store: Store) =>
     select(commandLogsRequested),
     tap((action) => {
       try {
-        const { clusterId, connectionId, commandLogType } = action.payload
+        const { commandLogType } = action.payload
         const socket = getSocket()
-
-        const state = store.getState()
-        const clusters = state.valkeyCluster.clusters
-
-        const connectionIds =
-          clusterId !== undefined
-            ? Object.keys(clusters[clusterId].clusterNodes)
-            : [connectionId]
+        const connectionIds = getConnectionIds(store, action)
 
         socket.next({
           type: action.type,
@@ -347,3 +350,26 @@ export const getCommandLogsEpic = (store: Store) =>
     }),
     ignoreElements(),
   )
+
+export const updateConfigEpic = (store: Store) => 
+  action$.pipe(
+    select(updateConfig),
+    tap((action) => {
+      const {  config } = action.payload
+      const socket = getSocket()
+      const connectionIds = getConnectionIds(store, action)
+      socket.next({ type: action.type, payload: { connectionIds, config } })
+    }),
+  )
+
+// TODO: Add frontend component to dispatch this
+export const enableClusterSlotStatsEpic = (store: Store) =>
+  action$.pipe(
+    select(updateConfigFulfilled),
+    tap((action) => {
+      const socket = getSocket()
+      const connectionIds = getConnectionIds(store, action)
+      socket.next({ type: "config/enableClusterSlotStats", payload: { connectionIds } })
+    }),
+  )
+  

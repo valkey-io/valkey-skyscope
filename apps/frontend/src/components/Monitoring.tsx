@@ -11,7 +11,7 @@ import KeyDetails from "./ui/key-details"
 import type { RootState } from "@/store"
 import { commandLogsRequested, selectCommandLogs } from "@/state/valkey-features/commandlogs/commandLogsSlice"
 import { useAppDispatch } from "@/hooks/hooks"
-import { hotKeysRequested, selectHotKeys, selectHotKeysStatus } from "@/state/valkey-features/hotkeys/hotKeysSlice"
+import { hotKeysRequested, selectHotKeys, selectHotKeysStatus, selectHotKeysError } from "@/state/valkey-features/hotkeys/hotKeysSlice"
 import { getKeyTypeRequested } from "@/state/valkey-features/keys/keyBrowserSlice"
 import { selectKeys } from "@/state/valkey-features/keys/keyBrowserSelectors"
 
@@ -41,6 +41,7 @@ export const Monitoring = () => {
   const hotKeysData = useSelector((state: RootState) => selectHotKeys(id!)(state))
   console.log("Hot keys data: ", hotKeysData)
   const hotKeysStatus = useSelector((state: RootState) => selectHotKeysStatus(id!)(state))
+  const hotKeysErrorMessage = useSelector((state:RootState) => selectHotKeysError(id!)(state))
   const keys: KeyInfo[] = useSelector(selectKeys(id!))
 
   useEffect(() => {
@@ -169,6 +170,7 @@ export const Monitoring = () => {
             <div className="h-full border dark:border-tw-dark-border rounded overflow-y-auto">
               <HotKeys
                 data={hotKeysData}
+                errorMessage={hotKeysErrorMessage}
                 onKeyClick={handleKeyClick}
                 selectedKey={selectedKey}
                 status={hotKeysStatus}

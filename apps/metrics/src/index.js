@@ -1,7 +1,7 @@
 import fs from "node:fs"
 import express from "express"
 import { createClient } from "@valkey/client"
-import { loadConfig } from "./config.js"
+import { getConfig, updateConfig } from "./config.js"
 import * as Streamer from "./effects/ndjson-streamer.js"
 import { setupCollectors } from "./init-collectors.js"
 import { getCommandLogs } from "./handlers/commandlog-handler.js"
@@ -11,7 +11,7 @@ import { enrichHotKeys } from "./analyzers/enrich-hot-keys.js"
 import { cpuFilter, cpuFinalize, cpuReducer, cpuSeed } from "./analyzers/calculate-cpu-usage.js"
 
 async function main() {
-  const cfg = loadConfig()
+  const cfg = getConfig()
   const ensureDir = (dir) => { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }) }
   ensureDir(cfg.server.data_dir)
 
@@ -28,7 +28,7 @@ async function main() {
   const stoppers = await setupCollectors(client, cfg)
 
   const app = express()
-
+  app.use(express.json())
   // public API goes here:
   app.get("/health", (_req, res) => res.json({ ok: true }))
 
@@ -77,6 +77,19 @@ async function main() {
       return res.json({ hotKeys })
     } 
     else useMonitor(req, res, cfg, client)
+  })
+
+  app.post("/update-config", async(req, res) => {
+    try {
+      const result = updateConfig(req.body)
+      return res.status(result.statusCode).json(result)
+    }
+    catch (error) {
+      return res.status(500).json( {
+        success: false,
+        message: error instanceof Error ? error.message : String(error),
+        data: error }) 
+    }
   })
 
   // Setting port to 0 means Express will dynamically find a port

@@ -4,6 +4,7 @@ import WebSocket from "ws"
 import { VALKEY } from "../../../common/src/constants"
 import { parseInfo, resolveHostnameOrIpAddress } from "./utils"
 import { sanitizeUrl } from "../../../common/src/url-utils.ts"
+import { type KeyEvictionPolicy } from "../../../common/src/constants"
 import { checkJsonModuleAvailability } from "./check-json-module.ts"
 
 export async function connectToValkey(
@@ -33,11 +34,11 @@ export async function connectToValkey(
     clients.set(payload.connectionId, standaloneClient)
     
     const evictionPolicyResponse = await standaloneClient.customCommand(["CONFIG", "GET", "maxmemory-policy"]) as [{key: string, value: string}]
-    const lfuEnabled = evictionPolicyResponse[0].value.toLowerCase().includes("lfu") ?? false
+    const keyEvictionPolicy: KeyEvictionPolicy = evictionPolicyResponse[0].value.toLowerCase() as KeyEvictionPolicy
     const jsonModuleAvailable = await checkJsonModuleAvailability(standaloneClient)
-
+    
     if (await belongsToCluster(standaloneClient)) {
-      return connectToCluster(standaloneClient, ws, clients, payload, addresses, lfuEnabled, jsonModuleAvailable)
+      return connectToCluster(standaloneClient, ws, clients, payload, addresses, keyEvictionPolicy, jsonModuleAvailable)
     }
     const connectionInfo = {
       type: VALKEY.CONNECTION.standaloneConnectFulfilled,
@@ -46,7 +47,7 @@ export async function connectToValkey(
         connectionDetails: {
           host: payload.host,
           port: payload.port,
-          lfuEnabled,
+          keyEvictionPolicy,
           jsonModuleAvailable,
         },
       },
@@ -136,7 +137,7 @@ async function connectToCluster(
   clients: Map<string, GlideClient | GlideClusterClient>,
   payload: { host: string; port: number; connectionId: string;},
   addresses: { host: string, port: number | undefined }[],
-  lfuEnabled: boolean,
+  keyEvictionPolicy: KeyEvictionPolicy,
   jsonModuleAvailable: boolean,
 ) {
   standaloneClient.customCommand(["CONFIG", "SET", "cluster-announce-hostname", addresses[0].host])
@@ -161,6 +162,10 @@ async function connectToCluster(
 
   clients.set(payload.connectionId, clusterClient)
 
+  const clusterSlotStatsResponse = await clusterClient.customCommand(
+    ["CONFIG", "GET", "cluster-slot-stats-enabled"],
+  ) as [Record<string, string>]
+  const clusterSlotStatsEnabled = clusterSlotStatsResponse[0].value === "yes" 
   const clusterConnectionInfo = {
     type: VALKEY.CONNECTION.clusterConnectFulfilled,
     payload: {
@@ -168,7 +173,8 @@ async function connectToCluster(
       clusterNodes,
       clusterId,
       address: addresses[0],
-      lfuEnabled,
+      keyEvictionPolicy,
+      clusterSlotStatsEnabled,
       jsonModuleAvailable,
     },
   }

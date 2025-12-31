@@ -6,7 +6,7 @@ import { sanitizeUrl } from "common/src/url-utils.ts"
 import { connectToValkey, returnIfDuplicateConnection } from "../connection.ts"
 import { resolveHostnameOrIpAddress, dns } from "../utils.ts"
 import { checkJsonModuleAvailability } from "../check-json-module.ts"
-import { VALKEY } from "../../../../common/src/constants.ts"
+import { KEY_EVICTION_POLICY, VALKEY } from "../../../../common/src/constants.ts"
 
 describe("connectToValkey", () => {
   let mockWs: any
@@ -64,7 +64,7 @@ describe("connectToValkey", () => {
       assert.deepStrictEqual(sentMessage.payload.connectionDetails, {
         host: "127.0.0.1",
         port: 6379,
-        lfuEnabled: true,
+        keyEvictionPolicy: KEY_EVICTION_POLICY.ALLKEYS_LFU,
         jsonModuleAvailable: false,
       })
     } finally {
@@ -76,29 +76,49 @@ describe("connectToValkey", () => {
     const mockStandaloneClient = {
       info: mock.fn(async () => "cluster_enabled:1"),
       customCommand: mock.fn(async (args: string[]) => {
+        console.log(`The actual command: ${args.join(" ")}`)
+        // MODULE LIST
+        if (args[0] === "MODULE" && args[1] === "LIST") {
+          return [[{ key: "name", value: "rejson" }]]
+        }
         if (
-          Array.isArray(args) &&
           args[0] === "CONFIG" &&
           args[1] === "GET" &&
           args[2] === "maxmemory-policy"
         ) {
+          return [{ key: "maxmemory-policy", value: "allkeys-lfu" }]
+        }
+
+        if (args[0] === "CLUSTER" && args[1] === "SLOTS") {
           return [
-            { key: "maxmemory-policy", value: "allkeys-lfu" },
+            [
+              0,
+              5460,
+              ["192.168.1.1", 6379, "node-1"],
+              ["192.168.1.2", 6379, "replica-1"],
+            ],
           ]
         }
-        return [
-          [
-            0,
-            5460,
-            ["192.168.1.1", 6379, "node-1"],
-            ["192.168.1.2", 6379, "replica-1"],
-          ],
-        ]}),
+
+        if (args[0] === "CONFIG" && args[1] === "SET") {
+          return "OK"
+        }
+        return [{ key:"", value: "" }]
+        
+      }),
       close: mock.fn(),
     }
 
     const mockClusterClient = {
-      customCommand: mock.fn(),
+      customCommand: mock.fn(async (args: string[]) => {
+        if (
+          args[0] === "CONFIG" &&
+          args[1] === "GET"
+        ) {
+          return [{ key:"", value: "" }]
+        }
+        return [{ key:"", value: "" }]
+      }),
       close: mock.fn(),
     }
 

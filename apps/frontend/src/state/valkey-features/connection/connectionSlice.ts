@@ -1,5 +1,14 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
-import { CONNECTED, CONNECTING, ERROR, LOCAL_STORAGE, NOT_CONNECTED, VALKEY, DISCONNECTED } from "@common/src/constants.ts"
+import {
+  CONNECTED,
+  CONNECTING,
+  DISCONNECTED,
+  ERROR,
+  LOCAL_STORAGE,
+  NOT_CONNECTED,
+  VALKEY,
+  type KeyEvictionPolicy
+} from "@common/src/constants"
 import * as R from "ramda"
 
 type ConnectionStatus = typeof NOT_CONNECTED | typeof CONNECTED | typeof CONNECTING | typeof ERROR | typeof DISCONNECTED;
@@ -14,7 +23,8 @@ interface ConnectionDetails {
   role?: Role;
   clusterId?: string;
   // Eviction policy required for getting hot keys using hot slots
-  lfuEnabled?: boolean;
+  keyEvictionPolicy?: KeyEvictionPolicy;
+  clusterSlotStatsEnabled?: boolean
   // JSON module availability check
   jsonModuleAvailable?: boolean;
 }
@@ -72,7 +82,16 @@ const connectionSlice = createSlice({
       state.connections[connectionId] = {
         status: CONNECTING,
         errorMessage: isRetry && existingConnection?.errorMessage ? existingConnection.errorMessage : null,
-        connectionDetails: { host, port, username, password, ...(alias && { alias }), lfuEnabled: false, jsonModuleAvailable: false },
+        connectionDetails: {
+          host,
+          port,
+          username,
+          password,
+          ...(alias && { alias }),
+          clusterSlotStatsEnabled: false,
+          jsonModuleAvailable: false,
+        },
+
         ...(isRetry && existingConnection?.reconnect && {
           reconnect: existingConnection.reconnect,
         }),
@@ -94,7 +113,7 @@ const connectionSlice = createSlice({
       if (connectionState) {
         connectionState.status = CONNECTED
         connectionState.errorMessage = null
-        connectionState.connectionDetails.lfuEnabled = connectionDetails.lfuEnabled ?? connectionState.connectionDetails.lfuEnabled
+        connectionState.connectionDetails.keyEvictionPolicy = connectionDetails.keyEvictionPolicy
         // eslint-disable-next-line max-len
         connectionState.connectionDetails.jsonModuleAvailable = connectionDetails.jsonModuleAvailable ?? connectionState.connectionDetails.lfuEnabled
 
@@ -112,18 +131,21 @@ const connectionSlice = createSlice({
         connectionId: string;
         clusterNodes: Record<string, ConnectionDetails>;
         clusterId: string;
-        lfuEnabled: boolean;
+        keyEvictionPolicy: KeyEvictionPolicy;
+        clusterSlotStatsEnabled: boolean;
         jsonModuleAvailable: boolean;
       }>,
     ) => {
-      const { connectionId, clusterId, lfuEnabled, jsonModuleAvailable } = action.payload
+      const { connectionId, clusterId, keyEvictionPolicy, clusterSlotStatsEnabled, jsonModuleAvailable } = action.payload
       const connectionState = state.connections[connectionId]
       if (connectionState) {
         connectionState.status = CONNECTED
         connectionState.errorMessage = null
         connectionState.connectionDetails.clusterId = clusterId
-        connectionState.connectionDetails.lfuEnabled = lfuEnabled
+        connectionState.connectionDetails.keyEvictionPolicy = keyEvictionPolicy
+        connectionState.connectionDetails.clusterSlotStatsEnabled = clusterSlotStatsEnabled
         connectionState.connectionDetails.jsonModuleAvailable = jsonModuleAvailable
+        
         // Clear retry state on successful connection
         delete connectionState.reconnect
 
