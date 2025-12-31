@@ -60,6 +60,12 @@ export const Monitoring = () => {
     }
   }
 
+  const refreshHotKeys = () => {
+    if (id) {
+      dispatch(hotKeysRequested({ connectionId: id, clusterId }))
+    }
+  }
+
   const getCurrentCommandLogData = () => {
     switch (commandLogSubTab) {
       case "slow":
@@ -111,9 +117,9 @@ export const Monitoring = () => {
                 <button
                   className={`py-3 px-2 inline-flex items-center gap-x-2 border-b-2 text-sm whitespace-nowrap transition-colors
                             ${isActive
-                  ? "border-tw-primary text-tw-primary"
-                  : "border-transparent hover:text-tw-primary text-gray-400"
-                }
+                      ? "border-tw-primary text-tw-primary"
+                      : "border-transparent hover:text-tw-primary text-gray-400"
+                    }
                         `}
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
@@ -124,6 +130,16 @@ export const Monitoring = () => {
             })}
           </nav>
         </div>
+
+        {/* Hot Keys Refresh */}
+        {activeTab === "hot-keys" && (
+          <button
+            className="flex items-center gap-2 font-light text-sm"
+            onClick={refreshHotKeys}
+          >
+            Refresh <RefreshCcw className="hover:text-tw-primary" size={15} />
+          </button>
+        )}
 
         {/* Command Log Sub-tabs and Refresh */}
         {activeTab === "command-logs" && (
@@ -136,9 +152,9 @@ export const Monitoring = () => {
                   <button
                     className={`py-1.5 px-3 text-xs whitespace-nowrap transition-colors rounded-full
                               ${isActive
-                    ? "bg-tw-primary text-white"
-                    : "bg-gray-200 dark:bg-gray-700 hover:bg-tw-primary/40"
-                  }
+                        ? "bg-tw-primary text-white"
+                        : "bg-gray-200 dark:bg-gray-700 hover:bg-tw-primary/40"
+                      }
                           `}
                     key={subTab.id}
                     onClick={() => setCommandLogSubTab(subTab.id)}
