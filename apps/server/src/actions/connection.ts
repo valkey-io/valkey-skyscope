@@ -1,7 +1,7 @@
 import { GlideClusterClient } from "@valkey/valkey-glide"
 import { connectToValkey } from "../connection.ts"
 import { type Deps, withDeps } from "./utils.ts"
-import { setClusterDashboardData } from "../setDashboardData.ts"
+import { setClusterDashboardData } from "../set-dashboard-data.ts"
 
 type ConnectPayload = {
   host: string

@@ -43,9 +43,14 @@ const sendCpuUsageError = (
   )
 }
 
+type RequestPayload = {
+  connectionIds: string[]
+  timeRange?: string
+}
+
 export const cpuUsageRequested = withDeps<Deps, void>(
   async ({ ws, metricsServerURIs, action }) => {
-    const { connectionIds, timeRange = "12h" } = action.payload
+    const { connectionIds, timeRange = "12h" } = action.payload as unknown as RequestPayload
     const promises = connectionIds.map(async (connectionId: string) => {
       const metricsServerURI = metricsServerURIs.get(connectionId)
       try {
@@ -63,7 +68,7 @@ export const cpuUsageRequested = withDeps<Deps, void>(
         const cutoffTime = now - hoursInMs[timeRange as TimeRange]
         const filteredResponse = parsedResponse.filter((item) => item.timestamp >= cutoffTime)
 
-        // downsampling baesed on the needed time range
+        // downsampling based on the needed time range
         const bucketSize = getBucketSize(timeRange as TimeRange)
         const downsampledResponse = downsampleData(filteredResponse, bucketSize)
 

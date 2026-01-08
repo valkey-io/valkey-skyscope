@@ -1,4 +1,4 @@
-import { sendValkeyRunCommand } from "../sendCommand.ts"
+import { sendValkeyRunCommand } from "../send-command.ts"
 import { VALKEY } from "../../../../common/src/constants.ts"
 import { type Deps, withDeps } from "./utils.ts"
 

@@ -2,7 +2,7 @@
 import { describe, it, mock, beforeEach } from "node:test"
 import assert from "node:assert"
 import { ConnectionError, TimeoutError, ClosingError } from "@valkey/valkey-glide"
-import { sendValkeyRunCommand } from "../sendCommand.ts"
+import { sendValkeyRunCommand } from "../send-command.ts"
 import { VALKEY } from "../../../../common/src/constants.ts"
 
 describe("sendValkeyRunCommand", () => {

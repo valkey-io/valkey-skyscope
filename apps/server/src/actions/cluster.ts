@@ -1,6 +1,6 @@
 import { GlideClusterClient } from "@valkey/valkey-glide"
 import { type Deps, withDeps } from "./utils.ts"
-import { setClusterDashboardData } from "../setDashboardData.ts"
+import { setClusterDashboardData } from "../set-dashboard-data.ts"
 
 export const setClusterData = withDeps<Deps, void>(
   async ({ ws, clients, connectionId, action }) => {

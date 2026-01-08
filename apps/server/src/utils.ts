@@ -16,15 +16,54 @@ type ParsedClusterInfo = {
   }
 }
 
-export const parseInfo = (infoStr: string ): Record<string, string> =>
-  infoStr.split("\n").reduce((acc, line) => {
-    if (!line || line.startsWith("#") || !line.includes(":")) return acc
-    const [key, value] = line.split(":").map((part) => part.trim())
-    acc[key] = value
-    return acc
-  }, {} as Record<string, string>)
+type FanoutItem = { key: string; value: string }
 
-export const parseResponse = R.when(R.includes(":"), parseInfo)
+// detect that a response from cluster is for a list of nodes like [{key, value}]
+const isFanout = (x: unknown): x is FanoutItem[] =>
+  Array.isArray(x) &&
+  x.every(
+    (e) =>
+      e &&
+      typeof e === "object" &&
+      typeof e.key === "string" &&
+      typeof e.value === "string",
+  )
+
+export const parseInfo = (infoStr: string): Record<string, string> =>
+  infoStr
+    .split(/\r?\n/)
+    .reduce((acc, line) => {
+      if (!line || line.startsWith("#")) return acc
+
+      const idx = line.indexOf(":")
+      if (idx === -1) return acc
+
+      const key = line.slice(0, idx).trim()
+      const value = line.slice(idx + 1).trim()
+
+      acc[key] = value
+      return acc
+    }, {} as Record<string, string>)
+
+export const parseInfoFanout = (items: FanoutItem[]) =>
+  items.map(({ key, value }) => ({
+    key,
+    value: parseInfo(value),
+  }))
+
+const looksLikeInfo = (x: unknown): x is string =>
+  typeof x === "string" && x.includes(":")
+
+type ParsedInfo = Record<string, string>
+type ParsedFanout = Array<{ key: string; value: ParsedInfo }>
+type ParseResponseOut = ParsedInfo | ParsedFanout | unknown
+
+export const parseResponse = (x: unknown): ParseResponseOut =>
+  isFanout(x)
+    ? parseInfoFanout(x)
+    : looksLikeInfo(x)
+      ? parseInfo(x)
+      : x
 
 export const parseClusterInfo = (rawInfo: ClusterResponse<string>): ParsedClusterInfo =>
 {

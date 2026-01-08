@@ -69,16 +69,13 @@ valkey_version:8.0.0`
   })
 
   it("should handle values with colons by splitting only on first colon", () => {
-    const infoStr = `url:http://localhost:6379
-time:12:30`
+    const infoStr = "url:http://localhost:6379\r\ntime:12:30"
 
     const result = parseInfo(infoStr)
 
-    // Note: split(":") with destructuring only takes first 2 elements
-    // so "url:http://localhost:6379" becomes key="url", value="http"
     assert.deepStrictEqual(result, {
-      url: "http",
-      time: "12",
+      url: "http://localhost:6379",
+      time: "12:30",
     })
   })
 })
@@ -108,7 +105,27 @@ describe("parseResponse", () => {
     assert.strictEqual(result, 123)
   })
 
-  it("should handle array responses", () => {
+  it("should parse fanout responses", () => {
+    const response = [
+      { key: "localhost:7001", value: "valkey_version:8.0.0\nvalkey_mode:cluster" },
+      { key: "localhost:7002", value: "# CPU\nused_cpu_sys:0.1" },
+    ]
+
+    const result = parseResponse(response as any)
+
+    assert.deepStrictEqual(result, [
+      {
+        key: "localhost:7001",
+        value: { valkey_version: "8.0.0", valkey_mode: "cluster" },
+      },
+      {
+        key: "localhost:7002",
+        value: { used_cpu_sys: "0.1" },
+      },
+    ])
+  })
+
+  it("should return non-fanout arrays unchanged", () => {
     const response = ["key1", "key2"]
     const result = parseResponse(response as any)
 
