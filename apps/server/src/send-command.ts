@@ -14,29 +14,23 @@ export async function sendValkeyRunCommand(
 ) {
   try {
     const response = await client.customCommand(payload.command.split(" "))
-
-    if (isRequestError(response)) {
-      ws.send(
-        JSON.stringify({
-          meta: { command: payload.command },
-          type: VALKEY.COMMAND.sendFailed,
-          payload: response,
-        }),
-      )
-    }
-
-    const parsed = parseResponse(response)
+    const isError = isRequestError(response)
 
     ws.send(
       JSON.stringify({
         meta: {
-          connectionId: payload.connectionId,
           command: payload.command,
+          connectionId: payload.connectionId,
         },
-        type: VALKEY.COMMAND.sendFulfilled,
-        payload: parsed,
+        type: isError
+          ? VALKEY.COMMAND.sendFailed
+          : VALKEY.COMMAND.sendFulfilled,
+        payload: isError
+          ? response
+          : parseResponse(response),
       }),
     )
+
   } catch (err) {
     console.error(`Valkey command error for ${payload.connectionId}:`, err)
 
