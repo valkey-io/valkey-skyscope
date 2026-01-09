@@ -10,7 +10,7 @@ import { mockConnectionState } from "@/test/utils/mocks"
 // Mock react-router
 const mockNavigate = vi.fn()
 let mockLocation = { pathname: "/conn-1/dashboard" }
-let mockParams = { id: "conn-1" }
+let mockParams: { id?: string } = { id: "conn-1" }
 
 vi.mock("react-router", async () => {
   const actual = await vi.importActual("react-router")
