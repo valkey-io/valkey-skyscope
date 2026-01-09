@@ -50,12 +50,6 @@ export const makeFetcher = (client) => ({
 
   commandlog_slow: async (count = 50) => {
     const entries = await client.sendCommand(["COMMANDLOG", "GET", String(count), COMMANDLOG_TYPE.SLOW])
-    const values = parseCommandLogs(entries)
-    return [{ ts: Date.now(), metric: COMMANDLOG_SLOW, values }]
-  },
-
-  commandlog_slow: async (count = 50) => {
-    const entries = await client.sendCommand(["COMMANDLOG", "GET", String(count), COMMANDLOG_TYPE.SLOW])
     const values = parseCommandLogs(entries, COMMANDLOG_TYPE.SLOW)
     return [{ ts: Date.now(), metric: COMMANDLOG_SLOW, values }]
   },
