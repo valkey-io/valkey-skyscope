@@ -6,9 +6,10 @@ import YAML from "yaml"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+const cfgPath = process.env.CONFIG_PATH || path.join(__dirname, "..", "config.yml")
+
 let config = null
 const loadConfig = () => {
-  const cfgPath = process.env.CONFIG_PATH || path.join(__dirname, "..", "config.yml")
   const text = fs.readFileSync(cfgPath, "utf8")
   const parsed = YAML.parse(text) || {}
 
@@ -42,10 +43,9 @@ const loadConfig = () => {
 
   return cfg
 }
-const getConfig = () => config ? config : loadConfig() 
+const getConfig = () => config ? config : loadConfig()
 
 const setConfig = (newConfig) => {
-  const cfgPath = getConfigPath()
   const tmpPath = `${cfgPath}.tmp`
 
   fs.writeFileSync(tmpPath, YAML.stringify(newConfig), "utf8")
