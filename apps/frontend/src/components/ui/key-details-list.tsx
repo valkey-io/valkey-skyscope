@@ -128,139 +128,120 @@ export default function KeyDetailsList(
 
   return (
     <div className="flex items-center justify-center w-full p-4">
-      <table className="table-auto w-full overflow-visible">
-        <thead className="bg-tw-dark-border opacity-85 text-white">
-          <tr>
-            <th className="w-1/2 py-3 px-4 text-left font-semibold">
-              Index
-            </th>
-            <th className="w-1/2 py-3 px-4 text-left font-semibold">
-              Elements
-            </th>
-            <th className="">
-              {!readOnly && (isEditable ? (
-                <div className="flex gap-1">
-                  <CustomTooltip content="Save">
-                    <Button
-                      className="text-tw-primary hover:text-tw-primary"
-                      onClick={handleSave}
-                      variant={"secondary"}
-                    >
-                      <Check />
-                    </Button>
-                  </CustomTooltip>
-                  <CustomTooltip content="Cancel">
-                    <Button
-                      onClick={handleEdit}
-                      variant={"destructiveGhost"}
-                    >
-                      <X />
-                    </Button>
-                  </CustomTooltip>
-                </div>
-              ) : (
-                <CustomTooltip content="Edit">
+      <div className="w-full">
+        <div className="grid grid-cols-4 gap-4 bg-tw-dark-border opacity-85 text-white items-center py-1 px-4">
+          <div className="font-semibold text-left">Index</div>
+          <div className="col-span-2 font-semibold text-left">Elements</div>
+          <div className="flex justify-end gap-1">
+            {!readOnly && (isEditable ? (
+              <>
+                <CustomTooltip content="Save">
                   <Button
-                    className="mr-1"
-                    onClick={handleEdit}
-                    variant={"ghost"}
+                    className="text-tw-primary hover:text-tw-primary"
+                    onClick={handleSave}
+                    variant={"secondary"}
                   >
-                    <Pencil />
+                    <Check />
                   </Button>
                 </CustomTooltip>
-              ))}
-              
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {selectedKeyInfo.elements
-            .map((element: string, index: number) => ({ element, index }))
-            .filter(({ index }) => !deletedIndices.has(index))
-            .map(({ element, index }) => (
-              <tr key={index}>
-                <td className="py-3 px-4 border-b border-tw-dark-border font-light dark:text-white">
-                  {index}
-                </td>
-                <td className="py-3 px-4 border-b border-tw-dark-border font-light dark:text-white">
-                  {isEditable ? (
-                    <div className="flex gap-2">
-                      <input
-                        className="w-full p-2 dark:bg-tw-dark-bg dark:border-tw-dark-border border rounded focus:outline-none
-                                          focus:ring-2 focus:ring-blue-500"
-                        onChange={(e) => handleListFieldChange(index, e.target.value)}
-                        type="text"
-                        value={editedListValues[index] || ""}
-                      />
-                      <div className="relative">
-                        <CustomTooltip content="Delete element">
-                          <Button
-                            onClick={() => handleDeleteElement(index)}
-                            variant={"destructiveGhost"}
-                          >
-                            <Trash/>
-                          </Button>
-                        </CustomTooltip>
-                        {pendingDeleteIndex === index && (
-                          <DeleteModal
-                            itemName={`Index ${index}`}
-                            message="You are deleting element:"
-                            onCancel={cancelDeleteElement}
-                            onConfirm={confirmDeleteElement}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    String(element)
-                  )}
-                </td>
-                <td className="py-3 px-4 border-b border-tw-dark-border font-light dark:text-white"></td>
-              </tr>
-            ))}
-          {isEditable && newItems.map((newItem) => (
-            <tr key={newItem.tempId}>
-              <td className="py-3 px-4 border-b border-tw-dark-border font-light dark:text-white">
-                New
-              </td>
-              <td className="py-3 px-4 border-b border-tw-dark-border font-light dark:text-white">
-                <div className="flex gap-2">
-                  <input
-                    className="w-full p-2 dark:bg-tw-dark-bg dark:border-tw-dark-border border rounded focus:outline-none
-                                      focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => handleNewItemChange(newItem.tempId, e.target.value)}
-                    placeholder="Enter value"
-                    type="text"
-                    value={newItem.value}
-                  />
-                  <CustomTooltip content="Remove item">
-                    <Button
-                      onClick={() => handleRemoveNewItem(newItem.tempId)}
-                      variant={"destructiveGhost"}
-                    >
-                      <X/>
-                    </Button>
-                  </CustomTooltip>
-                </div>
-              </td>
-              <td className="py-3 px-4 border-b border-tw-dark-border font-light dark:text-white"></td>
-            </tr>
-          ))}
-          {isEditable && (
-            <tr>
-              <td className="py-3 px-4" colSpan={3}>
+                <CustomTooltip content="Cancel">
+                  <Button
+                    onClick={handleEdit}
+                    variant={"destructiveGhost"}
+                  >
+                    <X />
+                  </Button>
+                </CustomTooltip>
+              </>
+            ) : (
+              <CustomTooltip content="Edit">
                 <Button
-                  className="w-full"
-                  onClick={handleAddNewItem}
-                  variant={"secondary"}
+                  className="mr-1"
+                  onClick={handleEdit}
+                  variant={"ghost"}
                 >
-                  <Plus className="mr-2" /> Add
+                  <Pencil />
                 </Button>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+              </CustomTooltip>
+            ))}
+          </div>
+        </div>
+        {selectedKeyInfo.elements
+          .map((element: string, index: number) => ({ element, index }))
+          .filter(({ index }) => !deletedIndices.has(index))
+          .map(({ element, index }) => (
+            <div className="grid grid-cols-4 gap-4 py-3 px-4 border-b border-tw-dark-border font-light dark:text-white" key={index}>
+              <div>{index}</div>
+              <div className="col-span-3">
+                {isEditable ? (
+                  <div className="flex gap-2 relative">
+                    <input
+                      className="w-full p-2 dark:bg-tw-dark-bg dark:border-tw-dark-border border rounded focus:outline-none
+                                        focus:ring-2 focus:ring-tw-primary"
+                      onChange={(e) => handleListFieldChange(index, e.target.value)}
+                      type="text"
+                      value={editedListValues[index] || ""}
+                    />
+                    <CustomTooltip content="Delete element">
+                      <Button
+                        onClick={() => handleDeleteElement(index)}
+                        variant={"destructiveGhost"}
+                      >
+                        <Trash/>
+                      </Button>
+                    </CustomTooltip>
+                    {pendingDeleteIndex === index && (
+                      <DeleteModal
+                        itemName={`Index ${index}`}
+                        message="You are deleting element:"
+                        onCancel={cancelDeleteElement}
+                        onConfirm={confirmDeleteElement}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  String(element)
+                )}
+              </div>
+            </div>
+          ))}
+        {isEditable && newItems.map((newItem) => (
+          <div className="grid grid-cols-4 gap-4 py-3 px-4 border-b border-tw-dark-border font-light dark:text-white" key={newItem.tempId}>
+            <div>New</div>
+            <div className="col-span-3">
+              <div className="flex gap-2">
+                <input
+                  className="w-full p-2 dark:bg-tw-dark-bg dark:border-tw-dark-border border rounded focus:outline-none
+                                    focus:ring-2 focus:ring-tw-primary"
+                  onChange={(e) => handleNewItemChange(newItem.tempId, e.target.value)}
+                  placeholder="Enter value"
+                  type="text"
+                  value={newItem.value}
+                />
+                <CustomTooltip content="Remove item">
+                  <Button
+                    onClick={() => handleRemoveNewItem(newItem.tempId)}
+                    variant={"destructiveGhost"}
+                  >
+                    <X/>
+                  </Button>
+                </CustomTooltip>
+              </div>
+            </div>
+          </div>
+        ))}
+        {isEditable && (
+          <div className="py-3 px-4">
+            <Button
+              className="w-full"
+              onClick={handleAddNewItem}
+              variant={"secondary"}
+            >
+              <Plus className="mr-2" /> Add
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
