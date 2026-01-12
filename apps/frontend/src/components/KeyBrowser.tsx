@@ -3,23 +3,19 @@ import { useSelector } from "react-redux"
 import * as R from "ramda"
 import { useParams } from "react-router"
 import { TooltipProvider } from "@radix-ui/react-tooltip"
-import { convertTTL } from "@common/src/ttl-conversion"
 import { formatBytes } from "@common/src/bytes-conversion"
 import { calculateTotalMemoryUsage } from "@common/src/memory-usage-calculation"
 import {
   KeyRound,
-  Key,
-  Hourglass,
-  Database,
   RefreshCw,
   Search,
   ListFilter,
   CircleX
 } from "lucide-react"
-import { CustomTooltip } from "./ui/custom-tooltip"
 import { AppHeader } from "./ui/app-header"
 import AddNewKey from "./ui/add-key"
 import KeyDetails from "./ui/key-details"
+import { KeyTree } from "./ui/key-tree"
 import { useAppDispatch } from "@/hooks/hooks"
 import {
   selectKeys,
@@ -213,54 +209,12 @@ export function KeyBrowser() {
               </div>
             ) : (
               <div className={`h-full dark:border-tw-dark-border border rounded overflow-hidden ${loading ? "opacity-50 pointer-events-none" : ""}`}>
-                <ul className="h-full overflow-y-auto space-y-2 p-2">
-                  {filteredKeys.map((keyInfo: KeyInfo, index) => (
-                    <li
-                      className={`h-16 p-2 dark:border-tw-dark-border border hover:bg-tw-primary/30
-                      cursor-pointer rounded flex items-center gap-2 justify-between ${selectedKey === keyInfo.name ? "bg-tw-primary/80 hover:bg-tw-primary/80" : ""}`}
-                      key={index}
-                      onClick={() => handleKeyClick(keyInfo.name)}
-                    >
-                      <div className=" items-center gap-2">
-                        <span className="flex items-center gap-2">
-                          <Key size={16} /> {keyInfo.name}
-                        </span>
-                        <div className={`ml-6 text-xs font-light uppercase text-tw-primary ${selectedKey === keyInfo.name ? "text-white" : ""}`}>
-                          {keyInfo.type === "ReJSON-RL" ? "json" : keyInfo.type}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs">
-                        {keyInfo.size && (
-                          <CustomTooltip content="Size">
-                            <span
-                              className={`flex items-center justify-between gap-1 text-xs px-2 py-1 
-                             text-tw-primary ${selectedKey === keyInfo.name ? "text-white" : ""} dark:text-white`}
-                            >
-                              <Database
-                                className="text-white bg-tw-primary p-1 rounded-full"
-                                size={20}
-                              />{" "}
-                              {formatBytes(keyInfo.size)}
-                            </span>
-                          </CustomTooltip>
-                        )}
-                        {/* text-red-400 is a placehodler for now, will change to a custom tw color */}
-                        <CustomTooltip content="TTL">
-                          <span
-                            className={`flex items-center justify-between gap-1 text-xs px-2 py-1 
-                              text-tw-primary ${selectedKey === keyInfo.name ? "text-white" : ""} dark:text-white`}
-                          >
-                            <Hourglass
-                              className="text-white bg-tw-primary p-1 rounded-full"
-                              size={20}
-                            />{" "}
-                            {convertTTL(keyInfo.ttl)}
-                          </span>
-                        </CustomTooltip>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                <KeyTree
+                  keys={filteredKeys}
+                  loading={loading}
+                  onKeyClick={handleKeyClick}
+                  selectedKey={selectedKey}
+                />
               </div>
             )}
           </div>
