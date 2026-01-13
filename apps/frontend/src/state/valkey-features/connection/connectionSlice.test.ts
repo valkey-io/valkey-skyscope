@@ -27,11 +27,16 @@ describe("connectionSlice", () => {
         initialState,
         connectPending({
           connectionId: "conn-1",
-          host: "localhost",
-          port: "6379",
-          username: "admin",
-          password: "secret",
-          alias: "Test",
+          connectionDetails: {
+            host: "localhost",
+            port: "6379",
+            username: "admin",
+            password: "secret",
+            tls: false, 
+            verifyTlsCertificate: false,
+            alias: "Test",
+          },
+
         }),
       )
 
@@ -43,6 +48,8 @@ describe("connectionSlice", () => {
           port: "6379",
           username: "admin",
           password: "secret",
+          tls: false, 
+          verifyTlsCertificate: false,
           alias: "Test",
           clusterSlotStatsEnabled: false,
           jsonModuleAvailable: false,
@@ -56,13 +63,17 @@ describe("connectionSlice", () => {
         initialState,
         connectPending({
           connectionId: "conn-1",
-          host: "localhost",
-          port: "6379",
+          connectionDetails: {
+            host: "localhost",
+            port: "6379",
+            tls: false, 
+            verifyTlsCertificate: false,
+          },
         }),
       )
 
-      expect(state.connections["conn-1"].connectionDetails.username).toBe("")
-      expect(state.connections["conn-1"].connectionDetails.password).toBe("")
+      expect(state.connections["conn-1"].connectionDetails.username).toBeUndefined()
+      expect(state.connections["conn-1"].connectionDetails.password).toBeUndefined()
       expect(state.connections["conn-1"].connectionDetails.alias).toBeUndefined()
     })
 
@@ -73,7 +84,7 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: ERROR,
             errorMessage: "Connection failed",
-            connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
             connectionHistory: history,
             reconnect: { isRetrying: true, currentAttempt: 1, maxRetries: 8 },
           },
@@ -84,8 +95,12 @@ describe("connectionSlice", () => {
         previousState,
         connectPending({
           connectionId: "conn-1",
-          host: "localhost",
-          port: "6379",
+          connectionDetails: {
+            host: "localhost",
+            port: "6379",
+            tls: false, 
+            verifyTlsCertificate: false,
+          },
           isRetry: true,
         }),
       )
@@ -100,7 +115,7 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: ERROR,
             errorMessage: "Original error",
-            connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
             reconnect: { isRetrying: true, currentAttempt: 1, maxRetries: 8 },
           },
         } as ValkeyConnectionsState,
@@ -110,8 +125,12 @@ describe("connectionSlice", () => {
         previousState,
         connectPending({
           connectionId: "conn-1",
-          host: "localhost",
-          port: "6379",
+          connectionDetails: {
+            host: "localhost",
+            port: "6379",
+            tls: false, 
+            verifyTlsCertificate: false,
+          },
           isRetry: true,
         }),
       )
@@ -124,8 +143,12 @@ describe("connectionSlice", () => {
         initialState,
         connectPending({
           connectionId: "conn-1",
-          host: "localhost",
-          port: "6379",
+          connectionDetails: {
+            host: "localhost",
+            port: "6379",
+            tls: false, 
+            verifyTlsCertificate: false,
+          },
           isEdit: true,
         }),
       )
@@ -143,8 +166,12 @@ describe("connectionSlice", () => {
         initialState,
         connectPending({
           connectionId: "conn-1",
-          host: "localhost",
-          port: "6379",
+          connectionDetails: {
+            host: "localhost",
+            port: "6379",
+            tls: false, 
+            verifyTlsCertificate: false,
+          },
           preservedHistory,
         }),
       )
@@ -165,6 +192,8 @@ describe("connectionSlice", () => {
               port: "6379",
               username: "",
               password: "",
+              tls:false,
+              verifyTlsCertificate: false,
               clusterSlotStatsEnabled: false,
               jsonModuleAvailable: false,
             },
@@ -181,6 +210,8 @@ describe("connectionSlice", () => {
             port: "6379",
             username: "",
             password: "",
+            tls:false,
+            verifyTlsCertificate: false,
             keyEvictionPolicy: "allkeys-lru",
             jsonModuleAvailable: true,
           },
@@ -199,7 +230,7 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: CONNECTING,
             errorMessage: null,
-            connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
           },
         } as ValkeyConnectionsState,
       }
@@ -208,7 +239,7 @@ describe("connectionSlice", () => {
         previousState,
         standaloneConnectFulfilled({
           connectionId: "conn-1",
-          connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+          connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
         }),
       )
 
@@ -223,7 +254,7 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: CONNECTING,
             errorMessage: null,
-            connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
             wasEdit: true,
           },
         } as ValkeyConnectionsState,
@@ -233,7 +264,7 @@ describe("connectionSlice", () => {
         previousState,
         standaloneConnectFulfilled({
           connectionId: "conn-1",
-          connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+          connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
         }),
       )
 
@@ -248,7 +279,7 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: CONNECTING,
             errorMessage: null,
-            connectionDetails: { host: "localhost", port: "7000", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
             reconnect: { isRetrying: true, currentAttempt: 1, maxRetries: 8 },
           },
         } as ValkeyConnectionsState,
@@ -280,7 +311,7 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: CONNECTING,
             errorMessage: null,
-            connectionDetails: { host: "localhost", port: "7000", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
             reconnect: { isRetrying: true, currentAttempt: 2, maxRetries: 8 },
           },
         } as ValkeyConnectionsState,
@@ -307,7 +338,7 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: CONNECTING,
             errorMessage: null,
-            connectionDetails: { host: "localhost", port: "7000", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
             wasEdit: true,
           },
         } as ValkeyConnectionsState,
@@ -337,7 +368,7 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: CONNECTING,
             errorMessage: null,
-            connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
           },
         } as ValkeyConnectionsState,
       }
@@ -360,7 +391,7 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: CONNECTING,
             errorMessage: "Original error",
-            connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
             reconnect: { isRetrying: true, currentAttempt: 2, maxRetries: 8 },
           },
         } as ValkeyConnectionsState,
@@ -383,7 +414,7 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: CONNECTING,
             errorMessage: null,
-            connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
           },
         } as ValkeyConnectionsState,
       }
@@ -406,7 +437,7 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: ERROR,
             errorMessage: "Connection failed",
-            connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
           },
         } as ValkeyConnectionsState,
       }
@@ -437,7 +468,7 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: ERROR,
             errorMessage: "Failed",
-            connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
             reconnect: { isRetrying: true, currentAttempt: 3, maxRetries: 8 },
           },
         } as ValkeyConnectionsState,
@@ -461,7 +492,7 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: CONNECTED,
             errorMessage: null,
-            connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
           },
         } as ValkeyConnectionsState,
       }
@@ -485,7 +516,7 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: CONNECTED,
             errorMessage: "Some error",
-            connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
           },
         } as ValkeyConnectionsState,
       }
@@ -509,7 +540,8 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: CONNECTED,
             errorMessage: null,
-            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", alias: "Old" },
+            connectionDetails: { host: "localhost", 
+              port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false, alias: "Old" },
           },
         } as ValkeyConnectionsState,
       }
@@ -536,12 +568,12 @@ describe("connectionSlice", () => {
           "conn-1": {
             status: CONNECTED,
             errorMessage: null,
-            connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
           },
           "conn-2": {
             status: CONNECTED,
             errorMessage: null,
-            connectionDetails: { host: "localhost", port: "6380", username: "", password: "" },
+            connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
           },
         } as ValkeyConnectionsState,
       }
@@ -562,8 +594,12 @@ describe("connectionSlice", () => {
         initialState,
         connectPending({
           connectionId: "conn-1",
-          host: "localhost",
-          port: "6379",
+          connectionDetails: {
+            host: "localhost",
+            port: "6379",
+            tls: false, 
+            verifyTlsCertificate: false,
+          },
         }),
       )
       expect(state.connections["conn-1"].status).toBe(CONNECTING)
@@ -572,7 +608,7 @@ describe("connectionSlice", () => {
         state,
         standaloneConnectFulfilled({
           connectionId: "conn-1",
-          connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+          connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
         }),
       )
       expect(state.connections["conn-1"].status).toBe(CONNECTED)
@@ -583,8 +619,12 @@ describe("connectionSlice", () => {
         initialState,
         connectPending({
           connectionId: "conn-1",
-          host: "localhost",
-          port: "6379",
+          connectionDetails: {
+            host: "localhost",
+            port: "6379",
+            tls: false, 
+            verifyTlsCertificate: false,
+          },
         }),
       )
 
@@ -612,8 +652,12 @@ describe("connectionSlice", () => {
         state,
         connectPending({
           connectionId: "conn-1",
-          host: "localhost",
-          port: "6379",
+          connectionDetails: {
+            host: "localhost",
+            port: "6379",
+            tls: false, 
+            verifyTlsCertificate: false,
+          },
           isRetry: true,
         }),
       )
@@ -623,7 +667,7 @@ describe("connectionSlice", () => {
         state,
         standaloneConnectFulfilled({
           connectionId: "conn-1",
-          connectionDetails: { host: "localhost", port: "6379", username: "", password: "" },
+          connectionDetails: { host: "localhost", port: "6379", username: "", password: "", tls: false, verifyTlsCertificate: false },
         }),
       )
       expect(state.connections["conn-1"].status).toBe(CONNECTED)
