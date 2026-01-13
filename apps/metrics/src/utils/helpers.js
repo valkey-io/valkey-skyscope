@@ -60,10 +60,18 @@ export const downsampleMinMaxOrdered = R.curry(({ maxPoints }, series) => {
   }
 
   const out = buckets.reduce((acc, b) => {
-    if (b.min) acc.push(b.min)
-    if (b.max) acc.push(b.max)
+    if (!b.min) return acc
+
+    if (b.min === b.max) acc.push(b.min) // just pick any
+
+    // Emit extrema in timestamp order (min/max are value-based, not time-based).
+    else if (b.min.timestamp <= b.max.timestamp) acc.push(b.min, b.max)
+
+    else acc.push(b.max, b.min)
+
     return acc
   }, [first])
+
   out.push(last)
 
   return out
