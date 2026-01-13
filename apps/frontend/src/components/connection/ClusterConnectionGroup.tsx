@@ -147,7 +147,7 @@ export const ClusterConnectionGroup = ({ clusterId, connections, onEdit }: Clust
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
-                              display: "block"
+                              display: "block",
                             }}
                             title={firstNodeAlias || clusterId}
                             to={`/${clusterId}/${firstConnectedConnection.connectionId}/cluster-topology`}
@@ -163,13 +163,15 @@ export const ClusterConnectionGroup = ({ clusterId, connections, onEdit }: Clust
                   ) : (
                     <div className="min-w-0 flex-1 overflow-hidden max-w-[200px]">
                       <h3
-                        className="font-mono text-sm text-gray-900 dark:text-white cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap"
+                        className="
+                          font-mono text-sm text-gray-900 dark:text-white
+                          cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap"
                         onClick={() => setIsOpen(!isOpen)}
                         style={{
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
-                          display: "block"
+                          display: "block",
                         }}
                         title={firstNodeAlias || clusterId}
                       >
