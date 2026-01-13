@@ -1,6 +1,5 @@
 import fs from "node:fs"
 import express from "express"
-import * as R from "ramda"
 import { getConfig, updateConfig } from "./config.js"
 import * as Streamer from "./effects/ndjson-streamer.js"
 import { setupCollectors } from "./init-collectors.js"
@@ -9,10 +8,10 @@ import { monitorHandler, useMonitor } from "./handlers/monitor-handler.js"
 import { calculateHotKeysFromHotSlots } from "./analyzers/calculate-hot-keys.js"
 import { enrichHotKeys } from "./analyzers/enrich-hot-keys.js"
 import cpuFold from "./analyzers/calculate-cpu-usage.js"
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { GlideClient } = require("@valkey/valkey-glide")
 import memoryFold from "./analyzers/memory-metrics.js"
 import { cpuQuerySchema, memoryQuerySchema, parseQuery } from "./api-schema.js"
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { GlideClient } = require("@valkey/valkey-glide")
 
 async function main() {
   const cfg = getConfig()
