@@ -28,7 +28,7 @@ describe("calculate-hot-keys (calculateHotKeysFromHotSlots)", () => {
       ])
 
       // Mock SCAN responses with realistic cursor values
-      client.sendCommand.mockImplementation(async (cmd) => {
+      client.customCommand.mockImplementation(async (cmd) => {
         if (cmd[0] === "SCAN") {
           const cursor = parseInt(cmd[1])
 
@@ -61,7 +61,7 @@ describe("calculate-hot-keys (calculateHotKeysFromHotSlots)", () => {
     it("should use heap to maintain top-K efficiently", async () => {
       getHotSlots.mockResolvedValue([{ slotId: 1000, cpuUsec: 10000 }])
 
-      client.sendCommand.mockImplementation(async (cmd) => {
+      client.customCommand.mockImplementation(async (cmd) => {
         if (cmd[0] === "SCAN") {
           const cursor = parseInt(cmd[1])
           // Slot 1000: Return all keys in one batch, then wrap
@@ -93,7 +93,7 @@ describe("calculate-hot-keys (calculateHotKeysFromHotSlots)", () => {
     it("should filter out keys with frequency <= 1", async () => {
       getHotSlots.mockResolvedValue([{ slotId: 1000, cpuUsec: 10000 }])
 
-      client.sendCommand.mockImplementation(async (cmd) => {
+      client.customCommand.mockImplementation(async (cmd) => {
         if (cmd[0] === "SCAN") {
           const cursor = parseInt(cmd[1])
           if (cursor === 1000) {
@@ -120,7 +120,7 @@ describe("calculate-hot-keys (calculateHotKeysFromHotSlots)", () => {
     it("should handle cursor wrapping (cursor === 0)", async () => {
       getHotSlots.mockResolvedValue([{ slotId: 200, cpuUsec: 10000 }])
 
-      client.sendCommand.mockImplementation(async (cmd) => {
+      client.customCommand.mockImplementation(async (cmd) => {
         if (cmd[0] === "SCAN") {
           const cursor = parseInt(cmd[1])
 
@@ -155,7 +155,7 @@ describe("calculate-hot-keys (calculateHotKeysFromHotSlots)", () => {
       getHotSlots.mockResolvedValue([{ slotId: 1000, cpuUsec: 10000 }])
 
       const freqCalls = []
-      client.sendCommand.mockImplementation(async (cmd) => {
+      client.customCommand.mockImplementation(async (cmd) => {
         if (cmd[0] === "SCAN") {
           const cursor = parseInt(cmd[1])
           if (cursor === 1000) {
@@ -184,7 +184,7 @@ describe("calculate-hot-keys (calculateHotKeysFromHotSlots)", () => {
       ])
 
       const scanCalls = []
-      client.sendCommand.mockImplementation(async (cmd) => {
+      client.customCommand.mockImplementation(async (cmd) => {
         if (cmd[0] === "SCAN") {
           const cursor = parseInt(cmd[1])
           scanCalls.push(cursor)  // Track which slots were scanned
@@ -226,7 +226,7 @@ describe("calculate-hot-keys (calculateHotKeysFromHotSlots)", () => {
     it("should handle slots with no keys", async () => {
       getHotSlots.mockResolvedValue([{ slotId: 1000, cpuUsec: 10000 }])
 
-      client.sendCommand.mockImplementation(async (cmd) => {
+      client.customCommand.mockImplementation(async (cmd) => {
         if (cmd[0] === "SCAN") {
           const cursor = parseInt(cmd[1])
           if (cursor === 1000) {
@@ -245,7 +245,7 @@ describe("calculate-hot-keys (calculateHotKeysFromHotSlots)", () => {
     it("should respect count parameter", async () => {
       getHotSlots.mockResolvedValue([{ slotId: 1000, cpuUsec: 10000 }])
 
-      client.sendCommand.mockImplementation(async (cmd) => {
+      client.customCommand.mockImplementation(async (cmd) => {
         if (cmd[0] === "SCAN") {
           const cursor = parseInt(cmd[1])
           if (cursor === 1000) {

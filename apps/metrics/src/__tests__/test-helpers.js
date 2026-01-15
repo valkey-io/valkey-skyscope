@@ -4,7 +4,7 @@ import { vi } from "vitest"
  * Creates a mock Valkey client with commonly used methods
  */
 export const createMockValkeyClient = (overrides = {}) => ({
-  sendCommand: vi.fn().mockResolvedValue([]),
+  customCommand: vi.fn().mockResolvedValue([]),
   info: vi.fn().mockResolvedValue(""),
   disconnect: vi.fn(),
   monitor: vi.fn().mockResolvedValue(createMockMonitor()),

@@ -19,7 +19,7 @@ describe("fetchers", () => {
 
   describe("memory_stats", () => {
     it("should parse array pairs correctly", async () => {
-      client.sendCommand.mockResolvedValue([
+      client.customCommand.mockResolvedValue([
         "peak.allocated",
         1000000,
         "used.memory",
@@ -47,7 +47,7 @@ describe("fetchers", () => {
     })
 
     it("should convert object responses to rows", async () => {
-      client.sendCommand.mockResolvedValue({
+      client.customCommand.mockResolvedValue({
         "peak.allocated": 1000000,
         "used.memory": 800000,
       })
@@ -60,7 +60,7 @@ describe("fetchers", () => {
     })
 
     it("should filter out non-numeric values", async () => {
-      client.sendCommand.mockResolvedValue([
+      client.customCommand.mockResolvedValue([
         "valid.metric",
         100,
         "invalid.metric",
@@ -82,7 +82,7 @@ describe("fetchers", () => {
     })
 
     it("should replace dots in metric names with underscores", async () => {
-      client.sendCommand.mockResolvedValue([
+      client.customCommand.mockResolvedValue([
         "used.memory.peak",
         1000,
         "another.metric.with.dots",
@@ -96,7 +96,7 @@ describe("fetchers", () => {
     })
 
     it("should add timestamp to all rows", async () => {
-      client.sendCommand.mockResolvedValue(["metric1", 100, "metric2", 200])
+      client.customCommand.mockResolvedValue(["metric1", 100, "metric2", 200])
 
       const result = await fetcher.memory_stats()
 
@@ -196,11 +196,11 @@ describe("fetchers", () => {
         ],
       ]
 
-      client.sendCommand.mockResolvedValue(mockEntries)
+      client.customCommand.mockResolvedValue(mockEntries)
 
       const result = await fetcher.commandlog_slow(50)
 
-      expect(client.sendCommand).toHaveBeenCalledWith([
+      expect(client.customCommand).toHaveBeenCalledWith([
         "COMMANDLOG",
         "GET",
         "50",
@@ -213,11 +213,11 @@ describe("fetchers", () => {
     })
 
     it("should use correct COMMANDLOG type constant", async () => {
-      client.sendCommand.mockResolvedValue([])
+      client.customCommand.mockResolvedValue([])
 
       await fetcher.commandlog_slow()
 
-      expect(client.sendCommand).toHaveBeenCalledWith(
+      expect(client.customCommand).toHaveBeenCalledWith(
         expect.arrayContaining(["slow"]),
       )
     })
@@ -227,7 +227,7 @@ describe("fetchers", () => {
         [1, 1672531200, 1500, ["GET", "key"], "127.0.0.1:6379", "client"],
       ]
 
-      client.sendCommand.mockResolvedValue(mockEntries)
+      client.customCommand.mockResolvedValue(mockEntries)
 
       const result = await fetcher.commandlog_slow()
 
@@ -237,7 +237,7 @@ describe("fetchers", () => {
     })
 
     it("should handle empty response", async () => {
-      client.sendCommand.mockResolvedValue([])
+      client.customCommand.mockResolvedValue([])
 
       const result = await fetcher.commandlog_slow()
 
@@ -252,11 +252,11 @@ describe("fetchers", () => {
         [1, 1672531200, 1024000, ["LRANGE", "list", "0", "-1"], "", ""],
       ]
 
-      client.sendCommand.mockResolvedValue(mockEntries)
+      client.customCommand.mockResolvedValue(mockEntries)
 
       const result = await fetcher.commandlog_large_reply(50)
 
-      const callArgs = client.sendCommand.mock.calls[0][0]
+      const callArgs = client.customCommand.mock.calls[0][0]
       expect(callArgs[0]).toBe("COMMANDLOG")
       expect(callArgs[1]).toBe("GET")
       expect(callArgs[2]).toBe("50")
@@ -266,11 +266,11 @@ describe("fetchers", () => {
     })
 
     it("should use correct constant", async () => {
-      client.sendCommand.mockResolvedValue([])
+      client.customCommand.mockResolvedValue([])
 
       await fetcher.commandlog_large_reply()
 
-      const callArgs = client.sendCommand.mock.calls[0][0]
+      const callArgs = client.customCommand.mock.calls[0][0]
       expect(callArgs).toContain("large-reply")
     })
   })
@@ -288,11 +288,11 @@ describe("fetchers", () => {
         ],
       ]
 
-      client.sendCommand.mockResolvedValue(mockEntries)
+      client.customCommand.mockResolvedValue(mockEntries)
 
       const result = await fetcher.commandlog_large_request(50)
 
-      const callArgs = client.sendCommand.mock.calls[0][0]
+      const callArgs = client.customCommand.mock.calls[0][0]
       expect(callArgs[0]).toBe("COMMANDLOG")
       expect(callArgs[1]).toBe("GET")
       expect(callArgs[2]).toBe("50")
@@ -302,11 +302,11 @@ describe("fetchers", () => {
     })
 
     it("should use correct constant", async () => {
-      client.sendCommand.mockResolvedValue([])
+      client.customCommand.mockResolvedValue([])
 
       await fetcher.commandlog_large_request()
 
-      const callArgs = client.sendCommand.mock.calls[0][0]
+      const callArgs = client.customCommand.mock.calls[0][0]
       expect(callArgs).toContain("large-request")
     })
   })

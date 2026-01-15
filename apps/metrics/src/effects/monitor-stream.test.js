@@ -25,7 +25,6 @@ vi.mock("iovalkey", () => {
 })
 
 describe("monitor-stream", () => {
-  let Valkey
   let cleanupEnv
   let mockMonitor
 
@@ -38,10 +37,6 @@ describe("monitor-stream", () => {
     // Setup mock monitor
     mockMonitor = createMockMonitor()
     mockMonitorGlobal = mockMonitor
-
-    // Get mocked Valkey constructor
-    const iovalkeyModule = await import("iovalkey")
-    Valkey = iovalkeyModule.default
   })
 
   afterEach(() => {
