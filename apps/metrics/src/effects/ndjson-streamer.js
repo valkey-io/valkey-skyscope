@@ -40,11 +40,8 @@ export async function streamNdjson(
 
   let acc = seed
   let count = 0
-  let limitReached = false
 
   for (const file of files) {
-    if (limitReached) break
-
     let fileStream
     let rl
 
@@ -54,7 +51,6 @@ export async function streamNdjson(
 
       for await (const line of rl) {
         if (count >= limit) {
-          limitReached = true
           break
         }
 
