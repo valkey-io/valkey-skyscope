@@ -25,8 +25,15 @@ describe("ndjson-streamer", () => {
     fs = (await import("node:fs")).default
     readline = (await import("node:readline")).default
 
-    // Default mocks - only today's file exists, yesterday's throws ENOENT
+    // Default mocks - only today's file exists
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, "")
+
+    fs.existsSync.mockImplementation((file) => {
+      if (!file.includes(`_${today}.ndjson`)) {
+        return false
+      }
+      return true
+    })
 
     fs.createReadStream.mockImplementation((path) => {
       // Yesterday's file throws ENOENT
@@ -58,17 +65,10 @@ describe("ndjson-streamer", () => {
       const { streamNdjson } = await import("./ndjson-streamer.js")
       const result = await streamNdjson("test_prefix")
 
-      // Should try to read both yesterday and today files (createReadStream called twice)
-      expect(fs.createReadStream).toHaveBeenCalledTimes(2)
+      // Should try to read only today file (createReadStream called once)
+      expect(fs.createReadStream).toHaveBeenCalledTimes(1)
       expect(fs.createReadStream.mock.calls[0][0]).toContain("test_prefix_")
-      expect(fs.createReadStream.mock.calls[1][0]).toContain("test_prefix_")
 
-      // Both files should have different dates
-      const file1 = fs.createReadStream.mock.calls[0][0]
-      const file2 = fs.createReadStream.mock.calls[1][0]
-      expect(file1).not.toBe(file2)
-
-      // Should return data from today's file only (yesterday throws ENOENT)
       expect(result).toHaveLength(5)
     })
 
@@ -213,10 +213,8 @@ describe("ndjson-streamer", () => {
 
       // Check that files follow the pattern: my_metric_YYYYMMDD.ndjson
       const file1 = fs.createReadStream.mock.calls[0][0]
-      const file2 = fs.createReadStream.mock.calls[1][0]
 
       expect(file1).toMatch(/my_metric_\d{8}\.ndjson$/)
-      expect(file2).toMatch(/my_metric_\d{8}\.ndjson$/)
     })
 
     it("should use DATA_DIR environment variable", async () => {

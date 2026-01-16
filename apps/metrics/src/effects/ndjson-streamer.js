@@ -42,6 +42,7 @@ export async function streamNdjson(
   let count = 0
 
   for (const file of files) {
+    if (!fs.existsSync(file)) continue
     let fileStream
     let rl
 
@@ -66,9 +67,6 @@ export async function streamNdjson(
           // ignore bad lines
         }
       }
-    } catch (err) {
-      if (err.code === "ENOENT") continue
-      throw err
     } finally {
       if (rl) rl.close()
       if (fileStream) fileStream.destroy()
