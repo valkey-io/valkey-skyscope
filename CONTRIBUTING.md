@@ -17,6 +17,29 @@ Before you start writing code for a new feature or a significant architectural c
 
 ---
 
+## Technical Architecture & Patterns
+
+To ensure a maintainable and scalable codebase, please adhere to the following architectural patterns:
+
+### State Management & Components
+* **Redux as Source of Truth:** Redux is the single source of truth for application state. 
+* **Presentational Components:** Prefer "dumb" or presentational components. These should focus on rendering Redux state and dispatching actions. Avoid embedding business logic directly within React components.
+* **Local UI State:** React component state should be reserved strictly for local UI concerns (e.g., controlled inputs, toggle states).
+
+### Side Effects & Async Flows
+We use **RxJS-based middleware (Epics)** to handle side effects and asynchronous logic.
+* **Observable Pipelines:** Side effects are modeled as streams of actions. Epics should listen for specific actions and emit new actions using observable pipelines.
+* **Pure Reducers:** Keep all side effects out of both components and reducers to maintain predictability.
+
+### Hooks Organization
+* **Global Hooks:** The `/hooks` folder is strictly for global or truly reusable hooks shared across multiple components.
+* **Local Hooks:** If a function or hook is used by only one component, it should live in a file adjacent to that component's file, not in the global directory.
+
+### Consistency
+Before contributing, please take the time to familiarize yourself with the existing codebase and conventions. We value consistency in patterns and naming above all else.
+
+---
+
 ## Reporting Bugs & Feature Requests
 
 We use GitHub Issues to track bugs and suggest new features.
