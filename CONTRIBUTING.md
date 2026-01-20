@@ -120,6 +120,11 @@ In the root directory, create a DMG by running `npm run package:mac:nosign`.
 #### Process
 In the root directory, create a DMG by running `npm run package:mac`.
 
+Note: you will see
+```
+• skipped macOS notarization  reason=`notarize` options were set explicitly `false`
+```
+This is as we are not using electron builder's notarization tool, rather electron-notarize.
 
 ---
 
