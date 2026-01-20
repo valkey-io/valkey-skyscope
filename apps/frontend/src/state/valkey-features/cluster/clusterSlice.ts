@@ -7,7 +7,7 @@ export interface ReplicaNode {
   port: number;
 }
 
-export interface MasterNode {
+export interface PrimaryNode {
   host: string;
   port: number;
   username?: string;
@@ -33,7 +33,7 @@ export interface ParsedNodeInfo {
 
 interface ClusterState {
   [clusterId: string]: {
-    clusterNodes: Record<string, MasterNode>;
+    clusterNodes: Record<string, PrimaryNode>;
     data: {
       [nodeAddress: string]: ParsedNodeInfo;
     };
