@@ -8,7 +8,7 @@ services:
             DATA_DIR: "/app/data"
             # VALKEY_URL: "valkey://host.docker.internal:7001" # single URL (router, one seed, or any reachable node)
             VALKEY_HOST: host.docker.internal
-            VALkey_PORT: "7001"
+            VALKEY_PORT: "7001"
             BATCH_MS: "1000"
             BATCH_MAX: "50"
             DEBUG_METRICS: "1"
