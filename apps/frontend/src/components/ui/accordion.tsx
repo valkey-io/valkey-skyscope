@@ -20,6 +20,9 @@ export default function Accordion({ accordionName, accordionItems, valueType = "
   const ToggleIcon = isOpen ? CircleChevronUp : CircleChevronDown
 
   const formatKey = (key: string) => {
+    // Special case for terminology updates
+    if (key === "connected_slaves") return "Connected Replicas"
+    
     return key
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
