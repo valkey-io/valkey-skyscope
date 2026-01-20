@@ -90,7 +90,10 @@ export default function Settings() {
               <div className="mt-3 flex items-center gap-2 p-2 bg-tw-primary/20 border border-tw-primary/50 rounded">
                 <AlertTriangle className="text-amber-600 flex-shrink-0" size={18} />
                 <span className="text-tw-primary text-sm">
-                  Running  <span className="font-mono">MONITOR</span>  can reduce the throughput by more than 50%.
+                  Running{" "}
+                  <span className="font-mono">MONITOR</span>{" "}
+                  Monitoring can impact performance. We recommend testing with your workload
+                  before production use.
                 </span>
               </div>
             )}
