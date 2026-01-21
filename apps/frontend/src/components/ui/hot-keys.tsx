@@ -160,7 +160,6 @@ export function HotKeys({ data, errorMessage, status, onKeyClick, selectedKey }:
         <div className="h-full flex flex-col items-center justify-center">
           <Flame className="mb-3 opacity-30" size={48} />
           <span className="text-lg font-medium">No Hot Keys Found</span>
-          <span className="text-sm mt-1">Keys with frequent access will appear here</span>
           {errorMessage && (
             <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-md">
               <div className="flex items-start gap-2">

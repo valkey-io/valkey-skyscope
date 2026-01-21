@@ -32,39 +32,59 @@ interface ConfigState {
   }
 }
 const initialState: ConfigState = {}
+const defaultConfig = (partial?: Partial<ConfigState[string]>): ConfigState[string] => ({
+  darkMode: false,
+  pollingInterval: 5000,
+  monitoring: { monitorEnabled: false, monitorDuration: 6000 },
+  status: "updated",
+  errorMessage: null,
+  ...partial, // merge any passed-in values
+})
+
 const configSlice = createSlice({
   name: "config",
   initialState,
   reducers: {
     setConfig: (state, action) => {
       const { connectionId, keyEvictionPolicy, clusterSlotStatsEnabled } = action.payload
-      // Only set initial config if it does not already exist
       if (!state[connectionId]) {
-        state[connectionId] = {
-          darkMode: false, 
-          keyEvictionPolicy, 
-          clusterSlotStatsEnabled: clusterSlotStatsEnabled ?? false, 
-          pollingInterval: 5000,
-          monitoring: {
-            monitorEnabled: false, 
-            monitorDuration: 6000,
-          },
-          status: "updated",
-        }
+        state[connectionId] = defaultConfig({
+          keyEvictionPolicy,
+          clusterSlotStatsEnabled: clusterSlotStatsEnabled ?? false,
+        })
       }
-
     },
+
     updateConfig: (state, action) => {
       const { connectionId } = action.payload
+      if (!state[connectionId]) {
+        state[connectionId] = defaultConfig({ status: "updating" })
+        return
+      }
       state[connectionId].status = "updating"
+      state[connectionId].errorMessage = null // reset any previous error
     },
+
     updateConfigFulfilled: (state, action) => {
       const { connectionId, response } = action.payload
-      state[connectionId] = { ...state[connectionId], ...response.data }
-      state[connectionId].status = "updated"
+      if (!state[connectionId]) {
+        state[connectionId] = defaultConfig({ ...response.data, status: "updated" })
+        return
+      }
+      state[connectionId] = {
+        ...state[connectionId],
+        ...response.data,
+        status: "updated",
+        errorMessage: null,
+      }
     },
+
     updateConfigFailed: (state, action) => {
       const { connectionId, response } = action.payload
+      if (!state[connectionId]) {
+        state[connectionId] = defaultConfig({ status: "failed", errorMessage: response.errorMessage })
+        return
+      }
       state[connectionId].status = "failed"
       state[connectionId].errorMessage = response.errorMessage
     },

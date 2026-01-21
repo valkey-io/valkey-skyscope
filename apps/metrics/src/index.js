@@ -1,5 +1,6 @@
 import fs from "node:fs"
 import express from "express"
+import { GlideClient } from "@valkey/valkey-glide"
 import { getConfig, updateConfig } from "./config.js"
 import * as Streamer from "./effects/ndjson-streamer.js"
 import { setupCollectors, stopCollectors } from "./init-collectors.js"
@@ -10,8 +11,6 @@ import { enrichHotKeys } from "./analyzers/enrich-hot-keys.js"
 import cpuFold from "./analyzers/calculate-cpu-usage.js"
 import memoryFold from "./analyzers/memory-metrics.js"
 import { cpuQuerySchema, memoryQuerySchema, parseQuery } from "./api-schema.js"
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { GlideClient } = require("@valkey/valkey-glide")
 
 async function main() {
   const cfg = getConfig()
