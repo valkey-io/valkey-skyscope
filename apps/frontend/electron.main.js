@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { app, BrowserWindow, ipcMain, safeStorage } = require("electron")
+const { app, BrowserWindow, ipcMain, safeStorage, shell } = require("electron")
 const path = require("path")
 const { fork } = require("child_process")
 
