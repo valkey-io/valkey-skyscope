@@ -148,6 +148,12 @@ function createWindow() {
     },
   })
 
+  // Open external links in default browser
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url)
+    return { action: "deny" }
+  })
+
   if (app.isPackaged) {
     win.loadFile(path.join(__dirname, "dist", "index.html"))
   } else {
