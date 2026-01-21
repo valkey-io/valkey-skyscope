@@ -6,13 +6,13 @@ import { TooltipProvider } from "@radix-ui/react-tooltip"
 import { Card } from "./card"
 import { CustomTooltip } from "./custom-tooltip"
 import type { RootState } from "@/store.ts"
-import type { MasterNode, ParsedNodeInfo } from "@/state/valkey-features/cluster/clusterSlice"
+import type { PrimaryNode, ParsedNodeInfo } from "@/state/valkey-features/cluster/clusterSlice"
 import { connectPending, type ConnectionDetails } from "@/state/valkey-features/connection/connectionSlice.ts"
 import { useAppDispatch } from "@/hooks/hooks"
 
 interface ClusterNodeProps {
   primaryKey: string
-  primary: MasterNode
+  primary: PrimaryNode
   primaryData: ParsedNodeInfo
   allNodeData: Record<string, ParsedNodeInfo>
   clusterId: string

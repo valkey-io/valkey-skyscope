@@ -14,6 +14,14 @@ Valkey Admin is a web-based administration tool for Valkey clusters. It provides
 
 Built with React and TypeScript, Valkey Admin runs as a desktop application via Electron. Some features like hotkeys and commandlogs rely on Electron, so the app is currently only fully supported as a desktop app. Use the web application for a subset of features.
 
+![Monitoring Hot Keys](screenshots/monitoring_hot_keys.png)
+
+![Monitoring Slow Logs](screenshots/monitoring_slow_logs.png)
+
+![Monitoring Large Requests](screenshots/monitoring_large_requests.png)
+
+![Monitoring Large Replies](screenshots/monitoring_large_replies.png)
+
 ## Platform Support
 
 Valkey Admin works on:

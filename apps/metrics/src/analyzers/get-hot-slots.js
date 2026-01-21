@@ -6,21 +6,16 @@ export const getHotSlots = async (client, limit = 50) => {
     ])
 
     return rawSlots
-      .map((slot) => {
-        const slotId = slot[0]
-        const slotStats = slot[1]
-        const idx = slotStats.indexOf("cpu-usec")
-        if (idx === -1) return null
+      .map(([slotId, slotStats]) => {
+        // Find the cpu-usec object
+        const cpuStat = slotStats.find((stat) => stat.key === "cpu-usec")
+        if (!cpuStat || cpuStat.value <= 0) return null
 
-        const cpuUsec = Number(slotStats[idx + 1])
-        return cpuUsec > 0 ? { slotId, cpuUsec } : null
+        return { slotId, cpuUsec: cpuStat.value }
       })
       .filter(Boolean)
   } catch (error) {
-    console.error(
-      "ERROR:",
-      error,
-    )
+    console.error("ERROR:", error)
     return []
   }
 }

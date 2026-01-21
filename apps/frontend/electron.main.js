@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { app, BrowserWindow, shell } = require("electron")
+const { app, BrowserWindow, ipcMain, safeStorage } = require("electron")
 const path = require("path")
 const { fork } = require("child_process")
 
@@ -34,7 +34,7 @@ function startMetricsForClusterNodes(clusterNodes, credentials) {
       tls: node.tls,
       verifyTlsCertificate: node.verifyTlsCertificate,
     }
-        
+
     const connectionId = sanitizeUrl(`${node.host}-${node.port}`)
     if (!metricsProcesses.has(connectionId)) {
       startMetrics(connectionId, connectionDetails)
@@ -48,7 +48,7 @@ function startMetrics(serverConnectionId, serverConnectionDetails) {
   let metricsServerPath
   let configPath
 
-  const { host, port, username, password } = serverConnectionDetails
+  const { host, port, username, password, tls, verifyTlsCertificate } = serverConnectionDetails
 
   if (app.isPackaged) {
     metricsServerPath = path.join(process.resourcesPath, "server-metrics.js")
@@ -57,18 +57,33 @@ function startMetrics(serverConnectionId, serverConnectionDetails) {
     metricsServerPath = path.join(__dirname, "../../metrics/src/index.js")
     configPath = path.join(__dirname, "../../metrics/config.yml") // Path for development
   }
+  // Build the auth part (include password only if it exists)
+  const authPart = username ? (password ? `${username}:${password}@` : `${username}@`) : ""
 
+  // Build the protocol part
+  const protocol = tls ? "valkeys://" : "valkey://"
+
+  // Build query parameters for TLS verification if needed
+  const queryParams = []
+  if (tls) queryParams.push("tls=true")
+  if (verifyTlsCertificate !== undefined) queryParams.push(`insecure=${verifyTlsCertificate}`)
+
+  const queryString = queryParams.length ? `?${queryParams.join("&")}` : ""
+
+  // Combine into full URL
+  const VALKEY_URL = `${protocol}${authPart}${host}:${port}${queryString}`
   const metricsProcess = fork(metricsServerPath, [], {
     env: {
       ...process.env,
       PORT: 0,
       DATA_DIR: dataDir,
+      VALKEY_URL,
       VALKEY_HOST: host,
       VALKEY_PORT: port,
       VALKEY_USERNAME: username,
       VALKEY_PASSWORD: password,
-      VALKEY_TLS: serverConnectionDetails.tls, 
-      VALKEY_VERIFY_CERT: serverConnectionDetails.verifyTlsCertificate,
+      VALKEY_TLS: tls,
+      VALKEY_VERIFY_CERT: verifyTlsCertificate,
       CONFIG_PATH: configPath, // Explicitly provide the config path
     },
   })
@@ -129,6 +144,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      preload: path.join(__dirname, "preload.js"),
     },
   })
 
@@ -158,7 +174,7 @@ app.whenReady().then(() => {
           startMetrics(message.payload.connectionId, message.payload.connectionDetails)
           break
         case "valkeyConnection/clusterConnectFulfilled":
-          startMetricsForClusterNodes(message.payload.clusterNodes, message.payload.credentials )
+          startMetricsForClusterNodes(message.payload.clusterNodes, message.payload.credentials)
           break
         default:
           try {
@@ -187,6 +203,22 @@ app.on("before-quit", () => {
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow()
+  }
+})
+
+ipcMain.handle("secure-storage:encrypt", async (event, password) => {
+  if (!password || !safeStorage.isEncryptionAvailable()) return password
+  const encrypted = safeStorage.encryptString(password)
+  return encrypted.toString("base64")
+})
+
+ipcMain.handle("secure-storage:decrypt", async (event, encryptedBase64) => {
+  if (!encryptedBase64 || !safeStorage.isEncryptionAvailable()) return ""
+  try {
+    const encrypted = Buffer.from(encryptedBase64, "base64")
+    return safeStorage.decryptString(encrypted)
+  } catch {
+    return "" // TODO: Look into this case more closely
   }
 })
 

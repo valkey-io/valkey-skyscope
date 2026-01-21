@@ -1,4 +1,5 @@
 import * as R from "ramda"
+import { InfoOptions } from "@valkey/valkey-glide"
 import { COMMANDLOG_LARGE_REQUEST, COMMANDLOG_SLOW, COMMANDLOG_TYPE, COMMANDLOG_LARGE_REPLY } from "../utils/constants.js"
 import { parseCommandLogs } from "../utils/helpers.js"
 
@@ -10,24 +11,16 @@ export const makeFetcher = (client) => ({
   memory_stats: async () => {
     const result = await client.customCommand(["MEMORY", "STATS"])
     const ts = Date.now()
-
     return R.pipe(
       R.defaultTo([]),
-      R.ifElse(
-        Array.isArray,
-        R.splitEvery(2), // it seems the results are pairs
-        R.toPairs, // otherwise, get entries if it's an object; an exception if it's a string lol (shouldn't happen)
-      ),
-      // let's convert values to numbers and filter out NaN further down
-      R.map(([k, v]) => [k, +v]),
-      // shortcut to check if it's a number without rejecting floats (like fragmentation_ratio)
-      R.filter(([, v]) => Number.isFinite(v)),
+      R.map(({ key, value }) => [key, +value]), // convert value to number
+      R.filter(([, v]) => Number.isFinite(v)), // remove NaN or non-numbers
       kvPairsToRows(ts),
     )(result)
   },
 
   info_cpu: async () => {
-    const raw = await client.info("CPU")
+    const raw = await client.info([InfoOptions.Cpu])
     const ts = Date.now()
 
     return R.pipe(

@@ -27,6 +27,7 @@ import { setClusterData } from "../valkey-features/cluster/clusterSlice.ts"
 import { setConfig, updateConfig, updateConfigFulfilled } from "../valkey-features/config/configSlice.ts"
 import { cpuUsageRequested } from "../valkey-features/cpu/cpuSlice.ts"
 import { memoryUsageRequested } from "../valkey-features/memory/memorySlice.ts"
+import { secureStorage } from "../../utils/secureStorage.ts"
 import type { PayloadAction, Store } from "@reduxjs/toolkit"
 
 const getConnectionIds = (store: Store, action) => {
@@ -51,6 +52,19 @@ export const connectionEpic = (store: Store) =>
   merge(
     action$.pipe(
       select(connectPending),
+      tap(async (action) => {
+        const { password } = action.payload.connectionDetails
+        
+        if (R.isNil(password)) return action
+        
+        const decryptedPassword = await secureStorage.decrypt(password)
+        
+        return R.assocPath(
+          ["payload", "connectionDetails", "password"],
+          decryptedPassword,
+          action,
+        )
+      }),
       tap((action) => {
         const socket = getSocket()
         console.log("Sending message to server from connecting epic...")
@@ -65,24 +79,30 @@ export const connectionEpic = (store: Store) =>
           type === standaloneConnectFulfilled.type ||
           type === clusterConnectFulfilled.type,
       ),
-      tap(({ payload }) => {
+      tap(async ({ payload }) => {
         try {
           const currentConnections = getCurrentConnections()
 
-          // for getting the full connection state from redux (which includes alias)
           const state = store.getState()
           const connection = state.valkeyConnection?.connections?.[payload.connectionId]
 
-          R.pipe(
-            (p) => ({
-              connectionDetails: connection?.connectionDetails || p.connectionDetails,
-              status: NOT_CONNECTED,
-              connectionHistory: connection?.connectionHistory || [],
-            }),
-            (connectionToSave) => ({ ...currentConnections, [payload.connectionId]: connectionToSave }),
-            JSON.stringify,
-            (updated) => localStorage.setItem(LOCAL_STORAGE.VALKEY_CONNECTIONS, updated),
-          )(payload)
+          const baseConnectionDetails =
+            connection?.connectionDetails ?? payload.connectionDetails
+
+          const connectionToSave = {
+            connectionDetails: R.isNil(R.path(["password"], baseConnectionDetails))
+              ? baseConnectionDetails
+              : R.assoc(
+                "password",
+                await secureStorage.encrypt(baseConnectionDetails.password),
+                baseConnectionDetails,
+              ),
+            status: NOT_CONNECTED,
+            connectionHistory: connection?.connectionHistory ?? [],
+          }
+
+          currentConnections[payload.connectionId] = connectionToSave
+          localStorage.setItem(LOCAL_STORAGE.VALKEY_CONNECTIONS, JSON.stringify(currentConnections))
 
           toast.success("Connected to server successfully!")
         } catch (e) {
@@ -250,11 +270,11 @@ export const deleteConnectionEpic = () =>
     }),
   )
 
-// for updating connection details: this will presist the edits
+// for updating connection details: this will persist the edits
 export const updateConnectionDetailsEpic = (store: Store) =>
   action$.pipe(
     select(updateConnectionDetails),
-    tap(({ payload: { connectionId } }) => {
+    tap(async ({ payload: { connectionId } }) => {
       try {
         const currentConnections = getCurrentConnections()
 
@@ -262,7 +282,15 @@ export const updateConnectionDetailsEpic = (store: Store) =>
         const connection = state.valkeyConnection?.connections?.[connectionId]
 
         if (connection && currentConnections[connectionId]) {
-          currentConnections[connectionId].connectionDetails = connection.connectionDetails
+          const connectionDetails = connection.connectionDetails.password
+            ? R.assoc(
+              "password",
+              await secureStorage.encrypt(connection.connectionDetails.password),
+              connection.connectionDetails,
+            )
+            : connection.connectionDetails
+          
+          currentConnections[connectionId].connectionDetails = connectionDetails
           currentConnections[connectionId].connectionHistory = connection.connectionHistory || []
           localStorage.setItem(LOCAL_STORAGE.VALKEY_CONNECTIONS, JSON.stringify(currentConnections))
         }

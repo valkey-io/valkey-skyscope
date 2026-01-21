@@ -71,7 +71,6 @@ export const calculateHotKeysFromMonitor = (rows) =>
 // Must have maxmemory-policy set to lfu*
 export const calculateHotKeysFromHotSlots = async (client, count = 50) => {
   const hotSlots = await getHotSlots(client)
-
   const slotPromises = hotSlots.map(async (slot) => {
     const slotId = slot["slotId"]
     const keys = []
@@ -80,6 +79,7 @@ export const calculateHotKeysFromHotSlots = async (client, count = 50) => {
 
     do {
       const [nextCursor, scannedKeys] = await client.customCommand(["SCAN", cursor.toString(), "COUNT", "1"])
+      process.send?.({ type: "metrics-hotkeys", payload: { nextCursor, scannedKeys } })
       cursor = nextCursor
       keys.push(...scannedKeys)
       cursorToSlot = Number(cursor) & 0x3FFF

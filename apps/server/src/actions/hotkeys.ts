@@ -60,6 +60,7 @@ export const hotKeysRequested = withDeps<Deps, void>(
         return 
       }
       try {
+        console.log("[Hot keys] Fetching from:", url)
         const initialResponse = await fetch(url)
         const initialParsedResponse: HotKeysResponse = await initialResponse.json() as HotKeysResponse
         // Initial request starts monitoring and returns when to fetch results (`checkAt`).
