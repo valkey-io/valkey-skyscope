@@ -1,5 +1,5 @@
 import * as R from "ramda"
-import { useState, useRef, useEffect, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   ChevronDown,
   ChevronRight,
@@ -34,25 +34,23 @@ const getLatestTimestamp = R.pipe(
   R.reduce(R.max, -Infinity),
 )
 
+// storage key for persisting open/closed state of cluster groups
+const getStorageKey = (clusterId: string) => `cluster-group-open-${clusterId}`
+
 export const ClusterConnectionGroup = ({ clusterId, connections, onEdit }: ClusterConnectionGroupProps) => {
   const dispatch = useAppDispatch()
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(() => {
+    const stored = localStorage.getItem(getStorageKey(clusterId))
+    return stored ? JSON.parse(stored) : false
+  })
   const [isEditing, setIsEditing] = useState(false)
   const [editedAlias, setEditedAlias] = useState("")
-  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside)
-      return () => document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [isOpen])
+    // store the open/closed state of the cluster group in localStorage
+    // we want to persist this state when connection page reloads or user navigates away
+    localStorage.setItem(getStorageKey(clusterId), JSON.stringify(isOpen))
+  }, [isOpen, clusterId])
 
   const connected = connections.filter(({ connection }) => connection.status === CONNECTED)
   const connectedCount = connected.length
@@ -103,7 +101,6 @@ export const ClusterConnectionGroup = ({ clusterId, connections, onEdit }: Clust
   return (
     <div
       className="mb-3 border dark:border-tw-dark-border rounded bg-white dark:bg-tw-dark-primary"
-      ref={dropdownRef}
     >
       {/* cluster head */}
       <div className="flex items-center justify-between">
