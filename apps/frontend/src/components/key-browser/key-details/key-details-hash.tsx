@@ -1,10 +1,12 @@
 import { useState } from "react"
 import { Check, Pencil, X, Trash, Plus } from "lucide-react"
-import { CustomTooltip } from "./custom-tooltip"
-import { Button } from "./button"
-import DeleteModal from "./delete-modal"
+import { CustomTooltip } from "../../ui/custom-tooltip"
+import { Button } from "../../ui/button"
+import { Input } from "../../ui/input"
+import DeleteModal from "../../ui/delete-modal"
 import { useAppDispatch } from "@/hooks/hooks"
 import { updateKeyRequested } from "@/state/valkey-features/keys/keyBrowserSlice"
+import { cn } from "@/lib/utils"
 
 interface ElementInfo {
   key: string;
@@ -141,7 +143,7 @@ export default function KeyDetailsHash(
   return (
     <div className="flex items-center justify-center w-full p-4">
       <div className="w-full">
-        <div className="grid grid-cols-4 gap-4 bg-tw-dark-border opacity-85 text-white items-center py-1 px-4">
+        <div className={cn("grid grid-cols-4 gap-4 items-center py-1 px-4", "bg-muted/60 text-foreground")}>
           <div className="font-semibold text-left">Key</div>
           <div className="col-span-2 font-semibold text-left">Value</div>
           <div className="flex justify-end gap-1">
@@ -149,7 +151,6 @@ export default function KeyDetailsHash(
               <>
                 <CustomTooltip content="Save" side={"left"}>
                   <Button
-                    className="text-tw-primary hover:text-tw-primary"
                     onClick={handleSave}
                     variant={"secondary"}
                   >
@@ -181,14 +182,12 @@ export default function KeyDetailsHash(
         {selectedKeyInfo.elements
           .filter((element: ElementInfo) => !deletedHashFields.has(element.key))
           .map((element: ElementInfo, index: number) => (
-            <div className="grid grid-cols-4 gap-4 py-3 px-4 border-b border-tw-dark-border font-light dark:text-white" key={index}>
+            <div className={cn("grid grid-cols-4 gap-4 py-3 px-4 border-b border-border font-light text-foreground")} key={index}>
               <div>{element.key}</div>
               <div className="col-span-3">
                 {isEditable ? (
                   <div className="flex gap-2 relative">
-                    <input
-                      className="w-full p-2 dark:bg-tw-dark-bg dark:border-tw-dark-border border rounded focus:outline-none
-                                        focus:ring-2 focus:ring-tw-primary"
+                    <Input
                       onChange={(e) => handleHashFieldChange(element.key, e.target.value)}
                       type="text"
                       value={editedHashValue[element.key] || ""}
@@ -217,11 +216,9 @@ export default function KeyDetailsHash(
             </div>
           ))}
         {isEditable && newFields.map((newField) => (
-          <div className="grid grid-cols-4 gap-4 py-3 px-4 border-b border-tw-dark-border font-light dark:text-white" key={newField.tempId}>
+          <div className={cn("grid grid-cols-4 gap-4 py-3 px-4 border-b border-border font-light text-foreground")} key={newField.tempId}>
             <div>
-              <input
-                className="w-full p-2 dark:bg-tw-dark-bg dark:border-tw-dark-border border rounded focus:outline-none
-                                  focus:ring-2 focus:ring-tw-primary"
+              <Input
                 onChange={(e) => handleNewFieldKeyChange(newField.tempId, e.target.value)}
                 placeholder="Enter key"
                 type="text"
@@ -230,9 +227,7 @@ export default function KeyDetailsHash(
             </div>
             <div className="col-span-3">
               <div className="flex gap-2">
-                <input
-                  className="w-full p-2 dark:bg-tw-dark-bg dark:border-tw-dark-border border rounded focus:outline-none
-                                      focus:ring-2 focus:ring-tw-primary"
+                <Input
                   onChange={(e) => handleNewFieldValueChange(newField.tempId, e.target.value)}
                   placeholder="Enter value"
                   type="text"

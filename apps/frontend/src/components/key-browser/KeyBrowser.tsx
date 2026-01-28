@@ -8,17 +8,19 @@ import { calculateTotalMemoryUsage } from "@common/src/memory-usage-calculation"
 import {
   KeyRound,
   RefreshCw,
-  Search,
-  ListFilter,
-  CircleX,
-  CircleQuestionMark
+  ListFilter
 } from "lucide-react"
 import { calculateHitRatio } from "@common/src/cache-hit-ratio"
-import { AppHeader } from "./ui/app-header"
-import AddNewKey from "./ui/add-key"
-import KeyDetails from "./ui/key-details"
-import { KeyTree } from "./ui/key-tree"
-import { CustomTooltip } from "./ui/custom-tooltip"
+import { AppHeader } from "../ui/app-header"
+import AddNewKey from "./add-key"
+import KeyDetails from "./key-details/key-details"
+import { KeyTree } from "./key-tree"
+import { Button } from "../ui/button"
+import { Select } from "../ui/select"
+import { StatCard } from "../ui/stat-card"
+import { SearchInput } from "../ui/search-input"
+import RouteContainer from "../ui/route-container"
+import { TooltipIcon } from "../ui/tooltip-icon"
 import { useAppDispatch } from "@/hooks/hooks"
 import {
   selectKeys,
@@ -134,100 +136,90 @@ export function KeyBrowser() {
   }
 
   return (
-    <div className="flex flex-col h-screen p-4">
+    <RouteContainer title="Key Browser">
       <AppHeader icon={<KeyRound size={20} />} title="Key Browser" />
 
       {error && <div className="ml-2">Error loading keys: {error}</div>}
 
       {/* Total Keys and Key Stats */}
       <TooltipProvider>
-        <div className="flex justify-between mb-8">
-          <div className="h-20 w-1/4 p-4 dark:border-tw-dark-border border rounded flex flex-col justify-center items-center">
-            <span className="text-2xl font-semibold">{totalKeys}</span>
-            <span className="font-light text-sm flex items-center gap-1">Total Keys
-              <CustomTooltip description="Total number of keys in the database">
-                <CircleQuestionMark className="bg-tw-primary/10 rounded-full text-tw-primary" size={14} />
-              </CustomTooltip>
-            </span>
-          </div>
-          <div className="h-20 w-1/4 p-4 dark:border-tw-dark-border border rounded flex flex-col justify-center items-center">
-            <span className="text-2xl font-semibold">
-              {formatBytes(totalMemoryUsage)}
-            </span>
-            <span className="font-light text-sm flex items-center gap-1">Memory Usage
-              <CustomTooltip description="Memory used by all keys in the database">
-                <CircleQuestionMark className="bg-tw-primary/10 rounded-full text-tw-primary" size={14} />
-              </CustomTooltip>
-            </span>
-          
-          </div>
-          <div className="h-20 w-1/4 p-4 dark:border-tw-dark-border border rounded flex flex-col justify-center items-center">
-            <span className="text-2xl font-semibold">{operationsData.total_commands}</span>
-            <span className="font-light text-sm flex items-center gap-1">Operations
-              <CustomTooltip description="Total number of commands processed">
-                <CircleQuestionMark className="bg-tw-primary/10 rounded-full text-tw-primary" size={14} />
-              </CustomTooltip>
-            </span>
-          </div>
-          <div className="h-20 w-1/5 p-4 dark:border-tw-dark-border border rounded flex flex-col justify-center items-center">
-            <span className="text-2xl font-semibold">
-              {calculateHitRatio(Number(hitRateData.keyspace_hits) || 0, Number(hitRateData.keyspace_misses) || 0)}
-            </span>
-            <span className="font-light text-sm flex items-center gap-1">Hit Ratio
-              <CustomTooltip description="Ratio of key lookups that resulted in a cache hit" side="bottom">
-                <CircleQuestionMark className="bg-tw-primary/10 rounded-full text-tw-primary" size={14} />
-              </CustomTooltip>
-            </span>
-          </div>
+        <div className="flex justify-between gap-4">
+          <StatCard
+            className="flex-1"
+            label="Total Keys"
+            tooltip={
+              <TooltipIcon description="Total number of keys in the database" size={14}/>
+            }
+            value={totalKeys}
+          />
+          <StatCard
+            className="flex-1"
+            label="Memory Usage"
+            tooltip={
+              <TooltipIcon description="Memory used by all keys in the database" size={14}/>
+            }
+            value={formatBytes(totalMemoryUsage)}
+          />
+          <StatCard
+            className="flex-1"
+            label="Operations"
+            tooltip={
+              <TooltipIcon description="Total number of commands processed" size={14}/>
+            }
+            value={operationsData.total_commands}
+          />
+          <StatCard
+            className="flex-1"
+            label="Hit Ratio"
+            tooltip={
+              <TooltipIcon description="Ratio of key lookups that resulted in a cache hit" size={14} />
+            }
+            value={calculateHitRatio(Number(hitRateData.keyspace_hits) || 0, Number(hitRateData.keyspace_misses) || 0)}
+          />
         </div>
       </TooltipProvider>
       {/* Search and Refresh */}
-      <div className="flex items-center w-full mb-4 text-sm font-light">
-        <div className="h-10 mr-2 px-4 py-2 dark:border-tw-dark-border border rounded bg-white dark:bg-gray-800">
-          <ListFilter className="inline mr-2" />
-          <select
-            className="flex-1 bg-transparent outline-none px-1"
-            disabled={loading}
-            onChange={(e) => setSelectedType(e.target.value)}
-            value={selectedType}
-          >
-            {keyTypes.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <form className="flex items-center justify-between flex-1 h-10 p-2 dark:border-tw-dark-border border rounded" onSubmit={handleSearch}>
-          <button className={`mr-1 ${!searchPattern ? "invisible" : "text-tw-primary"}`} onClick={handleClearSearch} type="button">
-            <CircleX size={14} />
-          </button>
-          <input
-            className="flex-1 bg-transparent outline-none"
+      <div className="flex items-center w-full gap-2">
+        <Select
+          className="w-48"
+          disabled={loading}
+          icon={<ListFilter size={16} />}
+          onChange={(e) => setSelectedType(e.target.value)}
+          value={selectedType}
+        >
+          {keyTypes.map((type) => (
+            <option key={type.value} value={type.value}>
+              {type.label}
+            </option>
+          ))}
+        </Select>
+
+        <form className="flex-1" onSubmit={handleSearch}>
+          <SearchInput
             disabled={loading}
             onChange={(e) => setSearchPattern(e.target.value)}
+            onClear={handleClearSearch}
             placeholder="Search keys (use * to search patterns like user:*)"
             value={searchPattern}
           />
-          <button
-            className="text-tw-primary/80 hover:text-tw-primary"
-            disabled={loading}
-            type="submit"><Search /></button>
         </form>
-        <button
-          className="h-10 ml-2 px-4 py-2 bg-tw-primary text-white rounded "
+
+        <Button
           disabled={loading}
           onClick={handleAddKeyModal}
+          type="button"
         >
           + Add Key
-        </button>
-        <button
-          className="h-10 ml-2 px-4 py-2 bg-tw-primary text-white rounded"
+        </Button>
+
+        <Button
           disabled={loading}
           onClick={handleRefresh}
+          size="icon"
+          type="button"
         >
           <RefreshCw className={loading ? "animate-spin" : ""} />
-        </button>
+        </Button>
       </div>
 
       {/* Add Key Modal */}
@@ -257,6 +249,6 @@ export function KeyBrowser() {
           <KeyDetails connectionId={id!} selectedKey={selectedKey} selectedKeyInfo={selectedKeyInfo!} setSelectedKey={setSelectedKey} />
         </div>
       </TooltipProvider>
-    </div>
+    </RouteContainer>
   )
 }

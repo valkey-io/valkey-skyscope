@@ -2,17 +2,17 @@ import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { useParams } from "react-router"
 import { formatBytes } from "@common/src/bytes-conversion"
-import LineChartComponent from "./line-chart"
+import LineChartComponent from "../ui/line-chart"
 import { cpuUsageRequested, selectCpuUsage } from "@/state/valkey-features/cpu/cpuSlice.ts"
 import { useAppDispatch } from "@/hooks/hooks"
 import { memoryUsageRequested, selectMemoryUsage } from "@/state/valkey-features/memory/memorySlice"
 
 const colors = [
-  "var(--tw-chart1)",
-  "var(--tw-chart2)",
-  "var(--tw-chart3)",
-  "var(--tw-chart4)",
-  "var(--tw-chart5)",
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
 ]
 
 export default function CpuMemoryUsage() {

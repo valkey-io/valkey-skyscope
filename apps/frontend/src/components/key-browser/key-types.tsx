@@ -1,5 +1,5 @@
 import { Trash, Check, TriangleAlert } from "lucide-react"
-import { Button } from "./button"
+import { Button } from "../ui/button"
 
 interface StringFieldsProps {
   value: string

@@ -3,6 +3,8 @@ import { useSelector } from "react-redux"
 import { useState, useRef, useEffect, type ReactNode } from "react"
 import { CircleChevronDown, CircleChevronUp, Dot, CornerDownRight } from "lucide-react"
 import { CONNECTED } from "@common/src/constants.ts"
+import { Title } from "./title"
+import { Badge } from "./badge"
 import type { RootState } from "@/store.ts"
 import { selectConnectionDetails } from "@/state/valkey-features/connection/connectionSelectors.ts"
 import { selectCluster } from "@/state/valkey-features/cluster/clusterSelectors"
@@ -56,25 +58,24 @@ function AppHeader({ title, icon, className }: AppHeaderProps) {
     <>
       {id && !clusterId ? (
         <div className={cn("flex h-10 mb-4 gap-2 items-center justify-between", className)}>
-          <h1 className="font-bold text-xl flex items-center gap-2">
-            {icon}
+          <Title icon={icon} size="md">
             {title}
-          </h1>
+          </Title>
 
-          <div className="">
-            <span className="text-sm font-light border border-tw-primary text-tw-primary px-3 py-1 rounded">
-              {alias ? alias : `${username}@${host}:${port}`}
-            </span>
-          </div>
+          <Badge variant="default">
+            {alias ? alias : `${username}@${host}:${port}`}
+          </Badge>
         </div>
       ) : (
         <div className={cn("flex h-10 mb-4 gap-2 items-center justify-between relative", className)}>
-          <h1 className="font-bold text-xl flex items-center gap-2">
-            {icon}
+          <Title icon={icon} size="md">
             {title}
-          </h1>
+          </Title>
           <div>
-            <div className="h-5 w-50 px-2 py-4 border-tw-primary border rounded flex items-center gap-2 justify-between">
+            <Badge
+              className="h-5 w-50 px-2 py-4 flex items-center gap-2 justify-between cursor-pointer"
+              variant="default"
+            >
               <div className="flex flex-col gap-1">
                 <span className="font-light text-sm text-tw-primary flex items-center">
                   <Dot className={isConnected ? "text-green-500" : "text-gray-400"} size={45} />
@@ -90,7 +91,7 @@ function AppHeader({ title, icon, className }: AppHeaderProps) {
                   size={18}
                 />
               </button>
-            </div>
+            </Badge>
             {isOpen && (
               <div className="p-4 w-50 py-3 border bg-gray-50 dark:bg-gray-800 text-sm dark:border-tw-dark-border
                 rounded z-10 absolute top-10 right-0" ref={dropdownRef}>
