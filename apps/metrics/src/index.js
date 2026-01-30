@@ -2,7 +2,7 @@ import fs from "node:fs"
 import express from "express"
 import { getConfig, updateConfig } from "./config.js"
 import * as Streamer from "./effects/ndjson-streamer.js"
-import { setupCollectors } from "./init-collectors.js"
+import { setupCollectors, stopCollectors } from "./init-collectors.js"
 import { getCommandLogs } from "./handlers/commandlog-handler.js"
 import { monitorHandler, useMonitor } from "./handlers/monitor-handler.js"
 import { calculateHotKeysFromHotSlots } from "./analyzers/calculate-hot-keys.js"
@@ -30,11 +30,12 @@ async function main() {
       password: process.env.VALKEY_PASSWORD,
     } : undefined
 
+  const useTLS = process.env.VALKEY_TLS === "true"
   const client = await GlideClient.createClient({
     addresses,
     credentials,
-    useTLS: process.env.VALKEY_TLS === "true" ? true : false,
-    ...(process.env.VALKEY_TLS === "true" && process.env.VALKEY_VERIFY_CERT === "false" && {
+    useTLS,
+    ...(useTLS && process.env.VALKEY_VERIFY_CERT === "false" && {
       advancedConfiguration: {
         tlsAdvancedConfiguration: {
           insecure: true,
@@ -46,7 +47,7 @@ async function main() {
     clientName: "test_client",
   })
 
-  const stoppers = await setupCollectors(client, cfg)
+  await setupCollectors(client, cfg)
 
   const app = express()
   app.use(express.json())
@@ -92,23 +93,24 @@ async function main() {
   })
 
   app.get("/hot-keys", async (req, res) => {
-    if (req.query.useHotSlots === "true"){
+    if (req.query.useHotSlots === "true") {
       const hotKeys = await calculateHotKeysFromHotSlots(client, req.query.count).then(enrichHotKeys(client))
       return res.json({ hotKeys })
     }
     else useMonitor(req, res, cfg, client)
   })
 
-  app.post("/update-config", async(req, res) => {
+  app.post("/update-config", async (req, res) => {
     try {
       const result = updateConfig(req.body)
       return res.status(result.statusCode).json(result)
     }
     catch (error) {
-      return res.status(500).json( {
+      return res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : String(error),
-        data: error })
+        data: error,
+      })
     }
   })
 
@@ -123,7 +125,7 @@ async function main() {
   const shutdown = async () => {
     console.log("shutting down")
     try {
-      Object.values(stoppers).forEach((s) => s && s())
+      await stopCollectors()
       server.close(() => process.exit(0))
     } catch (e) {
       console.error("shutdown error", e)

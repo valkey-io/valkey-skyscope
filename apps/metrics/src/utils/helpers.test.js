@@ -3,7 +3,7 @@ import { downsampleMinMaxOrdered } from "./helpers.js"
 
 const mkSeries = (n, fn) =>
   Array.from({ length: n }, (_, i) => ({
-    timestamp: i,
+    timestamp: Date.now() + i,
     value: fn(i),
   }))
 
@@ -34,16 +34,18 @@ describe("downsampleMinMaxOrdered", () => {
 
   it("preserves spikes: includes global max and global min points", () => {
     const s = mkSeries(200, () => 0)
+    const upSpikeTimestamp = Date.now() + 80
+    const downSpikeTimestamp = Date.now() + 120
 
     // inject one big spike up and one spike down in the middle
-    s[80] = { timestamp: 80, value: 999 }
-    s[120] = { timestamp: 120, value: -999 }
+    s[80] = { timestamp: upSpikeTimestamp, value: 999 }
+    s[120] = { timestamp: downSpikeTimestamp, value: -999 }
 
     const out = downsampleMinMaxOrdered({ maxPoints: 20 }, s)
 
     // ensure those extrema points survived
-    expect(out.some((p) => p.timestamp === 80 && p.value === 999)).toBe(true)
-    expect(out.some((p) => p.timestamp === 120 && p.value === -999)).toBe(true)
+    expect(out.some((p) => p.timestamp === upSpikeTimestamp && p.value === 999)).toBe(true)
+    expect(out.some((p) => p.timestamp === downSpikeTimestamp && p.value === -999)).toBe(true)
   })
 
   it("keeps points ordered by timestamp (or at least non-decreasing)", () => {

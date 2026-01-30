@@ -1,4 +1,5 @@
 import * as R from "ramda"
+import { COMMANDLOG_TYPE } from "../utils/constants.js"
 
 export const ymd = (d) => {
   const y = d.getFullYear()
@@ -18,7 +19,7 @@ export const parseCommandLogs = (entries, commandLogType) =>
   ] = []) => ({
     id: String(id),
     ts: Number(tsSec) * 1000,
-    ...(commandLogType === "slow"
+    ...(commandLogType === COMMANDLOG_TYPE.SLOW
       ? { duration_us: Number(metricValue) }
       : { size: Number(metricValue) }),
     argv: Array.isArray(argv) ? argv.map(String) : [],
@@ -34,6 +35,9 @@ export const downsampleMinMaxOrdered = R.curry(({ maxPoints }, series) => {
 
   const [first, last] = R.juxt([R.head, R.last])(series)
 
+  // Validate timestamps : bucketIndex becomes NaN (due to invalid timestamp calculations)
+  if (!first?.timestamp || !last?.timestamp) return series
+
   // Total duration of the time range
   const timespan = last.timestamp - first.timestamp || 1 // so it's not 0 just in case
 
@@ -47,8 +51,16 @@ export const downsampleMinMaxOrdered = R.curry(({ maxPoints }, series) => {
   const buckets = Array.from({ length: bucketCount }, () => ({ min: null, max: null }))
 
   for (const currentDataPoint of series) {
+
+    if (!currentDataPoint?.timestamp || typeof currentDataPoint.value === "undefined") {
+      continue // Skip invalid data points
+    }
+
     // Calculating to which bucketIndex currentDataPoint belongs to
     const bucketIndex = Math.floor((currentDataPoint.timestamp - first.timestamp) * invBucketSize)
+
+    // safety check
+    if (bucketIndex < 0 || !Number.isFinite(bucketIndex)) continue
 
     // And we need to make sure that the right-edge timestamp goes into the very last bucket (hence, Math.min)
     const bucket = buckets[Math.min(bucketIndex, bucketCount - 1)]

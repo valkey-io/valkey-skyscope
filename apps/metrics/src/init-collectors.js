@@ -20,13 +20,15 @@ const updateCollectorMeta = (name, patch) => {
   return next
 }
 
-// Use it in endpoints to return metadata to server then to UI to show when the data was collected and will be refreshed
+// Use it in endpoints to return metadata to server then to UI
+//  to show when the data was collected and will be refreshed
 export const getCollectorMeta = (name) => collectorsState[name]
-const stoppers = {}
+const collectorStoppers = {}
+let monitorStopper
 
 updateCollectorMeta(MONITOR, {
   isRunning: false,
-}) 
+})
 const startMonitor = (cfg) => {
   const nd = makeNdjsonWriter({
     dataDir: cfg.server.data_dir,
@@ -78,7 +80,7 @@ const startMonitor = (cfg) => {
     },
   })
 
-  stoppers[monitorEpic.name] = async () => {
+  monitorStopper = async () => {
     console.info(`[${monitorEpic.name}] stopping monitor...`)
     updateCollectorMeta(monitorEpic.name, {
       stoppedAt: Date.now(),
@@ -90,11 +92,10 @@ const startMonitor = (cfg) => {
   }
 }
 
-const stopMonitor = async () => await stoppers[MONITOR]()
+const stopMonitor = async () => await monitorStopper()
 
 const setupCollectors = async (client, cfg) => {
   const fetcher = makeFetcher(client)
-  const stoppers = {}
   await Promise.all(cfg.epics
     .filter((f) => f.name !== MONITOR && fetcher[f.type])
     .map(async (f) => {
@@ -132,7 +133,7 @@ const setupCollectors = async (client, cfg) => {
       const rows = await fn()
 
       await sink.appendRows(rows)
-      stoppers[f.name] = startCollector({
+      collectorStoppers[f.name] = startCollector({
         name: f.name,
         pollMs: f.poll_ms,
         fetch: fn,
@@ -142,7 +143,11 @@ const setupCollectors = async (client, cfg) => {
       })
     }),
   )
-  return stoppers
 }
 
-export { setupCollectors, startMonitor, stopMonitor }
+const stopCollectors = async () => {
+  const stopperFuncs = Object.values(collectorStoppers).filter(Boolean)
+  await Promise.all(stopperFuncs.map((stop) => stop()))
+}
+
+export { setupCollectors, startMonitor, stopMonitor, stopCollectors }
