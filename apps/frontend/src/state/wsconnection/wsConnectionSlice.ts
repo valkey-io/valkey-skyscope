@@ -3,6 +3,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 
 interface ReconnectState {
   isRetrying: boolean
+  retriesPaused: boolean
   currentAttempt: number
   maxRetries: number
   nextRetryDelay: number | null
@@ -21,6 +22,7 @@ const wsConnectionSlice = createSlice({
     errorMessage: null,
     reconnect: {
       isRetrying: false,
+      retriesPaused: false,
       currentAttempt: 0,
       maxRetries: 8,
       nextRetryDelay: null,
@@ -65,10 +67,17 @@ const wsConnectionSlice = createSlice({
       state.errorMessage = null
       state.reconnect = {
         isRetrying: false,
+        retriesPaused: false,
         currentAttempt: 0,
         maxRetries: 8,
         nextRetryDelay: null,
       }
+    },
+    pauseRetries: (state) => {
+      state.reconnect.retriesPaused = true
+    },
+    resumeRetries: (state) => {
+      state.reconnect.retriesPaused = false
     },
   },
 })
@@ -82,4 +91,6 @@ export const {
   reconnectFailed,
   reconnectExhausted,
   resetConnection, 
+  pauseRetries,
+  resumeRetries,
 } = wsConnectionSlice.actions
