@@ -2,9 +2,9 @@ import { Key, Trash, X } from "lucide-react"
 import { useState } from "react"
 import { convertTTL } from "@common/src/ttl-conversion"
 import { formatBytes } from "@common/src/bytes-conversion"
-import { CustomTooltip } from "./custom-tooltip"
-import { Button } from "./button"
-import DeleteModal from "./delete-modal"
+import { CustomTooltip } from "../../ui/custom-tooltip"
+import { Button } from "../../ui/button"
+import DeleteModal from "../../ui/delete-modal"
 import KeyDetailsString from "./key-details-string"
 import KeyDetailsHash from "./key-details-hash"
 import KeyDetailsList from "./key-details-list"
@@ -88,7 +88,7 @@ export default function KeyDetails({ selectedKey, selectedKeyInfo, connectionId,
   }
 
   return (
-    <div className= "w-1/2 pl-2">
+    <div className="pl-2 h-full">
       <div className="h-full dark:border-tw-dark-border border rounded overflow-hidden">
         {selectedKey && selectedKeyInfo ? (
           <div className="h-full p-4 text-sm font-light overflow-y-auto">

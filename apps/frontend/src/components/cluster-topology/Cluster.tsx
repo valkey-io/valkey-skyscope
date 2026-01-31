@@ -1,8 +1,8 @@
 import { useSelector } from "react-redux"
 import { Server } from "lucide-react"
 import { useParams } from "react-router"
-import { AppHeader } from "./ui/app-header"
-import ClusterNode from "./ui/cluster-node"
+import { AppHeader } from "../ui/app-header"
+import ClusterNode from "./cluster-node"
 import { selectCluster } from "@/state/valkey-features/cluster/clusterSelectors"
 
 export function Cluster() {

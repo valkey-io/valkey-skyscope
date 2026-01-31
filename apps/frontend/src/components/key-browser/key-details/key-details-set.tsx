@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { Check, Pencil, X, Trash, Plus } from "lucide-react"
-import { CustomTooltip } from "./custom-tooltip"
-import { Button } from "./button"
-import DeleteModal from "./delete-modal"
+import { CustomTooltip } from "../../ui/custom-tooltip"
+import { Button } from "../../ui/button"
+import DeleteModal from "../../ui/delete-modal"
 import { useAppDispatch } from "@/hooks/hooks"
 import { updateKeyRequested } from "@/state/valkey-features/keys/keyBrowserSlice"
 
