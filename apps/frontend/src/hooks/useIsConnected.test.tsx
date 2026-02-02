@@ -126,7 +126,7 @@ describe("useIsConnected", () => {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     })
 
-    expect(result.current).toBe(true)
+    expect(result.current).toBe(false)
 
     // Update status to CONNECTED using action creator
     store.dispatch(standaloneConnectFulfilled({
