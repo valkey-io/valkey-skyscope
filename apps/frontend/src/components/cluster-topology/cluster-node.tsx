@@ -115,9 +115,9 @@ export function ClusterNode({
 
             {/* Actions */}
             <div className="flex items-center gap-2 shrink-0">
-          <CustomTooltip content={`${isConnected ? "Connected" : isDisabled ? `Max connections of ${MAX_CONNECTIONS} reached` : "Not Connected" }`}>
-            <PowerIcon
-              className={`
+              <CustomTooltip content={`${isConnected ? "Connected" : isDisabled ? `Max connections of ${MAX_CONNECTIONS} reached` : "Not Connected" }`}>
+                <PowerIcon
+                  className={`
       rounded-full p-0.5
       ${isConnected 
       ? "text-green-500 bg-green-100" 
@@ -126,10 +126,10 @@ export function ClusterNode({
         : "text-gray-400 cursor-pointer bg-gray-100 hover:text-gray-600"
     }
     `}
-              onClick={isDisabled ? undefined : handleNodeConnect}
-              size={18}
-            />
-          </CustomTooltip>
+                  onClick={isDisabled ? undefined : handleNodeConnect}
+                  size={18}
+                />
+              </CustomTooltip>
               <CustomTooltip content="Dashboard">
                 <Button
                   className="h-8 w-8 p-0"
