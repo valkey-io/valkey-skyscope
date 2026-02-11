@@ -14,7 +14,10 @@ import {
   startRetry,
   stopRetry,
   updateConnectionDetails,
-  type ConnectionState
+  type ConnectionState,
+  closeConnectionFulfilled,
+  closeConnectionFailed,
+  closeConnection
 } from "../valkey-features/connection/connectionSlice"
 import { sendRequested } from "../valkey-features/command/commandSlice"
 import { setData } from "../valkey-features/info/infoSlice"
@@ -245,28 +248,51 @@ export const autoReconnectEpic = (store: Store) =>
   )
 
 export const deleteConnectionEpic = () =>
-  action$.pipe(
-    select(deleteConnection),
-    tap(({ payload: { connectionId, silent = false } }) => {
-      try {
-        const currentConnections = getCurrentConnections()
-        R.pipe(
-          R.dissoc(connectionId),
-          JSON.stringify,
-          (updated) => localStorage.setItem(LOCAL_STORAGE.VALKEY_CONNECTIONS, updated),
-          () => {
-            if (!silent) {
-              toast.success("Connection removed successfully!")
-            }
-          },
-        )(currentConnections)
-      } catch (e) {
-        if (!silent) {
-          toast.error("Failed to remove connection!")
+  merge (
+    action$.pipe(
+      select(deleteConnection),
+      tap((action) => {
+        const { connectionId, silent } = action.payload
+        try {
+          const currentConnections = getCurrentConnections()
+          R.pipe(
+            R.dissoc(connectionId),
+            JSON.stringify,
+            (updated) => localStorage.setItem(LOCAL_STORAGE.VALKEY_CONNECTIONS, updated),
+          )(currentConnections)
+        } catch (e) {
+          if (!silent) {
+            toast.error("Failed to remove connection!")
+          }
+          console.error(e)
         }
-        console.error(e)
-      }
-    }),
+        const socket = getSocket()
+        socket.next({ type: closeConnection.type, payload: action.payload })
+      }),
+    ),
+    action$.pipe(
+      select(closeConnection),
+      tap((action) => {
+        const socket = getSocket()
+        socket.next(action)
+      }),
+    ),
+    action$.pipe(
+      select(closeConnectionFulfilled),
+      tap((action) => {
+        const { silent } = action.payload!
+        if (!silent) {
+          toast.success("Connection closed successfully!")
+        }
+
+      }),
+    ),
+    action$.pipe(
+      select(closeConnectionFailed),
+      tap((action) => {
+        toast.error("Failed to close connection: ", action.payload.errorMessage)
+      }),
+    ),
   )
 
 // for updating connection details: this will persist the edits

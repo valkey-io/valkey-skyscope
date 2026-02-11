@@ -113,6 +113,24 @@ async function main() {
     }
   })
 
+  app.delete("/close-client/:connectionId", async (req, res) => {
+    const { connectionId } = req.params
+    try {
+      client.close()
+      process.send?.({ type: "close-client", payload: { connectionId } })
+      return res.status(200).json({
+        ok: true,
+        connectionId,
+      })
+    } catch (err) {
+      console.log("Error is ", err)
+      return res.status(500).json({
+        ok: false,
+        err,
+      })
+    }
+  })
+
   // Setting port to 0 means Express will dynamically find a port
   const port = Number(cfg.server.port || 0)
   const server = app.listen(port, () => {

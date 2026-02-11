@@ -11,7 +11,7 @@ import {
 } from "@common/src/constants"
 import * as R from "ramda"
 
-type ConnectionStatus = typeof NOT_CONNECTED | typeof CONNECTED | typeof CONNECTING | typeof ERROR | typeof DISCONNECTED;
+type ConnectionStatus = typeof NOT_CONNECTED | typeof CONNECTED | typeof CONNECTING | typeof ERROR | typeof DISCONNECTED 
 type Role = "primary" | "replica";
 
 export interface ConnectionDetails {
@@ -211,6 +211,14 @@ const connectionSlice = createSlice({
       state.connections[connectionId].status = NOT_CONNECTED
       state.connections[connectionId].errorMessage = null
     },
+    closeConnectionFulfilled: () => {
+
+    },
+    closeConnectionFailed: (state, action) => {
+      const { connectionId, errorMessage } = action.payload
+      state.connections[connectionId].status = ERROR
+      state.connections[connectionId].errorMessage = errorMessage
+    },
     updateConnectionDetails: (state, action) => {
       const { connectionId } = action.payload
       state.connections[connectionId].connectionDetails = {
@@ -218,8 +226,7 @@ const connectionSlice = createSlice({
         ...action.payload,
       }
     },
-    deleteConnection: (state, action: PayloadAction<{ connectionId: string; silent?: boolean }>) => {
-      const { connectionId } = action.payload
+    deleteConnection: (state, { payload: { connectionId } }) => {
       return R.dissocPath(["connections", connectionId], state)
     },
   },
@@ -235,6 +242,8 @@ export const {
   closeConnection,
   updateConnectionDetails,
   deleteConnection,
+  closeConnectionFulfilled,
+  closeConnectionFailed,
   startRetry,
   stopRetry,
 } = connectionSlice.actions

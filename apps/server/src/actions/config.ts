@@ -50,8 +50,8 @@ export const enableClusterSlotStats = withDeps<Deps, void>(
   async ({ clients, action }) => {
     const { connectionIds } = action.payload
     const promises = connectionIds.map(async (connectionId: string) => {
-      const client = clients.get(connectionId)
-      await client?.customCommand(["CONFIG", "SET", "cluster-slot-stats-enabled", "yes"])
+      const connection = clients.get(connectionId)
+      await connection?.client?.customCommand(["CONFIG", "SET", "cluster-slot-stats-enabled", "yes"])
     })
     await Promise.all(promises)
   },

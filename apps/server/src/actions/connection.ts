@@ -1,7 +1,8 @@
-import { GlideClusterClient } from "@valkey/valkey-glide"
-import { connectToValkey } from "../connection.ts"
+import { GlideClient, GlideClusterClient } from "@valkey/valkey-glide"
+import { closeClient, closeMetricsServer, connectToValkey } from "../connection.ts"
 import { type Deps, withDeps } from "./utils.ts"
 import { setClusterDashboardData } from "../set-dashboard-data.ts"
+import { isLastConnectedClusterNode } from "../utils.ts"
 
 export interface ConnectionDetails {
   host: string;
@@ -34,5 +35,19 @@ export const resetConnection = withDeps<Deps, void>(
     if (client instanceof GlideClusterClient) {
       await setClusterDashboardData(clusterId, client, ws, connectionId)
     }
+  },
+)
+
+export const closeConnection = withDeps<Deps, void>(
+  async ({ ws, clients, action, metricsServerURIs }) => {
+    const { connectionId } = action.payload 
+    const connection = clients.get(connectionId)
+    closeMetricsServer(connectionId, metricsServerURIs)
+    if (connection && (connection.client instanceof GlideClient
+      || (connection.client instanceof GlideClusterClient && await isLastConnectedClusterNode(connectionId, clients)))
+    ){
+      await closeClient(connectionId, connection.client, ws)
+    }
+    clients.delete(connectionId)
   },
 )
