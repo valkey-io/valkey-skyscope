@@ -41,6 +41,7 @@ wss.on("listening", () => { // Add a listener for when the server starts listeni
 wss.on("connection", (ws: WebSocket) => {
   console.log("Client connected.")
   const clients: Map<string, {client: GlideClient | GlideClusterClient, clusterId?: string}> = new Map()
+  const clusterNodesMap: Map<string, string[]> = new Map()
   
   const handlers: Record<string, Handler> = {
     [VALKEY.CONNECTION.connectPending]: connectPending,
@@ -103,7 +104,7 @@ wss.on("connection", (ws: WebSocket) => {
     }
 
     const handler = handlers[action!.type] ?? unknownHandler
-    await handler({ ws, clients, connectionId: connectionId!, metricsServerURIs })(action as ReduxAction)
+    await handler({ ws, clients, connectionId: connectionId!, metricsServerURIs, clusterNodesMap })(action as ReduxAction)
   })
   ws.on("error", (err) => {
     console.error("WebSocket error:", err)
@@ -112,6 +113,7 @@ wss.on("connection", (ws: WebSocket) => {
     // Close all Valkey connections
     clients.forEach((connection) => connection.client.close())
     clients.clear()
+    clusterNodesMap.clear()
 
     console.log("Client disconnected. Reason:", code, reason.toString())
   })

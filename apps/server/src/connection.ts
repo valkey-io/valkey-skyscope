@@ -15,6 +15,7 @@ export async function connectToValkey(
     connectionId: string;
   },
   clients: Map<string, {client: GlideClient | GlideClusterClient, clusterId?: string }>,
+  clusterNodesMap: Map<string, string[]>,
 ) {
 
   const addresses = [
@@ -55,7 +56,16 @@ export async function connectToValkey(
     const jsonModuleAvailable = await checkJsonModuleAvailability(standaloneClient)
     
     if (await belongsToCluster(standaloneClient)) {
-      return connectToCluster(standaloneClient, ws, clients, payload, addresses, credentials, keyEvictionPolicy, jsonModuleAvailable)
+      return connectToCluster(
+        standaloneClient, 
+        ws, 
+        clients, 
+        payload, 
+        addresses, 
+        credentials, 
+        keyEvictionPolicy, 
+        jsonModuleAvailable, 
+        clusterNodesMap)
     }
     // Need to repeat connection info for metrics server
     const connectionInfo = {
@@ -164,6 +174,7 @@ async function connectToCluster(
   credentials: ServerCredentials | undefined,
   keyEvictionPolicy: KeyEvictionPolicy,
   jsonModuleAvailable: boolean,
+  clusterNodesMap: Map<string, string[]>,
 ) {
   await standaloneClient.customCommand(["CONFIG", "SET", "cluster-announce-hostname", addresses[0].host])
   const { clusterNodes, clusterId } = await discoverCluster(standaloneClient, payload)
@@ -187,6 +198,7 @@ async function connectToCluster(
     const { client: existingClient, clusterId: existingClusterId } = existingConnection
     clusterClient = existingClient
     clients.set(payload.connectionId, { client: existingClient, clusterId: existingClusterId })
+    clusterNodesMap.get(existingClusterId!)?.push(payload.connectionId)
   } 
   else {
     ws.send(
@@ -210,6 +222,7 @@ async function connectToCluster(
       clientName: "cluster_client",
     })
     clients.set(payload.connectionId, { client: clusterClient, clusterId })
+    clusterNodesMap.set(clusterId, [payload.connectionId])
   }
 
   const clusterSlotStatsResponse = await clusterClient.customCommand(

@@ -6,6 +6,7 @@ export type Deps = {
   clients: Map<string, {client: GlideClient | GlideClusterClient, clusterId?: string}>
   connectionId: string,
   metricsServerURIs: Map<string, string>,
+  clusterNodesMap: Map<string, string[]>,
 }
 
 export type ReduxAction = {

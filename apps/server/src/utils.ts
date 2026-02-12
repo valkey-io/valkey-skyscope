@@ -133,16 +133,11 @@ export async function resolveHostnameOrIpAddress(hostnameOrIP: string) {
 }
 
 export async function isLastConnectedClusterNode(
-  connectionId: string, clients: Map<string, {client: GlideClient | GlideClusterClient, clusterId? :string }>) {
+  connectionId: string, 
+  clients: Map<string, {client: GlideClient | GlideClusterClient, clusterId? :string }>,
+  clusterNodesMap: Map<string, string[]>) 
+{
   const connection = clients.get(connectionId)
   const currentClusterId = connection?.clusterId
-
-  let sameClusterCount = 0
-  for (const c of clients.values()) {
-    if (c.clusterId === currentClusterId) {
-      sameClusterCount++
-      if (sameClusterCount > 1) return false
-    }
-  }
-  return sameClusterCount === 1
+  return clusterNodesMap.get(currentClusterId!)?.length === 1
 }
