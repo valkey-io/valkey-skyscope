@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest"
-import { CONNECTED, CONNECTING, ERROR, DISCONNECTED, NOT_CONNECTED, DISCONNECTING } from "@common/src/constants"
+import { CONNECTED, CONNECTING, ERROR, DISCONNECTED, DISCONNECTING } from "@common/src/constants"
 import connectionReducer, {
   connectPending,
   standaloneConnectFulfilled,
