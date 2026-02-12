@@ -119,6 +119,8 @@ async function main() {
       const { connectionId } = req.body
       client.close()
       const ownConnectionId = sanitizeUrl(`${process.env.VALKEY_HOST}-${Number(process.env.VALKEY_PORT)}`)
+      // Required to kill electron-managed metrics service
+      // TODO: revisit to decouple concerns
       if (connectionId === ownConnectionId) process.send?.({ type: "close-client", payload: { connectionId } })
       return res.status(200).json({
         ok: true,
