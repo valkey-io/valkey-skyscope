@@ -5,24 +5,27 @@ interface EmptyStateProps extends React.ComponentProps<"div"> {
   title: string
   description?: string
   action?: React.ReactNode
+  icon?: React.ReactNode
 }
 
 function EmptyState({
   title,
   description,
   action,
+  icon,
   className,
   ...props
 }: EmptyStateProps) {
   return (
     <div
       className={cn(
-        "flex-1 flex items-center justify-center flex-col gap-4",
+        "h-full w-full flex items-center justify-center flex-col gap-4",
         className,
       )}
       {...props}
     >
       <div className="text-center">
+        {icon && <div className="flex justify-center mb-3 opacity-30">{icon}</div>}
         <h2 className="text-lg font-semibold text-gray-700 dark:text-white mb-2">
           {title}
         </h2>
