@@ -5,9 +5,14 @@ import { useParams } from "react-router"
 import { COMMANDLOG_TYPE } from "@common/src/constants"
 import * as R from "ramda"
 import { AppHeader } from "../ui/app-header"
+import { TabGroup } from "../ui/tab-group"
+import { ButtonGroup } from "../ui/button-group"
 import { HotKeys } from "./hot-keys"
 import { CommandLogTable } from "./command-log-table"
 import KeyDetails from "../key-browser/key-details/key-details"
+import RouteContainer from "../ui/route-container"
+import { Button } from "../ui/button"
+import { Panel } from "../ui/panel"
 import type { RootState } from "@/store"
 import { commandLogsRequested, selectCommandLogs } from "@/state/valkey-features/commandlogs/commandLogsSlice"
 import { useAppDispatch } from "@/hooks/hooks"
@@ -90,7 +95,7 @@ export const Monitoring = () => {
   }
 
   const selectedKeyInfo = selectedKey
-    ? keys.find((k) => k.name === selectedKey)
+    ? keys.find((k) => k.name === selectedKey) ?? null
     : null
 
   const tabs = [
@@ -99,98 +104,65 @@ export const Monitoring = () => {
   ]
 
   const commandLogSubTabs = [
-    { id: "slow" as CommandLogSubTab, label: "Slow Logs" },
-    { id: "large-request" as CommandLogSubTab, label: "Large Requests" },
-    { id: "large-reply" as CommandLogSubTab, label: "Large Replies" },
+    { value: "slow" as CommandLogSubTab, label: "Slow Logs" },
+    { value: "large-request" as CommandLogSubTab, label: "Large Requests" },
+    { value: "large-reply" as CommandLogSubTab, label: "Large Replies" },
   ]
 
   return (
-    <div className="flex flex-col h-screen p-4">
+    <RouteContainer title="monitoring">
       <AppHeader icon={<Activity size={20} />} title="Monitoring" />
 
-      <div className="flex justify-between mr-2">
+      <div className="flex justify-between">
         {/* Tab Navigation */}
-        <div className="">
-          <nav className="flex gap-x-1">
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab.id
-              return (
-                <button
-                  className={`py-3 px-2 inline-flex items-center gap-x-2 border-b-2 text-sm whitespace-nowrap transition-colors
-                            ${isActive
-                  ? "border-tw-primary text-tw-primary"
-                  : "border-transparent hover:text-tw-primary text-gray-400"
-                }`}
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              )
-            })}
-          </nav>
-        </div>
+        <TabGroup activeTab={activeTab} onChange={setActiveTab} tabs={tabs} />
 
         {/* Hot Keys Refresh */}
         {activeTab === "hot-keys" && (
-          <button
-            className="flex items-center gap-2 font-light text-sm"
+          <Button
             onClick={refreshHotKeys}
+            size={"sm"}
+            variant={"outline"}
           >
             Refresh <RefreshCcw className="hover:text-tw-primary" size={15} />
-          </button>
+          </Button>
         )}
 
         {/* Command Log Sub-tabs and Refresh */}
         {activeTab === "command-logs" && (
           <div className="flex items-center gap-3">
-            {/* Sub-tabs */}
-            <nav className="flex gap-x-1">
-              {commandLogSubTabs.map((subTab) => {
-                const isActive = commandLogSubTab === subTab.id
-                return (
-                  <button
-                    className={`py-1.5 px-3 text-xs whitespace-nowrap transition-colors rounded-full
-                              ${isActive
-                    ? "bg-tw-primary text-white"
-                    : "bg-gray-200 dark:bg-gray-700 hover:bg-tw-primary/40"
-                  }
-                          `}
-                    key={subTab.id}
-                    onClick={() => setCommandLogSubTab(subTab.id)}
-                    role="tab"
-                  >
-                    {subTab.label}
-                  </button>
-                )
-              })}
-            </nav>
+            <ButtonGroup
+              onChange={(value) => setCommandLogSubTab(value as CommandLogSubTab)}
+              options={commandLogSubTabs}
+              value={commandLogSubTab}
+            />
 
             {/* Refresh Button */}
-            <button
-              className="flex items-center gap-2 font-light text-sm"
+            <Button
               onClick={refreshCommandLogs}
+              size={"sm"}
+              variant={"outline"}
             >
               Refresh <RefreshCcw className="hover:text-tw-primary" size={15} />
-            </button>
+            </Button>
           </div>
         )}
       </div>
 
       {/* Tab Content */}
       {activeTab === "hot-keys" ? (
-        <div className="flex flex-1 min-h-0">
+        <div className="flex flex-1">
           {/* Hot Keys List */}
           <div className={selectedKey ? "w-2/3 pr-2" : "w-full"}>
-            <div className="h-full border dark:border-tw-dark-border rounded overflow-y-auto">
+            <Panel >
               <HotKeys
                 data={hotKeysData}
-                errorMessage={hotKeysErrorMessage}
+                errorMessage={hotKeysErrorMessage as string | null}
                 onKeyClick={handleKeyClick}
                 selectedKey={selectedKey}
                 status={hotKeysStatus}
               />
-            </div>
+            </Panel>
           </div>
           {/* Key Details Panel */}
           {selectedKey && (
@@ -204,11 +176,11 @@ export const Monitoring = () => {
           )}
         </div>
       ) : (
-        <div className="flex-1 border dark:border-tw-dark-border rounded overflow-y-auto">
+        <Panel>
           <CommandLogTable data={getCurrentCommandLogData()} logType={commandLogSubTab} />
-        </div>
+        </Panel>
       )}
-    </div>
+    </RouteContainer>
 
   )
 }
