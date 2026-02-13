@@ -25,7 +25,8 @@ describe("connectToValkey", () => {
   let mockWs: any
   let messages: string[]
   let clients: Map<string, any>
-  let clusterNodesMap = new Map<string, string[]>()
+  let clusterNodesMap: Map<string, string[]>
+  let metricsServerUris: Map<string, string>
 
   beforeEach(() => {
     mock.restoreAll()
@@ -35,6 +36,7 @@ describe("connectToValkey", () => {
     }
     clients = new Map()
     clusterNodesMap = new Map() 
+    metricsServerUris = new Map()
 
   })
 
@@ -100,7 +102,7 @@ describe("connectToValkey", () => {
     }
 
     try {
-      const result = await connectToValkey(mockWs, payload, clients, clusterNodesMap)
+      const result = await connectToValkey(mockWs, payload, clients, clusterNodesMap, metricsServerUris)
 
       assert.ok(result)
       assert.strictEqual(mockStandaloneClient.close.mock.calls.length, 1)
@@ -155,7 +157,7 @@ describe("connectToValkey", () => {
     }
 
     try {
-      const result = await connectToValkey(mockWs, payload, clients, clusterNodesMap)
+      const result = await connectToValkey(mockWs, payload, clients, clusterNodesMap, metricsServerUris)
 
       assert.ok(result)
       const connection = clients.get(payload.connectionId)
@@ -205,7 +207,7 @@ describe("connectToValkey", () => {
     })
 
     try {
-      const result = await connectToValkey(mockWs, DEFAULT_PAYLOAD, clients, clusterNodesMap)
+      const result = await connectToValkey(mockWs, DEFAULT_PAYLOAD, clients, clusterNodesMap, metricsServerUris)
 
       assert.strictEqual(result, undefined)
       assert.strictEqual(clients.has(DEFAULT_PAYLOAD.connectionId), false)
@@ -250,7 +252,7 @@ describe("connectToValkey", () => {
     }
 
     try {
-      await connectToValkey(mockWs, alternate_payload, clients, clusterNodesMap)
+      await connectToValkey(mockWs, alternate_payload, clients, clusterNodesMap, metricsServerUris)
       assert.strictEqual((GlideClient.createClient as any).mock.calls.length, 1)
     } finally {
       GlideClient.createClient = originalCreateClient
@@ -272,7 +274,7 @@ describe("connectToValkey", () => {
     payload.connectionId = uniqueConnID
 
     try {
-      await connectToValkey(mockWs, payload, clients, clusterNodesMap)
+      await connectToValkey(mockWs, payload, clients, clusterNodesMap, metricsServerUris)
 
       assert.strictEqual(clients.size, 1)
       assert.ok(clients.has(uniqueConnID))
