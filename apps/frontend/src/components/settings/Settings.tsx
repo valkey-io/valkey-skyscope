@@ -1,12 +1,17 @@
-import { Cog, Save, AlertTriangle, CircleQuestionMark } from "lucide-react"
+import { Cog, Save, AlertTriangle } from "lucide-react"
 import { useSelector } from "react-redux"
 import { useParams } from "react-router"
 import { useEffect, useState } from "react"
 import { TooltipProvider } from "@radix-ui/react-tooltip"
 import ThemeToggle from "../ui/theme-toggle"
-import { CustomTooltip } from "../ui/tooltip"
-import { selectConfig, updateConfig } from "@/state/valkey-features/config/configSlice"
+import { ButtonGroup } from "../ui/button-group"
+import RouteContainer from "../ui/route-container"
+import { SectionHeader } from "../ui/section-header"
+import { TooltipIcon } from "../ui/tooltip-icon"
+import { Input } from "../ui/input"
+import { Button } from "../ui/button"
 import { useAppDispatch } from "@/hooks/hooks"
+import { selectConfig, updateConfig } from "@/state/valkey-features/config/configSlice"
 
 export default function Settings() {
   const { id, clusterId } = useParams()
@@ -33,57 +38,41 @@ export default function Settings() {
     dispatch(updateConfig({ connectionId: id!, clusterId, config: { monitoring: { monitorEnabled, monitorDuration } } }))
   }
   return (
-    <div className="p-4 relative min-h-screen flex flex-col">
+    <RouteContainer className="p-4 relative min-h-screen flex flex-col">
       {/* top header */}
       <div className="flex items-center justify-between h-10">
         <h1 className="text-xl font-bold flex items-center gap-2 text-gray-700 dark:text-white">
           <Cog /> Settings
         </h1>
       </div>
-      <div className="mt-10 pl-1">
-        <h2 className="border-b-1 pb-1 dark:border-tw-dark-border font-medium text-tw-primary">Appearance</h2>
+      <div className="mt-4 pl-1">
+        <SectionHeader className="border-b-1 pb-1">Appearance</SectionHeader>
         <ThemeToggle />
       </div>
       {/* monitoring - only show when connected */}
       {config && (
         <div className="mt-10 pl-1">
           <TooltipProvider>
-            <div className="flex items-center gap-2 border-b-1 pb-1 dark:border-tw-dark-border font-medium text-tw-primary">
-              <h2>Hot Keys</h2>
-              <CustomTooltip description="Enables monitoring to collect hotkeys. Requires key eviction policy not
-               set to LFU* and cluster slot stats to be enabled.">
-                <CircleQuestionMark className="bg-tw-primary/10 rounded-full text-tw-primary" size={16} />
-              </CustomTooltip>
-            </div>
-            <div className="flex items-center justify-between mt-4">
+            <SectionHeader className="flex items-center gap-2 border-b-1 pb-1">
+              Hot Keys
+              <TooltipIcon description="Enables monitoring to collect hotkeys. Requires key eviction policy not
+               set to LFU* and cluster slot stats to be enabled." size={16}>
+              </TooltipIcon>
+            </SectionHeader>
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm">Enable Monitoring</span>
-                <CustomTooltip description="Enable or disable monitoring for this connection.">
-                  <CircleQuestionMark className="bg-tw-primary/10 rounded-full text-tw-primary" size={16} />
-                </CustomTooltip>
+                <TooltipIcon description="Enable or disable monitoring for this connection." size={16}>
+                </TooltipIcon>
               </div>
-              <div className="inline-flex rounded border border-gray-400 overflow-hidden text-sm font-medium">
-                <button
-                  className={`flex items-center gap-1 px-3 py-1 transition-colors ${monitorEnabled
-                    ? "bg-tw-primary text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-tw-dark-primary dark:text-white dark:hover:bg-gray-700"
-                  }`}
-                  onClick={() => setMonitorEnabled(true)}
-                  type="button"
-                >
-                  On
-                </button>
-                <button
-                  className={`flex items-center gap-1 px-3 py-1 transition-colors ${!monitorEnabled
-                    ? "bg-tw-primary text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-tw-dark-primary dark:text-white dark:hover:bg-gray-700"
-                  }`}
-                  onClick={() => setMonitorEnabled(false)}
-                  type="button"
-                >
-                  Off
-                </button>
-              </div>
+              <ButtonGroup
+                onChange={(value) => setMonitorEnabled(value === "on")}
+                options={[
+                  { value: "on", label: "On" },
+                  { value: "off", label: "Off" },
+                ]}
+                value={monitorEnabled ? "on" : "off"}
+              />
             </div>
 
             {monitorEnabled && (
@@ -101,16 +90,13 @@ export default function Settings() {
             <div className="flex items-center justify-between mt-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm">Monitor Duration (ms)</span>
-                <CustomTooltip description="Duration in milliseconds during which monitoring data is collected.">
-                  <CircleQuestionMark className="bg-tw-primary/10 rounded-full text-tw-primary" size={16} />
-                </CustomTooltip>
+                <TooltipIcon description="Duration in milliseconds during which monitoring data is collected." size={16}>
+                </TooltipIcon>
               </div>
-              <input
-                className="w-32 px-3 py-1 text-sm border border-gray-400 rounded bg-white dark:bg-tw-dark-primary text-gray-700
-                 dark:text-white focus:outline-none focus:ring-2 focus:ring-tw-primary"
-                min="1000"
+              <Input
                 onChange={(e) => setMonitorDuration(Number(e.target.value))}
                 step="1000"
+                style={{ width: "100px" }}
                 type="number"
                 value={monitorDuration}
               />
@@ -118,22 +104,21 @@ export default function Settings() {
 
             {/* save button */}
             <div className="flex justify-end mt-6">
-              <button
-                className="bg-tw-primary flex items-center gap-1 px-3 py-1 rounded cursor-pointer
-                disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors
-                hover:bg-tw-primary/70 text-sm"
+              <Button
                 disabled={!hasChanges}
                 onClick={handleSave}
+                size={"sm"}
                 type="button"
+                variant={"default"}
               >
                 <Save size={16} />
                 Save
-              </button>
+              </Button>
             </div>
           </TooltipProvider>
         </div>
       )}
-    </div>
+    </RouteContainer>
   )
 }
 
